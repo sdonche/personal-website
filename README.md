@@ -34,11 +34,10 @@ There is **no build step**. Tailwind is loaded via its v4 browser script, fonts 
 ├── index.html                # Single-page site, all sections inlined
 ├── assets/
 │   ├── css/styles.css        # Custom styles (animations, network nav, timeline, etc.)
-│   ├── js/script.js          # Network nav builder, scroll behavior, contact form
-│   └── img/                  # Drop your favicon / photos here
+│   └── js/script.js          # Network nav builder, scroll behavior, contact form
 ├── .htaccess                 # Apache config: HTTPS, custom 404, caching (Hostinger)
 ├── 404.html                  # Custom 404 (wired up via .htaccess)
-├── .nojekyll                 # Leftover from GitHub Pages; harmless on Hostinger
+├── .gitignore                # Keeps secrets / OS cruft out of the repo
 └── README.md
 ```
 
@@ -116,7 +115,6 @@ Hostinger's Git integration (**hPanel → Advanced → GIT**) is connected to th
 
 - **[.htaccess](.htaccess)** — forces HTTPS, wires up the custom `404.html`, and sets gzip + cache headers. HTML is cached only briefly so content edits appear quickly.
 - **Free SSL** — issued by Hostinger for samdonche.com (**hPanel → Security → SSL**); HTTPS is enforced via `.htaccess`.
-- **`.nojekyll`** — a leftover from the original GitHub Pages setup. Harmless on Hostinger (Jekyll is GitHub-only); kept only so the repo stays portable back to Pages.
 
 ### Caching gotcha
 
