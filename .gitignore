@@ -1,0 +1,30 @@
+# Secrets / credentials — never commit these to a public repo
+.env
+.env.*
+*.pem
+*.key
+*.p12
+.htpasswd
+secrets.*
+credentials.*
+
+# OS cruft
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# Editor / IDE (note: .vscode/settings.json is intentionally tracked)
+*.swp
+*.swo
+*~
+.idea/
+
+# Logs & temp
+*.log
+*.tmp
+tmp/
+
+# Dependency dirs (in case tooling is ever added)
+node_modules/
