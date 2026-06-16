@@ -1,6 +1,6 @@
 # Personal Website — Sam Donche
 
-A single-page personal site with an **Industry 4.0 / IIoT** aesthetic. Built with vanilla HTML/JS and Tailwind CSS v4 (browser build, no toolchain). Designed to be hosted on **GitHub Pages**.
+A single-page personal site with an **Industry 4.0 / IIoT** aesthetic. Built with vanilla HTML/JS and Tailwind CSS v4 (browser build, no toolchain). Hosted on **Hostinger** at **[samdonche.com](https://samdonche.com)**, deployed automatically from this repo via Hostinger's Git integration.
 
 The navigation borrows from **Ignition's tag browser**:
 
@@ -15,8 +15,8 @@ Both are driven by a single `SECTIONS` registry in [assets/js/script.js](assets/
 
 ```bash
 # Clone (or just open the folder)
-git clone https://github.com/<your-user>/<repo>.git
-cd <repo>
+git clone https://github.com/sdonche/personal-website.git
+cd personal-website
 
 # Open locally — any static server works
 python3 -m http.server 8080
@@ -36,8 +36,9 @@ There is **no build step**. Tailwind is loaded via its v4 browser script, fonts 
 │   ├── css/styles.css        # Custom styles (animations, network nav, timeline, etc.)
 │   ├── js/script.js          # Network nav builder, scroll behavior, contact form
 │   └── img/                  # Drop your favicon / photos here
-├── 404.html                  # Custom 404 used by GitHub Pages
-├── .nojekyll                 # Disables Jekyll processing on GH Pages
+├── .htaccess                 # Apache config: HTTPS, custom 404, caching (Hostinger)
+├── 404.html                  # Custom 404 (wired up via .htaccess)
+├── .nojekyll                 # Leftover from GitHub Pages; harmless on Hostinger
 └── README.md
 ```
 
@@ -82,52 +83,48 @@ The contact form ships with a **mailto fallback** so it works out of the box (it
 
 The JS in `assets/js/script.js` auto-detects whether Formspree is configured and falls back to `mailto:` if not.
 
----
+### Email anti-scrape
 
-## Deploying to GitHub Pages
+The contact email is **never written as plaintext** in the HTML — that keeps harvester bots (which don't run JS) from picking it up. It's stored **base64-encoded** in `data-email` attributes and assembled at runtime by `wireEmailLinks()` in [assets/js/script.js](assets/js/script.js), which sets the `mailto:` href and, unless `data-email-text="false"`, the visible link text.
 
-### 1. Push to GitHub
+To change the address, encode it and update **both** the `data-email` attributes in `index.html` and `B64_EMAIL` in `script.js`:
 
 ```bash
-git init
-git add .
-git commit -m "Initial site"
-git branch -M main
-git remote add origin https://github.com/<your-user>/<repo>.git
-git push -u origin main
+printf '%s' 'you@example.com' | base64
 ```
 
-### 2. Enable Pages
+> Trade-off: visitors with JavaScript disabled won't see the address (the links read "reveal email address" / "email" and the contact form's `mailto:` fallback won't fire). The Formspree form remains the primary, JS-light path.
 
-In your repo on GitHub:
+---
 
-1. **Settings → Pages**
-2. **Source**: `Deploy from a branch`
-3. **Branch**: `main` · folder: `/ (root)`
-4. Save. After ~30s your site is live at `https://<your-user>.github.io/<repo>/`.
+## Hosting & deployment (Hostinger)
 
-`.nojekyll` is included so GitHub Pages serves files as-is without Jekyll processing.
+The site lives on a **Hostinger Business Web Hosting** plan, served from `public_html/` at the main domain **samdonche.com**. Because it's fully static, there's no build or runtime — Hostinger just serves the files.
 
-### 3. Custom domain (optional)
+### How a change goes live
 
-If you own a domain (e.g. `samdonche.dev`):
+```bash
+# edit files locally, then:
+git add -A
+git commit -m "Update content"
+git push origin main
+```
 
-1. In your DNS provider, add:
-   - **Apex domain** (`samdonche.dev`): four A records pointing to GitHub's IPs:
-     ```
-     185.199.108.153
-     185.199.109.153
-     185.199.110.153
-     185.199.111.153
-     ```
-   - **Or `www` subdomain**: a CNAME record pointing to `<your-user>.github.io`.
-2. Add a `CNAME` file at the repo root containing just your domain:
-   ```
-   samdonche.dev
-   ```
-3. In **Settings → Pages → Custom domain**, enter your domain and tick **Enforce HTTPS** once the cert is issued (usually a few minutes).
+Hostinger's Git integration (**hPanel → Advanced → GIT**) is connected to this GitHub repo with **auto-deployment on**, branch `main`, root directory `public_html`. Every push to `main` is pulled onto the server automatically — no manual step. (You can also click **Redeploy** in hPanel, or trigger a manual deploy any time.)
 
-> ℹ️ The `CNAME` file is **not** included in this repo by default — add it only when you have a domain ready. GitHub may create/update it for you when you save the domain in the UI.
+### Supporting config
+
+- **[.htaccess](.htaccess)** — forces HTTPS, wires up the custom `404.html`, and sets gzip + cache headers. HTML is cached only briefly so content edits appear quickly.
+- **Free SSL** — issued by Hostinger for samdonche.com (**hPanel → Security → SSL**); HTTPS is enforced via `.htaccess`.
+- **`.nojekyll`** — a leftover from the original GitHub Pages setup. Harmless on Hostinger (Jekyll is GitHub-only); kept only so the repo stays portable back to Pages.
+
+### Caching gotcha
+
+Hostinger runs **LiteSpeed cache** + a **CDN edge cache**. If an update doesn't show up after a deploy, purge the cache in hPanel (**Cache Manager** / **Purge cache**) — or wait for it to expire on its own.
+
+### Custom domain note
+
+samdonche.com is registered inside the same Hostinger account, so it's set as the plan's main domain in hPanel (**Websites → Domains → Main domain**) and its DNS points to Hostinger automatically — no external A/CNAME records needed.
 
 ---
 
