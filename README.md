@@ -87,7 +87,10 @@ The JS in `assets/js/script.js` auto-detects whether Formspree is configured and
 
 ### Email anti-scrape
 
-The contact email is **never written as plaintext** in the HTML — that keeps harvester bots (which don't run JS) from picking it up. It's stored **base64-encoded** in `data-email` attributes and assembled at runtime by `wireEmailLinks()` in [assets/js/script.js](assets/js/script.js), which sets the `mailto:` href and, unless `data-email-text="false"`, the visible link text.
+The contact email is **never written as plaintext** in the HTML — that keeps harvester bots (which don't run JS) from picking it up. It's stored **base64-encoded** in `data-email` attributes and assembled at runtime by `wireEmailLinks()` in [assets/js/script.js](assets/js/script.js). Two modes:
+
+- **Click-to-reveal** (`data-email-reveal`, the "reveal email address" link): the address stays out of the DOM entirely until the visitor clicks — the first click swaps in the real address + a working `mailto:`, a second click opens the mail client.
+- **Immediate** (default, e.g. the footer "email" link): the `mailto:` is wired on load; the visible label is replaced with the address unless `data-email-text="false"`.
 
 To change the address, encode it and update **both** the `data-email` attributes in `index.html` and `B64_EMAIL` in `script.js`:
 
@@ -157,6 +160,8 @@ The decorative HUD card in the hero (`<aside aria-hidden="true">`) is purely vis
 - Skip link, ARIA labels on the sidebar (`role="tree"`) and palette (`role="dialog"`, `aria-modal`).
 - Mobile sidebar opens via a labeled hamburger and traps body scroll while open; `Esc` and backdrop-click close it.
 - `prefers-reduced-motion` disables the LIVE pulse, reveal animations and palette enter animation.
+- **Progressive enhancement:** scroll-reveal is hidden only when JS is available (an inline script sets `html.js`; the CSS hides `.reveal` exclusively under `.js`). With JS off, all content renders fully — nothing depends on the observer firing.
+- **Cache-busting:** the `styles.css` / `script.js` includes carry a `?v=YYYY-MM-DD` query. Bump it whenever you edit those files so returning visitors get the new version despite the long asset cache in `.htaccess` (and purge the Hostinger cache after deploying).
 - No JS frameworks; ~1 small JS file + 1 CSS file + Tailwind CDN. Lighthouse should score near-100 out of the box.
 - Fonts are loaded with `preconnect`; consider self-hosting them if you want zero third-party requests.
 

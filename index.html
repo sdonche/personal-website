@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Flag JS as available before paint, so scroll-reveal only hides content it can later reveal -->
+  <script>document.documentElement.classList.add('js');</script>
   <meta name="theme-color" content="#020617" />
   <meta name="description" content="Sam Donche — Industry 4.0 Consultant based in Ieper, Belgium. Industrial digital architecture, MES, data engineering." />
   <meta name="author" content="Sam Donche" />
@@ -85,7 +87,8 @@
   </style>
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
-  <link rel="stylesheet" href="assets/css/styles.css" />
+  <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
+  <link rel="stylesheet" href="assets/css/styles.css?v=2026-06-16" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -699,7 +702,7 @@
         <p class="mt-8 text-sm text-slate-500">
           Prefer email?
           <!-- CONTENT: email is base64-encoded & assembled by JS to deter scrapers — see wireEmailLinks() in script.js -->
-          <a data-email="c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t" href="#contact" class="text-brand-300 hover:text-brand-200 underline-offset-4 hover:underline">reveal email address</a>
+          <a data-email="c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t" data-email-reveal href="#contact" class="text-brand-300 hover:text-brand-200 underline-offset-4 hover:underline" title="Click to reveal email address">reveal email address</a>
         </p>
       </div>
     </section>
@@ -752,6 +755,7 @@
     </div>
   </div>
 
-  <script src="assets/js/script.js" defer></script>
+  <!-- ?v= cache-buster: bump this date whenever script.js changes -->
+  <script src="assets/js/script.js?v=2026-06-16" defer></script>
 </body>
 </html>

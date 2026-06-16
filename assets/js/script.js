@@ -716,6 +716,23 @@
     document.querySelectorAll("[data-email]").forEach(el => {
       const addr = decodeEmail(el.getAttribute("data-email"));
       if (!addr) return;
+
+      // Click-to-reveal: address stays out of the DOM until the user clicks.
+      // First click swaps the label for the real address + a working mailto;
+      // a second click (now a normal mailto link) opens the mail client.
+      if (el.hasAttribute("data-email-reveal")) {
+        el.addEventListener("click", (e) => {
+          if (el.dataset.revealed) return;
+          e.preventDefault();
+          el.textContent = addr;
+          el.setAttribute("href", `mailto:${addr}`);
+          el.dataset.revealed = "1";
+          el.removeAttribute("data-email");
+        });
+        return;
+      }
+
+      // Immediate mode (e.g. footer "email"): wire the mailto on load.
       el.setAttribute("href", `mailto:${addr}`);
       // data-email-text="false" keeps the existing label (e.g. "email")
       if (el.getAttribute("data-email-text") !== "false") el.textContent = addr;

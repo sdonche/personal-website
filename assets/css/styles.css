@@ -869,12 +869,15 @@ html { color-scheme: dark; }
 /* ----------------------------------------------------
    8. Scroll-reveal
    ---------------------------------------------------- */
-.reveal {
+/* Hidden state applies ONLY when JS is active (html.js is set by an inline
+   script in <head>). Without JS the observer never runs, so content must
+   stay visible — no-JS visitors see everything. */
+.js .reveal {
   opacity: 0;
   transform: translateY(14px);
   transition: opacity .7s ease, transform .7s ease;
 }
-.reveal.is-visible {
+.js .reveal.is-visible {
   opacity: 1;
   transform: none;
 }
@@ -903,6 +906,6 @@ html { color-scheme: dark; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .reveal { opacity: 1; transform: none; }
+  .reveal, .js .reveal { opacity: 1; transform: none; }
   .skill.is-animated::before { transition: none; }
 }
