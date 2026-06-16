@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#020617" />
+  <meta name="description" content="Sam Donche — Industry 4.0 Consultant based in Ieper, Belgium. Industrial digital architecture, MES, data engineering." />
+  <title>Sam Donche — Industry 4.0 Consultant</title>
+
+  <!-- Favicon (simple SVG, no external file needed) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Ccircle cx='16' cy='16' r='5' fill='none' stroke='%2322d3ee' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%2322d3ee'/%3E%3C/svg%3E" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS v4 (browser build — no build step required) -->
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+
+  <!-- Tailwind v4 design tokens via @theme -->
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+      --color-brand-50:  #ecfeff;
+      --color-brand-100: #cffafe;
+      --color-brand-200: #a5f3fc;
+      --color-brand-300: #67e8f9;
+      --color-brand-400: #22d3ee;
+      --color-brand-500: #06b6d4;
+      --color-brand-600: #0891b2;
+      --color-brand-700: #0e7490;
+      --color-accent:    #34d399; /* emerald-400 — "online" indicator */
+    }
+  </style>
+
+  <!-- Custom styles (animations, grid bg, network nav specifics) -->
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
+
+  <!-- ============================================================
+       BACKGROUND GRID (decorative, fixed)
+       ============================================================ -->
+  <div aria-hidden="true" class="fixed inset-0 -z-10 bg-slate-950">
+    <div class="absolute inset-0 grid-bg opacity-[0.35]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(52,211,153,0.05),_transparent_50%)]"></div>
+  </div>
+
+  <!-- ============================================================
+       SKIP LINK (a11y)
+       ============================================================ -->
+  <a href="#hero" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-3 focus:py-2 focus:rounded focus:bg-brand-400 focus:text-slate-950 focus:font-semibold">
+    Skip to content
+  </a>
+
+  <!-- ============================================================
+       TOP BAR — logo + system status + mobile nav trigger
+       ============================================================ -->
+  <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+      <a href="#hero" class="flex items-center gap-2 group" aria-label="Home">
+        <span class="relative inline-flex h-2.5 w-2.5">
+          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+        </span>
+        <span class="font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
+          <!-- CONTENT: short brand / handle -->
+          sam.donche<span class="text-brand-400">@</span>edge
+        </span>
+      </a>
+
+      <div class="hidden sm:flex items-center gap-4 font-mono text-[11px] uppercase tracking-widest text-slate-500">
+        <span class="flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-accent"></span>System: Online</span>
+        <span aria-hidden="true" class="text-slate-700">|</span>
+        <span id="local-time" aria-live="off">--:--:--</span>
+      </div>
+
+      <!-- Mobile-only: open tag-browser sidebar overlay -->
+      <button
+        id="nav-toggle"
+        type="button"
+        class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition"
+        aria-label="Open navigation"
+        aria-expanded="false"
+        aria-controls="tag-nav"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+          <path d="M3 6h18M3 12h18M3 18h18"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       TAG-BROWSER NAVIGATION (Ignition-style)
+       Desktop: fixed left sidebar below the top bar
+       Mobile:  slide-in overlay toggled by #nav-toggle
+       Tree items + QV (quality-value) badges are rendered by script.js
+       ============================================================ -->
+  <aside
+    id="tag-nav"
+    aria-label="Site tag browser"
+    class="tag-nav"
+  >
+    <div class="tag-nav__panel">
+      <header class="tag-nav__header">
+        <div class="tag-nav__title">
+          <span class="tag-nav__chev" aria-hidden="true">▼</span>
+          <span class="tag-nav__brand">samdonche</span>
+        </div>
+        <button
+          id="nav-close"
+          type="button"
+          class="tag-nav__close lg:hidden"
+          aria-label="Close navigation"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 mx-auto">
+            <path d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </button>
+      </header>
+
+      <p class="tag-nav__caption">[ TAG BROWSER ]</p>
+
+      <!-- Tree is rendered by script.js from the SECTIONS registry.
+           Static <ul> remains as fallback for no-JS + SEO. -->
+      <ul id="tag-nav-tree" class="tag-nav__tree" role="tree">
+        <li role="treeitem"><a href="#hero">home</a></li>
+        <li role="treeitem"><a href="#about">about</a></li>
+        <li role="treeitem"><a href="#experience">experience</a></li>
+        <li role="treeitem"><a href="#education">education</a></li>
+        <li role="treeitem"><a href="#skills">skills</a></li>
+        <li role="treeitem"><a href="#contact">contact</a></li>
+      </ul>
+
+      <footer class="tag-nav__footer">
+        <button id="cmdk-open" type="button" class="tag-nav__cmdk" aria-label="Open tag search (Cmd+K)">
+          <span class="tag-nav__cmdk-keys"><kbd>⌘</kbd><kbd>K</kbd></span>
+          <span class="tag-nav__cmdk-label">search tags</span>
+        </button>
+      </footer>
+    </div>
+  </aside>
+
+  <main class="relative lg:pl-64">
+
+    <!-- ============================================================
+         HERO
+         ============================================================ -->
+    <section id="hero" class="relative min-h-screen flex items-center px-4 sm:px-6 pt-20 pb-24">
+      <div class="max-w-6xl mx-auto w-full grid lg:grid-cols-[1fr_auto] gap-12 items-center">
+        <div class="reveal">
+          <p class="font-mono text-xs uppercase tracking-[0.3em] text-brand-400 mb-4 flex items-center gap-2">
+            <span class="h-px w-8 bg-brand-400/60"></span> Industry 4.0 / IIoT
+          </p>
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
+            <!-- CONTENT: hero headline -->
+            Connecting machines,<br/>
+            data, and <span class="text-brand-400">decisions.</span>
+          </h1>
+          <p class="mt-6 text-lg text-slate-400 max-w-xl leading-relaxed">
+            <!-- CONTENT: hero tagline -->
+            I&rsquo;m <span class="text-slate-200 font-medium">Sam Donche</span>, Industry 4.0 Consultant based in West Flanders. I help manufacturers connect their assets, structure their data, and turn operational reality into decisions worth acting on.
+          </p>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="#experience"
+               class="inline-flex items-center gap-2 px-5 py-3 rounded-md bg-brand-400 text-slate-950 font-semibold hover:bg-brand-300 transition shadow-[0_0_30px_-5px_rgba(34,211,238,0.5)]">
+              View work
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </a>
+            <a href="#contact"
+               class="inline-flex items-center gap-2 px-5 py-3 rounded-md border border-slate-700 text-slate-200 hover:border-brand-400/60 hover:text-brand-300 transition">
+              Get in touch
+            </a>
+          </div>
+
+          <!-- Stat strip -->
+          <dl class="mt-12 grid grid-cols-3 gap-4 max-w-lg">
+            <div class="rounded-md border border-slate-800 bg-slate-900/40 p-4">
+              <dt class="font-mono text-[10px] uppercase tracking-widest text-slate-500">Industry Yrs</dt>
+              <dd class="text-2xl font-semibold text-brand-300 mt-1">4+</dd>
+            </div>
+            <div class="rounded-md border border-slate-800 bg-slate-900/40 p-4">
+              <dt class="font-mono text-[10px] uppercase tracking-widest text-slate-500">Sectors</dt>
+              <dd class="text-2xl font-semibold text-brand-300 mt-1">4</dd>
+            </div>
+            <div class="rounded-md border border-slate-800 bg-slate-900/40 p-4">
+              <dt class="font-mono text-[10px] uppercase tracking-widest text-slate-500">Languages</dt>
+              <dd class="text-2xl font-semibold text-brand-300 mt-1">5</dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Profile inspector — mirrors the sidebar tag-browser language -->
+        <aside class="hidden lg:block w-80 reveal">
+          <div class="rounded-lg border border-slate-800 bg-slate-900/50 backdrop-blur-sm overflow-hidden transition-colors hover:border-brand-400/40 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.5)]">
+
+            <!-- Header strip: tag path + status -->
+            <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 bg-slate-950/40">
+              <span class="font-mono text-xs text-brand-300">
+                <span class="text-brand-400">◇</span> samdonche<span class="text-slate-600">/</span>profile
+              </span>
+              <span class="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-accent">
+                <span class="relative inline-flex h-1.5 w-1.5">
+                  <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+                  <span class="relative rounded-full h-1.5 w-1.5 bg-accent"></span>
+                </span>
+                Active
+              </span>
+            </div>
+
+            <!-- Identity attributes -->
+            <dl class="px-5 py-4 space-y-3">
+              <div class="grid grid-cols-[5.5rem_1fr] items-baseline gap-3">
+                <dt class="font-mono text-[10px] uppercase tracking-widest text-slate-500">Role</dt>
+                <dd class="text-sm text-slate-100">Industry 4.0 Consultant</dd>
+              </div>
+              <div class="grid grid-cols-[5.5rem_1fr] items-baseline gap-3">
+                <dt class="font-mono text-[10px] uppercase tracking-widest text-slate-500">Company</dt>
+                <dd class="text-sm text-slate-100">Mustry Solutions</dd>
+              </div>
+              <div class="grid grid-cols-[5.5rem_1fr] items-baseline gap-3">
+                <dt class="font-mono text-[10px] uppercase tracking-widest text-slate-500">Region</dt>
+                <dd class="text-sm text-slate-100">Belgium <span class="text-slate-500">·</span> EU</dd>
+              </div>
+            </dl>
+
+            <!-- Availability -->
+            <div class="px-5 py-4 border-t border-slate-800">
+              <p class="font-mono text-[10px] uppercase tracking-widest text-slate-500 mb-3">Available for</p>
+              <ul class="space-y-2 text-sm text-slate-200">
+                <!-- CONTENT: tweak / reorder these engagement types -->
+                <li class="flex items-baseline gap-2.5">
+                  <span class="h-1.5 w-1.5 rounded-full bg-brand-400 flex-shrink-0 translate-y-[3px]"></span>
+                  <span>Advisory engagements</span>
+                </li>
+                <li class="flex items-baseline gap-2.5">
+                  <span class="h-1.5 w-1.5 rounded-full bg-brand-400 flex-shrink-0 translate-y-[3px]"></span>
+                  <span>Implementation projects</span>
+                </li>
+                <li class="flex items-baseline gap-2.5">
+                  <span class="h-1.5 w-1.5 rounded-full bg-brand-400 flex-shrink-0 translate-y-[3px]"></span>
+                  <span>Architecture audits</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- CTA strip -->
+            <a href="#contact" class="group flex items-center justify-between px-5 py-3.5 border-t border-slate-800 bg-slate-950/40 hover:bg-brand-400/5 transition">
+              <span class="font-mono text-xs uppercase tracking-widest text-slate-300 group-hover:text-brand-300 transition-colors">Open channel</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-slate-500 group-hover:text-brand-300 group-hover:translate-x-0.5 transition">
+                <path d="M5 12h14M13 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Scroll hint -->
+      <a href="#about" aria-label="Scroll to About" class="absolute bottom-8 left-1/2 -translate-x-1/2 text-slate-500 hover:text-brand-300 transition animate-bounce-slow">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-6 w-6"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </a>
+    </section>
+
+    <!-- ============================================================
+         ABOUT
+         ============================================================ -->
+    <section id="about" class="px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
+      <div class="max-w-4xl mx-auto">
+        <div class="reveal">
+          <p class="section-eyebrow">// About</p>
+          <h2 class="section-title">From the lab bench to the plant floor.</h2>
+        </div>
+        <div class="mt-10 grid md:grid-cols-3 gap-8 reveal">
+          <div class="md:col-span-2 space-y-5 text-slate-300 leading-relaxed">
+            <!-- CONTENT: about paragraphs -->
+            <p>
+              I started in biomedical research — four years of PhD work at UZ Gent on PET-guided radiotherapy and imaging biomarkers, four peer-reviewed publications, and the kind of data analysis discipline that only comes from staring at noisy signals for a long time.
+            </p>
+            <p>
+              I moved to industry in 2022, first as a data engineer at <span class="text-slate-200">Clarebout Potatoes</span>, then as MES project engineer at <span class="text-slate-200">Vandemoortele</span>. Same instinct, different context: capture what the process is actually doing, structure it so people trust it, and feed it back to the operators and engineers who make decisions on the floor.
+            </p>
+            <p>
+              Now I do that work as an Industry 4.0 Consultant at <span class="text-slate-200">Mustry Solutions</span> — designing scalable industrial digital architectures across manufacturing, aerospace, textiles and energy.
+            </p>
+          </div>
+          <aside class="space-y-3 font-mono text-xs">
+            <div class="rounded-md border border-slate-800 bg-slate-900/30 p-4">
+              <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-2">Currently</p>
+              <p class="text-slate-200">Mustry Solutions</p>
+              <p class="text-slate-500 mt-1">Industry 4.0 Consultant</p>
+            </div>
+            <div class="rounded-md border border-slate-800 bg-slate-900/30 p-4">
+              <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-2">Based</p>
+              <p class="text-slate-200">Ieper, West Flanders</p>
+              <p class="text-slate-500 mt-1">Belgium · Remote-friendly</p>
+            </div>
+            <div class="rounded-md border border-slate-800 bg-slate-900/30 p-4">
+              <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-2">Focus</p>
+              <p class="text-slate-200">Industry 4.0 · Data Engineering · MES</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         EXPERIENCE
+         ============================================================ -->
+    <section id="experience" class="px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
+      <div class="max-w-4xl mx-auto">
+        <div class="reveal">
+          <p class="section-eyebrow">// Work History</p>
+          <h2 class="section-title">Selected experience</h2>
+        </div>
+
+        <!--
+          CONTENT: work history. Duplicate <li class="timeline-item"> per role.
+          The bullet descriptions below are inferred from each company's domain — refine to match your actual scope.
+        -->
+        <ol class="mt-12 relative timeline">
+
+          <li id="role-mustry" class="timeline-item reveal">
+            <div class="timeline-marker"></div>
+            <div class="timeline-card">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 class="text-lg font-semibold text-slate-100">Industry 4.0 Consultant</h3>
+                <span class="font-mono text-xs text-brand-300">May 2026 — Present</span>
+              </div>
+              <p class="text-sm text-slate-400 mt-1">Mustry Solutions · Flanders, Belgium</p>
+              <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
+                <li>Design and implement scalable industrial digital architectures that connect production assets and turn operational data into business insight.</li>
+                <li>Work across manufacturing, aerospace, textiles and energy clients using Ignition, TimescaleDB, Canary Labs, Factry and Grafana.</li>
+              </ul>
+              <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+                <span class="tag">Industry 4.0</span><span class="tag">Ignition</span><span class="tag">TimescaleDB</span><span class="tag">Grafana</span>
+              </div>
+            </div>
+          </li>
+
+          <li id="role-vandemoortele" class="timeline-item reveal">
+            <div class="timeline-marker"></div>
+            <div class="timeline-card">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 class="text-lg font-semibold text-slate-100">MES Project Engineer</h3>
+                <span class="font-mono text-xs text-brand-300">Sep 2025 — Apr 2026</span>
+              </div>
+              <p class="text-sm text-slate-400 mt-1">Vandemoortele · Izegem, Belgium</p>
+              <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
+                <li>Delivered Manufacturing Execution System projects for a leading European food group (oils, fats &amp; bakery products).</li>
+                <li>Bridged production-floor operations and IT systems to give planners and operators a shared, real-time view of plant performance.</li>
+              </ul>
+              <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+                <span class="tag">MES</span><span class="tag">Food &amp; Beverage</span><span class="tag">OT/IT</span>
+              </div>
+            </div>
+          </li>
+
+          <li id="role-clarebout" class="timeline-item reveal">
+            <div class="timeline-marker"></div>
+            <div class="timeline-card">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 class="text-lg font-semibold text-slate-100">Data Engineer</h3>
+                <span class="font-mono text-xs text-brand-300">Jan 2022 — Sep 2025</span>
+              </div>
+              <p class="text-sm text-slate-400 mt-1">Clarebout Potatoes NV · Komen-Waasten, Belgium</p>
+              <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
+                <li>Built and maintained the data backbone of one of Europe&rsquo;s largest potato processors — pipelines, models and reporting that production, quality and supply chain rely on daily.</li>
+                <li>Three and a half years bridging operational data and the analytics that turn it into decisions.</li>
+              </ul>
+              <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+                <span class="tag">Python</span><span class="tag">SQL Server</span><span class="tag">Data Pipelines</span><span class="tag">GitOps</span>
+              </div>
+            </div>
+          </li>
+
+          <li id="role-united-experts" class="timeline-item reveal">
+            <div class="timeline-marker"></div>
+            <div class="timeline-card">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 class="text-lg font-semibold text-slate-100">Environment &amp; Noise Consultant</h3>
+                <span class="font-mono text-xs text-brand-300">Apr 2021 — Jan 2022</span>
+              </div>
+              <p class="text-sm text-slate-400 mt-1">United Experts · Ieper, Belgium</p>
+              <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
+                <li>Consulted on environmental compliance and acoustic measurement for industrial clients across Flanders.</li>
+                <li>Translated regulatory frameworks into measurement plans, reports and remediation advice.</li>
+              </ul>
+              <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+                <span class="tag">Environment</span><span class="tag">Acoustics</span><span class="tag">Compliance</span>
+              </div>
+            </div>
+          </li>
+
+          <li id="role-uz-gent" class="timeline-item reveal">
+            <div class="timeline-marker"></div>
+            <div class="timeline-card">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 class="text-lg font-semibold text-slate-100">PhD Student / Assistant Academic Staff</h3>
+                <span class="font-mono text-xs text-brand-300">Nov 2017 — Apr 2021</span>
+              </div>
+              <p class="text-sm text-slate-400 mt-1">Ghent University Hospital (UZ Gent) · Ghent, Belgium</p>
+              <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
+                <li>Research on PET-guided radiotherapy and imaging biomarkers in glioblastoma models — radiosynthesis, preclinical evaluation and quantitative image analysis.</li>
+                <li>Four peer-reviewed publications spanning Raman spectroscopy, PET tracer development and PET-guided therapy.</li>
+              </ul>
+              <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+                <span class="tag">Imaging</span><span class="tag">PET / MRI</span><span class="tag">Quantitative Analysis</span><span class="tag">Research</span>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         EDUCATION
+         ============================================================ -->
+    <section id="education" class="px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
+      <div class="max-w-4xl mx-auto">
+        <div class="reveal">
+          <p class="section-eyebrow">// Education</p>
+          <h2 class="section-title">Foundations</h2>
+        </div>
+
+        <!-- CONTENT: education + certifications -->
+        <div class="mt-10 grid md:grid-cols-2 gap-5">
+          <article class="edu-card reveal">
+            <div class="flex items-start justify-between gap-3">
+              <h3 class="font-semibold text-slate-100">M.Sc. Bio-Science Engineering</h3>
+              <span class="font-mono text-xs text-brand-300 shrink-0">2014 — 2016</span>
+            </div>
+            <p class="text-sm text-slate-400 mt-1">Ghent University</p>
+            <p class="mt-3 text-sm text-slate-300">Quantitative life sciences and engineering — the analytical foundation behind everything I do with industrial data today.</p>
+          </article>
+
+          <article class="edu-card reveal">
+            <div class="flex items-start justify-between gap-3">
+              <h3 class="font-semibold text-slate-100">B.Sc. Bio-Science Engineering</h3>
+              <span class="font-mono text-xs text-brand-300 shrink-0">2011 — 2014</span>
+            </div>
+            <p class="text-sm text-slate-400 mt-1">Ghent University</p>
+            <p class="mt-3 text-sm text-slate-300">Specialisation in Cell &amp; Gene Technology.</p>
+          </article>
+        </div>
+
+        <!-- Certifications -->
+        <div class="mt-10 reveal">
+          <h3 class="section-eyebrow mb-4">// Certifications</h3>
+          <ul class="grid sm:grid-cols-2 gap-3 font-mono text-xs">
+            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3 text-slate-300">
+              <span class="text-slate-100">Google Cloud — Cloud Data Engineer</span>
+              <span class="block text-slate-500 mt-1">Professional Certificate (prep track)</span>
+            </li>
+            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3 text-slate-300">
+              <span class="text-slate-100">Python for Data</span>
+              <span class="block text-slate-500 mt-1">Data structures · Databases with Python · Capstone</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Publications (from PhD years — real, peer-reviewed) -->
+        <div class="mt-12 reveal">
+          <h3 class="section-eyebrow mb-4">// Selected Publications</h3>
+          <ul class="space-y-3 text-sm text-slate-300">
+            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3">
+              The path toward PET-guided radiation therapy for glioblastoma in laboratory animals — a mini review.
+            </li>
+            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3">
+              Technical feasibility of [18F]FET and [18F]FAZA PET-guided radiotherapy in a F98 glioblastoma rat model.
+            </li>
+            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3">
+              Radiosynthesis, in vitro and preliminary in vivo evaluation of the novel glutamine-derived PET tracers [18F]fluorophenylglutamine and [18F]fluorobiphenylglutamine.
+            </li>
+            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3">
+              Added value of microscale Raman chemical analysis in mild traumatic brain injury (TBI): a comparison with macroscale MRI.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SKILLS
+         ============================================================ -->
+    <section id="skills" class="px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
+      <div class="max-w-5xl mx-auto">
+        <div class="reveal">
+          <p class="section-eyebrow">// Skills</p>
+          <h2 class="section-title">Toolbelt</h2>
+        </div>
+
+        <!--
+          Decorative tech-stack diagram. Pure visual — no interaction.
+          Built by buildStackDiagram() in script.js from the STACK_NODES registry.
+        -->
+        <figure class="stack-diagram reveal mt-10">
+          <div class="stack-diagram__header">
+            <span class="stack-diagram__caption">[ INDUSTRIAL PIPELINE ]</span>
+            <span class="stack-diagram__live">
+              <span class="stack-diagram__pulse" aria-hidden="true"></span> data flowing
+            </span>
+          </div>
+          <svg
+            id="stack-svg"
+            viewBox="0 0 720 320"
+            role="img"
+            aria-label="Industrial data pipeline: field devices (PLCs, sensors, OPC UA) publish through an Ignition Edge gateway to an MQTT broker. The Ignition backend consumes from the broker, persists to SQL and time-series databases, and feeds an Ignition frontend that serves HMI, SCADA, MES, Grafana dashboards and business applications."
+          >
+            <g class="stack-svg__stages"></g>
+            <g class="stack-svg__edges"></g>
+            <g class="stack-svg__particles"></g>
+            <g class="stack-svg__nodes"></g>
+          </svg>
+          <figcaption class="stack-diagram__cap">
+            A typical MQTT-based industrial pipeline. Field signals flow through an edge gateway and broker into the Ignition backend, which persists to SQL and time-series stores and feeds a frontend tier consumed by HMI, SCADA, MES, Grafana and apps.
+          </figcaption>
+        </figure>
+
+        <!--
+          CONTENT: skill groups. Each .skill has a data-level (0-100) driving the bar fill.
+          Levels are educated guesses — adjust to match how you'd actually rate yourself.
+        -->
+        <div class="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+          <div class="skill-group reveal">
+            <h3 class="skill-group__title">Data Engineering</h3>
+            <ul class="skill-list">
+              <li class="skill" data-level="90"><span>Python</span></li>
+              <li class="skill" data-level="90"><span>SQL · Microsoft SQL Server</span></li>
+              <li class="skill" data-level="80"><span>Data pipelines &amp; ETL</span></li>
+              <li class="skill" data-level="75"><span>Google Cloud (Data Engineering)</span></li>
+            </ul>
+          </div>
+
+          <div class="skill-group reveal">
+            <h3 class="skill-group__title">Industry 4.0 / MES</h3>
+            <ul class="skill-list">
+              <li class="skill" data-level="85"><span>Manufacturing Execution Systems</span></li>
+              <li class="skill" data-level="80"><span>Industrial data architecture</span></li>
+              <li class="skill" data-level="80"><span>Ignition (Inductive Automation)</span></li>
+              <li class="skill" data-level="75"><span>OT/IT integration</span></li>
+            </ul>
+          </div>
+
+          <div class="skill-group reveal">
+            <h3 class="skill-group__title">DevOps &amp; Tooling</h3>
+            <ul class="skill-list">
+              <li class="skill" data-level="85"><span>GitOps</span></li>
+              <li class="skill" data-level="80"><span>CI/CD pipelines</span></li>
+              <li class="skill" data-level="80"><span>Git / version control</span></li>
+              <li class="skill" data-level="80"><span>Grafana &amp; dashboards</span></li>
+            </ul>
+          </div>
+
+          <div class="skill-group reveal">
+            <h3 class="skill-group__title">Analysis &amp; Research</h3>
+            <ul class="skill-list">
+              <li class="skill" data-level="90"><span>Quantitative data analysis</span></li>
+              <li class="skill" data-level="85"><span>Imaging analytics (PET / MRI / Raman)</span></li>
+              <li class="skill" data-level="85"><span>Scientific writing</span></li>
+            </ul>
+          </div>
+
+          <div class="skill-group reveal">
+            <h3 class="skill-group__title">Domain Experience</h3>
+            <ul class="skill-list">
+              <li class="skill" data-level="85"><span>Food &amp; beverage manufacturing</span></li>
+              <li class="skill" data-level="75"><span>Environmental &amp; acoustic compliance</span></li>
+              <li class="skill" data-level="80"><span>Biomedical R&amp;D</span></li>
+            </ul>
+          </div>
+
+          <div class="skill-group reveal">
+            <h3 class="skill-group__title">Spoken Languages</h3>
+            <ul class="skill-list">
+              <li class="skill" data-level="100"><span>Nederlands <span class="text-slate-500">— native</span></span></li>
+              <li class="skill" data-level="85"><span>English <span class="text-slate-500">— professional</span></span></li>
+              <li class="skill" data-level="50"><span>Français <span class="text-slate-500">— limited working</span></span></li>
+              <li class="skill" data-level="30"><span>Deutsch <span class="text-slate-500">— elementary</span></span></li>
+              <li class="skill" data-level="30"><span>Norsk (Bokmål) <span class="text-slate-500">— elementary</span></span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         CONTACT
+         ============================================================ -->
+    <section id="contact" class="px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
+      <div class="max-w-3xl mx-auto">
+        <div class="reveal">
+          <p class="section-eyebrow">// Contact</p>
+          <h2 class="section-title">Open a channel.</h2>
+          <p class="mt-4 text-slate-400 max-w-xl">
+            Got a project at the edge of OT and IT? A pilot you&rsquo;d like a second pair of eyes on? Drop a message — I read everything.
+          </p>
+        </div>
+
+        <!--
+          Formspree: replace YOUR_FORM_ID below with your form ID from https://formspree.io
+          If you'd rather not use Formspree, the script.js fallback opens the user's mail client.
+        -->
+        <form
+          id="contact-form"
+          class="mt-10 grid gap-5 reveal"
+          action="https://formspree.io/f/YOUR_FORM_ID"
+          method="POST"
+          novalidate
+        >
+          <div class="grid sm:grid-cols-2 gap-5">
+            <label class="field">
+              <span class="field__label">Name</span>
+              <input type="text" name="name" required autocomplete="name" class="field__input" />
+            </label>
+            <label class="field">
+              <span class="field__label">Email</span>
+              <input type="email" name="email" required autocomplete="email" class="field__input" />
+            </label>
+          </div>
+          <label class="field">
+            <span class="field__label">Subject</span>
+            <input type="text" name="subject" class="field__input" />
+          </label>
+          <label class="field">
+            <span class="field__label">Message</span>
+            <textarea name="message" rows="5" required class="field__input resize-y"></textarea>
+          </label>
+
+          <!-- Honeypot (anti-spam) -->
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true" />
+
+          <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
+            <p id="form-status" class="font-mono text-xs text-slate-500" role="status" aria-live="polite">
+              Connection ready · transport: https
+            </p>
+            <button type="submit"
+              class="inline-flex items-center gap-2 px-5 py-3 rounded-md bg-brand-400 text-slate-950 font-semibold hover:bg-brand-300 transition shadow-[0_0_30px_-5px_rgba(34,211,238,0.5)]">
+              <span>Transmit</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>
+            </button>
+          </div>
+        </form>
+
+        <p class="mt-8 text-sm text-slate-500">
+          Prefer email?
+          <a href="mailto:sam.donche@mustrysolutions.com" class="text-brand-300 hover:text-brand-200 underline-offset-4 hover:underline">sam.donche@mustrysolutions.com</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer class="border-t border-slate-800/60 mt-12 lg:pl-64">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+      <p class="font-mono text-xs">
+        <!-- CONTENT: footer line -->
+        &copy; <span id="year"></span> Sam Donche · built with caffeine &amp; uptime
+      </p>
+      <div class="flex items-center gap-4 font-mono text-xs">
+        <!-- CONTENT: socials — add your GitHub handle here if you have one -->
+        <a href="https://www.linkedin.com/in/samdonche" target="_blank" rel="noopener" class="hover:text-brand-300">linkedin</a>
+        <a href="mailto:sam.donche@mustrysolutions.com" class="hover:text-brand-300">email</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================================================
+       COMMAND PALETTE (⌘K / Ctrl+K)
+       Hidden by default. script.js handles open/close, filter, navigate.
+       ============================================================ -->
+  <div id="cmdk" class="cmdk" role="dialog" aria-modal="true" aria-label="Tag search" hidden>
+    <div class="cmdk__backdrop" data-cmdk-close></div>
+    <div class="cmdk__panel" role="document">
+      <div class="cmdk__input-wrap">
+        <span class="cmdk__prompt" aria-hidden="true">&gt;</span>
+        <input
+          id="cmdk-input"
+          type="text"
+          class="cmdk__input"
+          placeholder="search tags…  e.g. experience/mustry"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Search tags"
+          aria-controls="cmdk-list"
+        />
+        <kbd class="cmdk__esc" aria-hidden="true">ESC</kbd>
+      </div>
+      <ul id="cmdk-list" class="cmdk__results" role="listbox" aria-label="Tag results"></ul>
+      <footer class="cmdk__footer">
+        <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+        <span><kbd>↵</kbd> open</span>
+        <span><kbd>esc</kbd> close</span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="assets/js/script.js" defer></script>
+</body>
+</html>
