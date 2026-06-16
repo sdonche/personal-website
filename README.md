@@ -34,9 +34,12 @@ There is **no build step**. Tailwind is loaded via its v4 browser script, fonts 
 ├── index.html                # Single-page site, all sections inlined
 ├── assets/
 │   ├── css/styles.css        # Custom styles (animations, network nav, timeline, etc.)
-│   └── js/script.js          # Network nav builder, scroll behavior, contact form
+│   ├── js/script.js          # Network nav builder, scroll behavior, contact form
+│   └── img/og.jpg            # 1200×630 social share image (Open Graph / Twitter)
 ├── .htaccess                 # Apache config: HTTPS, custom 404, caching (Hostinger)
 ├── 404.html                  # Custom 404 (wired up via .htaccess)
+├── robots.txt                # Crawler rules + sitemap pointer
+├── sitemap.xml               # Single-URL sitemap
 ├── .gitignore                # Keeps secrets / OS cruft out of the repo
 └── README.md
 ```
