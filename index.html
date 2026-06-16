@@ -649,7 +649,8 @@
 
         <p class="mt-8 text-sm text-slate-500">
           Prefer email?
-          <a href="mailto:sam.donche@mustrysolutions.com" class="text-brand-300 hover:text-brand-200 underline-offset-4 hover:underline">sam.donche@mustrysolutions.com</a>
+          <!-- CONTENT: email is base64-encoded & assembled by JS to deter scrapers — see wireEmailLinks() in script.js -->
+          <a data-email="c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t" href="#contact" class="text-brand-300 hover:text-brand-200 underline-offset-4 hover:underline">reveal email address</a>
         </p>
       </div>
     </section>
@@ -667,7 +668,7 @@
       <div class="flex items-center gap-4 font-mono text-xs">
         <!-- CONTENT: socials — add your GitHub handle here if you have one -->
         <a href="https://www.linkedin.com/in/samdonche" target="_blank" rel="noopener" class="hover:text-brand-300">linkedin</a>
-        <a href="mailto:sam.donche@mustrysolutions.com" class="hover:text-brand-300">email</a>
+        <a data-email="c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t" data-email-text="false" href="#contact" class="hover:text-brand-300">email</a>
       </div>
     </div>
   </footer>

@@ -71,6 +71,7 @@
     observeReveals();
     observeSkills();
     wireContactForm();
+    wireEmailLinks();
   }
 
   /* ----------------------------------------------------
@@ -697,6 +698,32 @@
   }
 
   /* ----------------------------------------------------
+     8b. Email anti-scrape
+     The address is never present as plaintext in the HTML — it is
+     stored base64-encoded in a data-email attribute and assembled
+     here at runtime, so bots that don't execute JS never see it.
+     To change the address: base64-encode it and update both the
+     data-email attributes in index.html and B64_EMAIL below.
+       printf '%s' 'you@example.com' | base64
+     ---------------------------------------------------- */
+  const B64_EMAIL = "c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t";
+
+  function decodeEmail(b64) {
+    try { return atob(b64 || B64_EMAIL); } catch { return ""; }
+  }
+
+  function wireEmailLinks() {
+    document.querySelectorAll("[data-email]").forEach(el => {
+      const addr = decodeEmail(el.getAttribute("data-email"));
+      if (!addr) return;
+      el.setAttribute("href", `mailto:${addr}`);
+      // data-email-text="false" keeps the existing label (e.g. "email")
+      if (el.getAttribute("data-email-text") !== "false") el.textContent = addr;
+      el.removeAttribute("data-email");
+    });
+  }
+
+  /* ----------------------------------------------------
      9. Contact form — Formspree with mailto fallback
      ---------------------------------------------------- */
   function wireContactForm() {
@@ -704,7 +731,7 @@
     const status = document.getElementById("form-status");
     if (!form) return;
 
-    const FALLBACK_EMAIL = "sam.donche@mustrysolutions.com";
+    const FALLBACK_EMAIL = decodeEmail();
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
