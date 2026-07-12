@@ -1,0 +1,39 @@
+/* =============================================================
+   tailwind.input.css — SOURCE file for the compiled tailwind.css
+   This file is NOT served. Regenerate the compiled stylesheet
+   whenever you add/remove Tailwind classes in index.html,
+   404.html or script.js:
+
+     npx --yes @tailwindcss/cli@4 \
+       -i assets/css/tailwind.input.css \
+       -o assets/css/tailwind.css --minify
+
+   Then bump the ?v= cache-buster on the tailwind.css <link>
+   in index.html.
+   ============================================================= */
+
+/* Only scan the files that actually use Tailwind classes.
+   (script.js builds a few classes at runtime as string literals —
+   e.g. text-rose-400 for the form error state — so it must be
+   scanned too.) */
+@import "tailwindcss" source(none);
+@source "../../index.html";
+@source "../../404.html";
+@source "../js/script.js";
+
+/* Design tokens — previously inline in index.html's <head>.
+   These power utility classes like bg-brand-400 and are also
+   emitted as CSS variables on :root. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-brand-50:  #ecfeff;
+  --color-brand-100: #cffafe;
+  --color-brand-200: #a5f3fc;
+  --color-brand-300: #67e8f9;
+  --color-brand-400: #22d3ee;
+  --color-brand-500: #06b6d4;
+  --color-brand-600: #0891b2;
+  --color-brand-700: #0e7490;
+  --color-accent:    #34d399; /* emerald-400 — "online" indicator */
+}

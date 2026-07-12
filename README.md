@@ -1,6 +1,6 @@
 # Personal Website — Sam Donche
 
-A single-page personal site with an **Industry 4.0 / IIoT** aesthetic. Built with vanilla HTML/JS and Tailwind CSS v4 (browser build, no toolchain). Hosted on **Hostinger** at **[samdonche.com](https://samdonche.com)**, deployed automatically from this repo via Hostinger's Git integration.
+A single-page personal site with an **Industry 4.0 / IIoT** aesthetic. Built with vanilla HTML/JS and Tailwind CSS v4, precompiled into a static stylesheet (no toolchain in the repo — one `npx` command regenerates it). Hosted on **Hostinger** at **[samdonche.com](https://samdonche.com)**, deployed automatically from this repo via Hostinger's Git integration.
 
 The navigation borrows from **Ignition's tag browser**:
 
@@ -23,7 +23,19 @@ python3 -m http.server 8080
 # then visit http://localhost:8080
 ```
 
-There is **no build step**. Tailwind is loaded via its v4 browser script, fonts via Google Fonts, and everything else is hand-rolled. Just open `index.html`.
+There is **no build step to view or deploy the site** — the compiled Tailwind stylesheet (`assets/css/tailwind.css`) is committed. Fonts load via Google Fonts, everything else is hand-rolled. Just open `index.html`.
+
+### Rebuilding the CSS
+
+The Tailwind stylesheet is generated from [assets/css/tailwind.input.css](assets/css/tailwind.input.css) (which also holds the design tokens). Rerun this **only when you add or remove Tailwind utility classes** in `index.html`, `404.html` or `script.js` — pure text/content edits don't need it:
+
+```bash
+npx --yes -p tailwindcss@4 -p @tailwindcss/cli@4 tailwindcss \
+  -i assets/css/tailwind.input.css \
+  -o assets/css/tailwind.css --minify
+```
+
+Then bump the `?v=` cache-buster on the `tailwind.css` `<link>` in `index.html`. (Requires Node; if the npx one-liner can't resolve `tailwindcss`, run `npm install --no-save --no-package-lock tailwindcss@4 @tailwindcss/cli@4` first and use `./node_modules/.bin/tailwindcss` — `node_modules/` is gitignored.)
 
 ---
 
@@ -33,6 +45,8 @@ There is **no build step**. Tailwind is loaded via its v4 browser script, fonts 
 .
 ├── index.html                # Single-page site, all sections inlined
 ├── assets/
+│   ├── css/tailwind.input.css # Tailwind source: design tokens + @source globs (not served)
+│   ├── css/tailwind.css      # Compiled Tailwind output — committed, regenerate via npx (see above)
 │   ├── css/styles.css        # Custom styles (animations, network nav, timeline, etc.)
 │   ├── js/script.js          # Network nav builder, scroll behavior, contact form
 │   └── img/og.jpg            # 1200×630 social share image (Open Graph / Twitter)
@@ -136,7 +150,7 @@ samdonche.com is registered inside the same Hostinger account, so it's set as th
 
 All brand colors are defined in two places (kept in sync intentionally):
 
-- **Tailwind tokens** — top of `<head>` in [index.html](index.html), inside `@theme { ... }`. These power utility classes like `bg-brand-400`.
+- **Tailwind tokens** — in [assets/css/tailwind.input.css](assets/css/tailwind.input.css), inside `@theme { ... }`. These power utility classes like `bg-brand-400`. Rebuild the CSS after changing them (see "Rebuilding the CSS").
 - **CSS variables** — top of [assets/css/styles.css](assets/css/styles.css), under `:root`. These power custom components (network nav, timeline, etc.).
 
 Change `--color-brand-400` (currently cyan) to re-skin the whole site. Use a vivid, single-channel accent — the IIoT aesthetic relies on that "active sensor" pop against the dark slate background.
@@ -161,8 +175,8 @@ The decorative HUD card in the hero (`<aside aria-hidden="true">`) is purely vis
 - Mobile sidebar opens via a labeled hamburger and traps body scroll while open; `Esc` and backdrop-click close it.
 - `prefers-reduced-motion` disables the LIVE pulse, reveal animations and palette enter animation.
 - **Progressive enhancement:** scroll-reveal is hidden only when JS is available (an inline script sets `html.js`; the CSS hides `.reveal` exclusively under `.js`). With JS off, all content renders fully — nothing depends on the observer firing.
-- **Cache-busting:** the `styles.css` / `script.js` includes carry a `?v=YYYY-MM-DD` query. Bump it whenever you edit those files so returning visitors get the new version despite the long asset cache in `.htaccess` (and purge the Hostinger cache after deploying).
-- No JS frameworks; ~1 small JS file + 1 CSS file + Tailwind CDN. Lighthouse should score near-100 out of the box.
+- **Cache-busting:** the `tailwind.css` / `styles.css` / `script.js` includes carry a `?v=YYYY-MM-DD` query. Bump it whenever you edit (or regenerate) those files so returning visitors get the new version despite the long asset cache in `.htaccess` (and purge the Hostinger cache after deploying).
+- No JS frameworks and no runtime CSS compilation — one small JS file + two static stylesheets (Tailwind is precompiled to ~25 KB minified). Lighthouse should score near-100 out of the box.
 - Fonts are loaded with `preconnect`; consider self-hosting them if you want zero third-party requests.
 
 ---
