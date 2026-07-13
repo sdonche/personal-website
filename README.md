@@ -23,7 +23,7 @@ python3 -m http.server 8080
 # then visit http://localhost:8080
 ```
 
-There is **no build step to view or deploy the site** — the compiled Tailwind stylesheet (`assets/css/tailwind.css`) is committed. Fonts load via Google Fonts, everything else is hand-rolled. Just open `index.html`.
+There is **no build step to view or deploy the site** — the compiled Tailwind stylesheet (`assets/css/tailwind.css`) is committed, fonts are self-hosted in `assets/fonts/`, everything else is hand-rolled. Just open `index.html`. The site makes **zero third-party requests**.
 
 ### Rebuilding the CSS
 
@@ -48,6 +48,8 @@ Then bump the `?v=` cache-buster on the `tailwind.css` `<link>` in `index.html`.
 │   ├── css/tailwind.input.css # Tailwind source: design tokens + @source globs (not served)
 │   ├── css/tailwind.css      # Compiled Tailwind output — committed, regenerate via npx (see above)
 │   ├── css/styles.css        # Custom styles (animations, network nav, timeline, etc.)
+│   ├── css/fonts.css         # @font-face rules for the self-hosted fonts
+│   ├── fonts/                # Inter + JetBrains Mono variable woff2 (latin, latin-ext)
 │   ├── js/script.js          # Network nav builder, scroll behavior, contact form
 │   └── img/og.jpg            # 1200×630 social share image (Open Graph / Twitter)
 ├── .htaccess                 # Apache config: HTTPS, custom 404, caching (Hostinger)
@@ -171,8 +173,8 @@ The decorative HUD card in the hero (`<aside aria-hidden="true">`) is purely vis
 - `prefers-reduced-motion` disables the LIVE pulse, reveal animations and palette enter animation.
 - **Progressive enhancement:** scroll-reveal is hidden only when JS is available (an inline script sets `html.js`; the CSS hides `.reveal` exclusively under `.js`). With JS off, all content renders fully — nothing depends on the observer firing.
 - **Cache-busting:** the `tailwind.css` / `styles.css` / `script.js` includes carry a `?v=YYYY-MM-DD` query. Bump it whenever you edit (or regenerate) those files so returning visitors get the new version despite the long asset cache in `.htaccess` (and purge the Hostinger cache after deploying).
-- No JS frameworks and no runtime CSS compilation — one small JS file + two static stylesheets (Tailwind is precompiled to ~25 KB minified). Lighthouse should score near-100 out of the box.
-- Fonts are loaded with `preconnect`; consider self-hosting them if you want zero third-party requests.
+- No JS frameworks and no runtime CSS compilation — one small JS file + three static stylesheets (Tailwind is precompiled to ~25 KB minified). Lighthouse should score near-100 out of the box.
+- **Fonts are self-hosted** ([assets/css/fonts.css](assets/css/fonts.css) + `assets/fonts/`): no visitor data ever reaches Google (GDPR — German courts have ruled Google Fonts embeds unlawful), and no third-party request can block rendering. Variable woff2 files, one per family+subset; `unicode-range` means the latin-ext files are only downloaded if a page actually uses those characters. The two latin files are preloaded in `index.html` (`crossorigin` is required on font preloads even same-origin). To change fonts or add weights outside Inter 300–800 / JetBrains Mono 400–600, fetch new woff2 files from Google Fonts (curl the CSS URL with a browser User-Agent to get woff2 sources) and update `fonts.css`.
 
 ---
 
