@@ -639,13 +639,13 @@
         </div>
 
         <!--
-          Formspree: replace YOUR_FORM_ID below with your form ID from https://formspree.io
-          If you'd rather not use Formspree, the script.js fallback opens the user's mail client.
+          Formspree-backed (form ID in the action URL). If the ID is ever removed,
+          the script.js fallback opens the visitor's mail client instead.
         -->
         <form
           id="contact-form"
           class="mt-10 grid gap-5 reveal"
-          action="https://formspree.io/f/YOUR_FORM_ID"
+          action="https://formspree.io/f/maqrwrjd"
           method="POST"
           novalidate
         >
@@ -661,7 +661,8 @@
           </div>
           <label class="field">
             <span class="field__label">Subject</span>
-            <input type="text" name="subject" class="field__input" />
+            <!-- _subject is a Formspree special field: it becomes the notification email's subject line -->
+            <input type="text" name="_subject" class="field__input" />
           </label>
           <label class="field">
             <span class="field__label">Message</span>
@@ -740,6 +741,6 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/script.js?v=2026-06-16" defer></script>
+  <script src="assets/js/script.js?v=2026-07-12" defer></script>
 </body>
 </html>

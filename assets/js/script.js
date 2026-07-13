@@ -763,7 +763,7 @@
 
       if (!useFormspree) {
         const data = new FormData(form);
-        const subject = encodeURIComponent(data.get("subject") || "Hello from your website");
+        const subject = encodeURIComponent(data.get("_subject") || "Hello from your website");
         const body = encodeURIComponent(
           `Name: ${data.get("name")}\nEmail: ${data.get("email")}\n\n${data.get("message")}`
         );

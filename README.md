@@ -86,18 +86,13 @@ The sidebar and command palette **automatically** pick up sections from the `SEC
 
 ---
 
-## Contact form — Formspree setup
+## Contact form — Formspree
 
-The contact form ships with a **mailto fallback** so it works out of the box (it opens the visitor's mail client pre-filled). To make it submit silently:
+The form submits to **Formspree** (form ID `maqrwrjd`, in the `action` attribute of `<form id="contact-form">` in [index.html](index.html)). Submissions are AJAX-posted by `script.js` and arrive by email; the `email` field becomes the reply-to and the `_subject` field becomes the notification's subject line. A honeypot (`_gotcha`) filters naive bots.
 
-1. Create a free form at <https://formspree.io>.
-2. Copy your form ID (looks like `xyzabcde`).
-3. In [index.html](index.html), replace `YOUR_FORM_ID` in this line:
-   ```html
-   <form id="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" ...>
-   ```
+Form settings live at <https://formspree.io> → the form's Settings. Recommended there: restrict the allowed domain to `samdonche.com` so nobody else can post to the endpoint and burn the free-tier quota (50 submissions/month).
 
-The JS in `assets/js/script.js` auto-detects whether Formspree is configured and falls back to `mailto:` if not.
+If the form ID is ever removed from the `action`, `script.js` auto-detects it and falls back to opening the visitor's mail client (`mailto:`) instead.
 
 ### Email anti-scrape
 
