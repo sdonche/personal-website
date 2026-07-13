@@ -47,7 +47,10 @@
       "addressRegion": "West Flanders",
       "addressCountry": "BE"
     },
-    "sameAs": ["https://www.linkedin.com/in/samdonche"],
+    "sameAs": [
+      "https://www.linkedin.com/in/samdonche",
+      "https://github.com/sdonche"
+    ],
     "knowsAbout": [
       "Industry 4.0",
       "Manufacturing Execution Systems",
@@ -70,7 +73,7 @@
 
   <!-- Tailwind CSS v4, precompiled — design tokens live in assets/css/tailwind.input.css.
        Rebuild after changing Tailwind classes (see README "Rebuilding the CSS"), then bump the ?v= below. -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=2026-07-12" />
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=2026-07-13" />
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
   <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
@@ -486,13 +489,13 @@
           </article>
         </div>
 
-        <!-- Certifications -->
+        <!-- Professional development (completed course tracks — no certification claims) -->
         <div class="mt-10 reveal">
-          <h3 class="section-eyebrow mb-4">// Certifications</h3>
+          <h3 class="section-eyebrow mb-4">// Professional Development</h3>
           <ul class="grid sm:grid-cols-2 gap-3 font-mono text-xs">
             <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3 text-slate-300">
-              <span class="text-slate-100">Google Cloud — Cloud Data Engineer</span>
-              <span class="block text-slate-500 mt-1">Professional Certificate (prep track)</span>
+              <span class="text-slate-100">Google Cloud Data Engineering</span>
+              <span class="block text-slate-500 mt-1">Completed coursework track</span>
             </li>
             <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3 text-slate-300">
               <span class="text-slate-100">Python for Data</span>
@@ -501,21 +504,33 @@
           </ul>
         </div>
 
-        <!-- Publications (from PhD years — real, peer-reviewed) -->
+        <!-- Publications (from PhD years — peer-reviewed, DOI-linked) -->
         <div class="mt-12 reveal">
           <h3 class="section-eyebrow mb-4">// Selected Publications</h3>
           <ul class="space-y-3 text-sm text-slate-300">
-            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3">
-              The path toward PET-guided radiation therapy for glioblastoma in laboratory animals — a mini review.
+            <li class="rounded-md border border-slate-800 bg-slate-900/30 hover:border-brand-400/40 transition-colors">
+              <a href="https://doi.org/10.3389/fmed.2019.00005" target="_blank" rel="noopener" class="group block px-4 py-3">
+                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors">The path toward PET-guided radiation therapy for glioblastoma in laboratory animals: a mini review.</span>
+                <span class="mt-1.5 block font-mono text-xs text-slate-500">Frontiers in Medicine · 2019 · <span class="text-brand-400/80">first author</span> · doi ↗</span>
+              </a>
             </li>
-            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3">
-              Technical feasibility of [18F]FET and [18F]FAZA PET-guided radiotherapy in a F98 glioblastoma rat model.
+            <li class="rounded-md border border-slate-800 bg-slate-900/30 hover:border-brand-400/40 transition-colors">
+              <a href="https://doi.org/10.1186/s13014-019-1290-4" target="_blank" rel="noopener" class="group block px-4 py-3">
+                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors">Technical feasibility of [18F]FET and [18F]FAZA PET guided radiotherapy in a F98 glioblastoma rat model.</span>
+                <span class="mt-1.5 block font-mono text-xs text-slate-500">Radiation Oncology · 2019 · doi ↗</span>
+              </a>
             </li>
-            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3">
-              Radiosynthesis, in vitro and preliminary in vivo evaluation of the novel glutamine-derived PET tracers [18F]fluorophenylglutamine and [18F]fluorobiphenylglutamine.
+            <li class="rounded-md border border-slate-800 bg-slate-900/30 hover:border-brand-400/40 transition-colors">
+              <a href="https://doi.org/10.1016/j.nucmedbio.2020.03.006" target="_blank" rel="noopener" class="group block px-4 py-3">
+                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors">Radiosynthesis, in vitro and preliminary in vivo evaluation of the novel glutamine derived PET tracers [18F]fluorophenylglutamine and [18F]fluorobiphenylglutamine.</span>
+                <span class="mt-1.5 block font-mono text-xs text-slate-500">Nuclear Medicine and Biology · 2020 · doi ↗</span>
+              </a>
             </li>
-            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3">
-              Added value of microscale Raman chemical analysis in mild traumatic brain injury (TBI): a comparison with macroscale MRI.
+            <li class="rounded-md border border-slate-800 bg-slate-900/30 hover:border-brand-400/40 transition-colors">
+              <a href="https://doi.org/10.1021/acsomega.8b02404" target="_blank" rel="noopener" class="group block px-4 py-3">
+                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors">Added value of microscale Raman chemical analysis in mild traumatic brain injury (TBI): a comparison with macroscale MRI.</span>
+                <span class="mt-1.5 block font-mono text-xs text-slate-500">ACS Omega · 2018 · doi ↗</span>
+              </a>
             </li>
           </ul>
         </div>
@@ -705,7 +720,7 @@
         &copy; <span id="year"></span> Sam Donche · built with caffeine &amp; uptime
       </p>
       <div class="flex items-center gap-4 font-mono text-xs">
-        <!-- CONTENT: socials — add your GitHub handle here if you have one -->
+        <a href="https://github.com/sdonche" target="_blank" rel="noopener" class="hover:text-brand-300">github</a>
         <a href="https://www.linkedin.com/in/samdonche" target="_blank" rel="noopener" class="hover:text-brand-300">linkedin</a>
         <a data-email="c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t" data-email-text="false" href="#contact" class="hover:text-brand-300">email</a>
       </div>
