@@ -64,7 +64,7 @@ Then bump the `?v=` cache-buster on the `tailwind.css` `<link>` in `index.html`.
 
 ## Editing your content
 
-Look for `<!-- CONTENT: ... -->` comments inside [index.html](index.html). Every editable block is marked:
+All content lives inline in [index.html](index.html) (the shipped HTML intentionally carries no editing-guide comments — this table is the map):
 
 | Section       | Where to edit                                                                       |
 | ------------- | ----------------------------------------------------------------------------------- |

@@ -698,13 +698,7 @@
   }
 
   /* ----------------------------------------------------
-     8b. Email anti-scrape
-     The address is never present as plaintext in the HTML — it is
-     stored base64-encoded in a data-email attribute and assembled
-     here at runtime, so bots that don't execute JS never see it.
-     To change the address: base64-encode it and update both the
-     data-email attributes in index.html and B64_EMAIL below.
-       printf '%s' 'you@example.com' | base64
+     8b. Email links
      ---------------------------------------------------- */
   const B64_EMAIL = "c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t";
 
