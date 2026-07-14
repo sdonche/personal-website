@@ -728,14 +728,29 @@ html { color-scheme: dark; }
 
 .stack-diagram__header {
   display: flex;
+  flex-wrap: wrap;              /* caption + live badge collide on narrow screens otherwise */
   align-items: center;
   justify-content: space-between;
+  gap: 0.35rem 1rem;
   margin-bottom: 0.75rem;
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
   font-size: 0.625rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   position: relative;
+}
+
+/* On phones the full diagram would render illegibly small — keep a legible
+   minimum width and let it scroll horizontally inside the card instead. */
+.stack-diagram__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 43rem) {
+  .stack-diagram__scroll svg {
+    min-width: 40rem;
+    height: auto;
+  }
 }
 .stack-diagram__caption { color: rgb(100 116 139); }
 .stack-diagram__live {

@@ -80,7 +80,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
   <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-06-16" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-14" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -567,17 +567,20 @@
               <span class="stack-diagram__pulse" aria-hidden="true"></span> data flowing
             </span>
           </div>
-          <svg
-            id="stack-svg"
-            viewBox="0 0 720 320"
-            role="img"
-            aria-label="Industrial data pipeline: field devices (PLCs, sensors, OPC UA) publish through an Ignition Edge gateway to an MQTT broker. The Ignition backend consumes from the broker, persists to SQL and time-series databases, and feeds an Ignition frontend that serves HMI, SCADA, MES, Grafana dashboards and business applications."
-          >
-            <g class="stack-svg__stages"></g>
-            <g class="stack-svg__edges"></g>
-            <g class="stack-svg__particles"></g>
-            <g class="stack-svg__nodes"></g>
-          </svg>
+          <!-- On narrow screens the diagram keeps a legible minimum width and scrolls horizontally -->
+          <div class="stack-diagram__scroll">
+            <svg
+              id="stack-svg"
+              viewBox="0 0 720 320"
+              role="img"
+              aria-label="Industrial data pipeline: field devices (PLCs, sensors, OPC UA) publish through an Ignition Edge gateway to an MQTT broker. The Ignition backend consumes from the broker, persists to SQL and time-series databases, and feeds an Ignition frontend that serves HMI, SCADA, MES, Grafana dashboards and business applications."
+            >
+              <g class="stack-svg__stages"></g>
+              <g class="stack-svg__edges"></g>
+              <g class="stack-svg__particles"></g>
+              <g class="stack-svg__nodes"></g>
+            </svg>
+          </div>
           <figcaption class="stack-diagram__cap">
             A typical MQTT-based industrial pipeline. Field signals flow through an edge gateway and broker into the Ignition backend, which persists to SQL and time-series stores and feeds a frontend tier consumed by HMI, SCADA, MES, Grafana and apps.
           </figcaption>
@@ -770,7 +773,7 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/script.js?v=2026-07-14.1" defer></script>
+  <script src="assets/js/script.js?v=2026-07-14.2" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

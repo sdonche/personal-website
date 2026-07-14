@@ -216,15 +216,16 @@
   function scrollToSection(id) {
     const target = document.getElementById(id);
     if (!target) return;
+    // Close the mobile nav BEFORE scrolling: while it's open the body is
+    // scroll-locked (overflow: hidden), which silently cancels scrollIntoView.
+    const nav = document.getElementById("tag-nav");
+    if (nav && nav.classList.contains("is-open")) closeMobileNav();
     target.scrollIntoView({
       behavior: prefersReducedMotion ? "auto" : "smooth",
       block: "start",
     });
     // Eagerly mark visited so the QV badge updates without waiting for IO
     visited.add(id);
-    // Close mobile nav if open
-    const nav = document.getElementById("tag-nav");
-    if (nav && nav.classList.contains("is-open")) closeMobileNav();
     refreshQV();
   }
 
