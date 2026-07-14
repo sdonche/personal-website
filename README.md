@@ -113,6 +113,20 @@ printf '%s' 'you@example.com' | base64
 
 ---
 
+## Analytics — GoatCounter
+
+Pageviews are counted by **[GoatCounter](https://www.goatcounter.com)** (site code `samdonche` — dashboard at <https://samdonche.goatcounter.com>). It sets **no cookies** and stores no personal data, so no consent banner is needed.
+
+The tracker script is **self-hosted** at [assets/js/goatcounter.js](assets/js/goatcounter.js) (a pinned copy of GoatCounter's `count.js`, ISC-licensed) so the only external request a visitor makes is the count ping to the GoatCounter endpoint. To refresh the pinned copy occasionally:
+
+```bash
+curl -s https://gc.zgo.at/count.js -o assets/js/goatcounter.js
+```
+
+The script ignores `localhost`, so local development doesn't pollute the stats. The 404 page logs hits under a `404-` path prefix, so broken inbound links surface in the dashboard.
+
+---
+
 ## Hosting & deployment (Hostinger)
 
 The site lives on a **Hostinger Business Web Hosting** plan, served from `public_html/` at the main domain **samdonche.com**. Because it's fully static, there's no build or runtime — Hostinger just serves the files.

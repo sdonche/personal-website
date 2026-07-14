@@ -24,5 +24,10 @@
       ← Return to gateway
     </a>
   </div>
+  <!-- GoatCounter — log 404s under a distinct path prefix so broken links show up in the dashboard -->
+  <script>
+    window.goatcounter = { path: function(p) { return "404-" + p; } };
+  </script>
+  <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="/assets/js/goatcounter.js"></script>
 </body>
 </html>
