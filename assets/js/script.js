@@ -63,6 +63,7 @@
   function init() {
     startClock();
     setFooterYear();
+    setIndustryYears();
     buildTagBrowser();
     wireMobileNav();
     wireCommandPalette();
@@ -95,6 +96,18 @@
   function setFooterYear() {
     const el = document.getElementById("year");
     if (el) el.textContent = new Date().getFullYear();
+  }
+
+  /* ----------------------------------------------------
+     2b. Industry-years stat — computed so it never goes stale.
+         Started in industry Jan 2022 (data engineer, Clarebout).
+     ---------------------------------------------------- */
+  function setIndustryYears() {
+    const el = document.getElementById("stat-industry-yrs");
+    if (!el) return;
+    const INDUSTRY_START = Date.UTC(2022, 0, 1);
+    const years = Math.floor((Date.now() - INDUSTRY_START) / (365.25 * 24 * 3600 * 1000));
+    if (years > 0) el.textContent = `${years}+`;
   }
 
   /* ----------------------------------------------------

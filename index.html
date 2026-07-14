@@ -223,7 +223,8 @@
           <dl class="mt-12 grid grid-cols-3 gap-4 max-w-lg">
             <div class="rounded-md border border-slate-800 bg-slate-900/40 p-4">
               <dt class="font-mono text-[10px] uppercase tracking-widest text-slate-500">Industry Yrs</dt>
-              <dd class="text-2xl font-semibold text-brand-300 mt-1">4+</dd>
+              <!-- Computed from INDUSTRY_START in script.js; static text is the no-JS fallback -->
+              <dd id="stat-industry-yrs" class="text-2xl font-semibold text-brand-300 mt-1">4+</dd>
             </div>
             <div class="rounded-md border border-slate-800 bg-slate-900/40 p-4">
               <dt class="font-mono text-[10px] uppercase tracking-widest text-slate-500">Sectors</dt>
@@ -773,7 +774,7 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/script.js?v=2026-07-14.2" defer></script>
+  <script src="assets/js/script.js?v=2026-07-14.3" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->
