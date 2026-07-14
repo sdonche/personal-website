@@ -33,6 +33,24 @@ ErrorDocument 404 /404.html
 # ExpiresByType font/woff2 rule above to match)
 AddType font/woff2 .woff2
 
+# ── Security headers ─────────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Strict-Transport-Security "max-age=31536000"
+  # Partial CSP: block framing + restrict form posts to us and Formspree.
+  # (No script-src on purpose — the inline bootstrap script would need
+  # fragile hash maintenance on shared hosting.)
+  Header always set Content-Security-Policy "frame-ancestors 'none'; form-action 'self' https://formspree.io"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+
+# Repo housekeeping files are deployed alongside the site — don't serve them.
+# (.well-known must stay reachable for SSL renewal, so only block specifics.)
+RedirectMatch 404 ^/\.git(/|$)
+RedirectMatch 404 ^/(README\.md|\.gitignore)$
+
 # Gzip compression
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml

@@ -134,7 +134,6 @@
 
   function renderLeaf(section) {
     const li = document.createElement("li");
-    li.setAttribute("role", "treeitem");
 
     const a = document.createElement("a");
     a.className = "tag-nav__item";
@@ -158,9 +157,8 @@
 
   function renderGroup(parentSection, children) {
     const li = document.createElement("li");
-    li.setAttribute("role", "treeitem");
-    li.setAttribute("aria-expanded", "true");
 
+    // <details>/<summary> natively conveys expanded/collapsed state
     const details = document.createElement("details");
     details.className = "tag-nav__group";
     details.open = true;
@@ -182,7 +180,6 @@
     details.appendChild(summary);
 
     const ul = document.createElement("ul");
-    ul.setAttribute("role", "group");
     children.forEach(c => ul.appendChild(renderLeaf(c)));
     details.appendChild(ul);
 
@@ -199,6 +196,9 @@
       if (id === activeId) qv = "live";
       else if (visited.has(id)) qv = "good";
       el.dataset.qv = qv;
+      // Expose the live section to assistive tech
+      if (qv === "live") el.setAttribute("aria-current", "true");
+      else el.removeAttribute("aria-current");
       const badge = el.querySelector(".qv-badge");
       if (badge) badge.textContent = qv.toUpperCase();
     });

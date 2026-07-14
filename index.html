@@ -62,8 +62,10 @@
   }
   </script>
 
-  <!-- Favicon (simple SVG, no external file needed) -->
+  <!-- Favicon: inline SVG for modern browsers, PNG fallback for Safari (which ignores SVG favicons) -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Ccircle cx='16' cy='16' r='5' fill='none' stroke='%2322d3ee' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%2322d3ee'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png" />
 
   <!-- Fonts — self-hosted (see assets/css/fonts.css); no requests to Google (GDPR + perf).
        Preload the two latin variable fonts used above the fold; crossorigin is required
@@ -169,13 +171,13 @@
 
       <!-- Tree is rendered by script.js from the SECTIONS registry.
            Static <ul> remains as fallback for no-JS + SEO. -->
-      <ul id="tag-nav-tree" class="tag-nav__tree" role="tree">
-        <li role="treeitem"><a href="#hero">home</a></li>
-        <li role="treeitem"><a href="#about">about</a></li>
-        <li role="treeitem"><a href="#experience">experience</a></li>
-        <li role="treeitem"><a href="#education">education</a></li>
-        <li role="treeitem"><a href="#skills">skills</a></li>
-        <li role="treeitem"><a href="#contact">contact</a></li>
+      <ul id="tag-nav-tree" class="tag-nav__tree">
+        <li><a href="#hero">home</a></li>
+        <li><a href="#about">about</a></li>
+        <li><a href="#experience">experience</a></li>
+        <li><a href="#education">education</a></li>
+        <li><a href="#skills">skills</a></li>
+        <li><a href="#contact">contact</a></li>
       </ul>
 
       <footer class="tag-nav__footer">
@@ -752,6 +754,6 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/script.js?v=2026-07-14" defer></script>
+  <script src="assets/js/script.js?v=2026-07-14.1" defer></script>
 </body>
 </html>
