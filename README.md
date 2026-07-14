@@ -51,7 +51,8 @@ Then bump the `?v=` cache-buster on the `tailwind.css` `<link>` in `index.html`.
 │   ├── css/fonts.css         # @font-face rules for the self-hosted fonts
 │   ├── fonts/                # Inter + JetBrains Mono variable woff2 (latin, latin-ext)
 │   ├── js/script.js          # Network nav builder, scroll behavior, contact form
-│   └── img/og.jpg            # 1200×630 social share image (Open Graph / Twitter)
+│   └── img/                  # og-card.jpg (1200×630 social card, generated), portrait.jpg
+│                             # (About photo + schema.org), og.jpg (source photo), favicons
 ├── .htaccess                 # Apache config: HTTPS, custom 404, caching (Hostinger)
 ├── 404.html                  # Custom 404 (wired up via .htaccess)
 ├── robots.txt                # Crawler rules + sitemap pointer
