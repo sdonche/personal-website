@@ -484,62 +484,90 @@
      ---------------------------------------------------- */
 
   const STACK_STAGES = [
-    { x:  60, label: "FIELD" },
-    { x: 180, label: "EDGE" },
-    { x: 300, label: "BROKER" },
-    { x: 420, label: "BACKEND" },
-    { x: 540, label: "FRONTEND" },
-    { x: 660, label: "CONSUMERS" },
+    { x:  75, label: "FIELD" },
+    { x: 200, label: "EDGE" },
+    { x: 330, label: "BROKER" },
+    { x: 455, label: "BACKEND" },
+    { x: 575, label: "FRONTEND" },
+    { x: 668, label: "CONSUMERS" },
   ];
 
-  /* Node visual presets per kind */
-  const STACK_KINDS = {
-    field:    { ringR: 7,  coreR: 2.5 },
-    edge:     { ringR: 10, coreR: 3.5 },
-    broker:   { ringR: 15, coreR: 6, isCenter: true },
-    server:   { ringR: 11, coreR: 4   },
-    storage:  { ringR: 9,  coreR: 3   },
-    consumer: { ringR: 8,  coreR: 3   },
-  };
-
-  /* Nodes — id keyed for easy edge references.
-     The main flow (field → edge → broker → backend → frontend) sits on ONE
-     centerline (y=170) so the spine reads as a straight left-to-right line;
-     the two storage nodes hang below the backend in a symmetric V. */
+  /* Nodes are labeled blocks (schematic style, like Ignition designer views).
+     Width is derived from the label unless `w` is given; the main flow
+     (field → edge → broker → backend → frontend) sits on one centerline. */
   const STACK_NODES = {
-    plc:      { x:  60, y:  95, label: "PLC / RTU",     kind: "field"    },
-    sensor:   { x:  60, y: 170, label: "Sensor",        kind: "field"    },
-    opcua:    { x:  60, y: 245, label: "OPC UA",        kind: "field"    },
-    edge:     { x: 180, y: 170, label: "Ignition Edge", kind: "edge"     },
-    mqtt:     { x: 300, y: 170, label: "MQTT",          kind: "broker"   },
-    backend:  { x: 420, y: 170, label: "Backend",       kind: "server", labelAbove: true },
-    sql:      { x: 368, y: 258, label: "SQL DB",        kind: "storage"  },
-    tsdb:     { x: 472, y: 258, label: "Timeseries DB", kind: "storage"  },
-    frontend: { x: 540, y: 170, label: "Frontend",      kind: "server"   },
-    hmi:      { x: 660, y:  80, label: "HMI",           kind: "consumer" },
-    scada:    { x: 660, y: 125, label: "SCADA",         kind: "consumer" },
-    mes:      { x: 660, y: 170, label: "MES",           kind: "consumer" },
-    graf:     { x: 660, y: 215, label: "Grafana",       kind: "consumer" },
-    apps:     { x: 660, y: 260, label: "Apps",          kind: "consumer" },
+    plc:      { x:  75, y:  95, label: "PLC / RTU",     kind: "field"    },
+    sensor:   { x:  75, y: 170, label: "Sensor",        kind: "field"    },
+    opcua:    { x:  75, y: 245, label: "OPC UA",        kind: "field"    },
+    edge:     { x: 200, y: 170, label: "Ignition Edge", kind: "edge"     },
+    mqtt:     { x: 330, y: 170, label: "MQTT",          kind: "broker"   },
+    backend:  { x: 455, y: 170, label: "Backend",       kind: "server"   },
+    sql:      { x: 395, y: 252, label: "SQL DB",        kind: "storage"  },
+    tsdb:     { x: 520, y: 252, label: "Timeseries DB", kind: "storage"  },
+    frontend: { x: 575, y: 170, label: "Frontend",      kind: "server"   },
+    hmi:      { x: 668, y:  80, label: "HMI",           kind: "consumer", w: 64 },
+    scada:    { x: 668, y: 125, label: "SCADA",         kind: "consumer", w: 64 },
+    mes:      { x: 668, y: 170, label: "MES",           kind: "consumer", w: 64 },
+    graf:     { x: 668, y: 215, label: "Grafana",       kind: "consumer", w: 64 },
+    apps:     { x: 668, y: 260, label: "Apps",          kind: "consumer", w: 64 },
   };
 
-  /* Edges as [fromId, toId] — particles flow from→to.
-     spine: true marks the main data path, drawn with more emphasis. */
+  /* Edges as [fromId, toId, opts] — particles flow from→to.
+       spine: true   main data path, drawn heavier
+       route:        "elbow" (H-V-H between columns), "tbranch" (drop from the
+                     block bottom, then split), "comb" (shared trunk fan-out);
+                     omitted = straight horizontal
+       out: true     downstream of the frontend — particles turn emerald
+                     (data becomes decisions) */
   const STACK_EDGES = [
-    ["plc",      "edge"],
+    ["plc",      "edge",     { route: "elbow" }],
     ["sensor",   "edge",     { spine: true }],
-    ["opcua",    "edge"],
+    ["opcua",    "edge",     { route: "elbow" }],
     ["edge",     "mqtt",     { spine: true }],
     ["mqtt",     "backend",  { spine: true }],
     ["backend",  "frontend", { spine: true }],
-    ["backend",  "sql"],
-    ["backend",  "tsdb"],
-    ["frontend", "hmi"],
-    ["frontend", "scada"],
-    ["frontend", "mes",      { spine: true }],
-    ["frontend", "graf"],
-    ["frontend", "apps"],
+    ["backend",  "sql",      { route: "tbranch" }],
+    ["backend",  "tsdb",     { route: "tbranch" }],
+    ["frontend", "hmi",      { route: "comb", out: true }],
+    ["frontend", "scada",    { route: "comb", out: true }],
+    ["frontend", "mes",      { route: "comb", out: true, spine: true }],
+    ["frontend", "graf",     { route: "comb", out: true }],
+    ["frontend", "apps",     { route: "comb", out: true }],
   ];
+
+  /* Block geometry helpers */
+  const BLOCK_H = 26;
+  const BROKER_H = 34;
+  function blockRect(n) {
+    const w = n.w || Math.max(56, n.label.length * 6.4 + 22);
+    const h = n.kind === "broker" ? BROKER_H : BLOCK_H;
+    return { w, h, x1: n.x - w / 2, y1: n.y - h / 2, x2: n.x + w / 2, y2: n.y + h / 2 };
+  }
+
+  /* Orthogonal (right-angle) waypoints from one block edge to another */
+  function edgePoints(from, to, opts) {
+    const a = blockRect(from), b = blockRect(to);
+    const route = opts && opts.route;
+    if (route === "elbow") {
+      // leave right side, turn in the column gap, enter left side —
+      // offset the entry row so parallel elbows don't pile onto one point
+      const xm = (a.x2 + b.x1) / 2;
+      const yIn = to.y + (from.y < to.y ? -7 : 7);
+      return [[a.x2, from.y], [xm, from.y], [xm, yIn], [b.x1, yIn]];
+    }
+    if (route === "tbranch") {
+      // drop from the block bottom, split sideways, drop into the target top
+      const ym = (a.y2 + b.y1) / 2;
+      return [[from.x, a.y2], [from.x, ym], [to.x, ym], [to.x, b.y1]];
+    }
+    if (route === "comb") {
+      // shared vertical trunk just right of the source, teeth into each target
+      if (from.y === to.y) return [[a.x2, from.y], [b.x1, to.y]];
+      const xt = a.x2 + 14;
+      return [[a.x2, from.y], [xt, from.y], [xt, to.y], [b.x1, to.y]];
+    }
+    return [[a.x2, from.y], [b.x1, to.y]];
+  }
 
   function buildStackDiagram() {
     const svg = document.getElementById("stack-svg");
@@ -571,85 +599,73 @@
       }
     });
 
-    /* ---- Edges ---- */
+    /* ---- Edges (orthogonal polylines) ---- */
     STACK_EDGES.forEach(([fromId, toId, opts]) => {
       const from = STACK_NODES[fromId];
       const to   = STACK_NODES[toId];
       if (!from || !to) return;
+      const pts = edgePoints(from, to, opts);
       append(svgNS, edgesG, "path", {
-        d: edgePath(fromId, toId, from, to),
+        d: pathAbs(pts),
         class: opts && opts.spine ? "is-spine" : "",
       });
     });
 
-    /* ---- Particles per edge, flowing from → to ---- */
+    /* ---- Particles per edge, flowing from → to along the same route ---- */
     if (!prefersReducedMotion) {
-      STACK_EDGES.forEach(([fromId, toId], i) => {
+      STACK_EDGES.forEach(([fromId, toId, opts], i) => {
         const from = STACK_NODES[fromId];
         const to   = STACK_NODES[toId];
         if (!from || !to) return;
+        const pts = edgePoints(from, to, opts);
 
         const dot = append(svgNS, particlesG, "circle", {
           r: 2.4,
-          cx: from.x,
-          cy: from.y,
+          cx: pts[0][0],
+          cy: pts[0][1],
+          class: opts && opts.out ? "is-out" : "",
         });
-        const anim = append(svgNS, dot, "animateMotion", {
+        append(svgNS, dot, "animateMotion", {
           dur:        `${2.4 + (i * 0.27) % 1.6}s`,
           repeatCount: "indefinite",
           begin:      `${(i * 0.35) % 2}s`,
-          path:       relativePath(fromId, toId, from, to),
+          path:       pathRel(pts),
         });
-        // animateMotion has no fill attr; SVG default keeps the dot at origin.
-        void anim;
       });
     }
 
-    /* ---- Nodes (ring + core + halo for broker + label) ---- */
-    Object.entries(STACK_NODES).forEach(([id, n]) => {
-      const kind = STACK_KINDS[n.kind];
+    /* ---- Nodes: labeled blocks (halo pulse behind the broker) ---- */
+    Object.values(STACK_NODES).forEach((n) => {
+      const r = blockRect(n);
 
-      if (kind.isCenter) {
+      if (n.kind === "broker") {
         append(svgNS, nodesG, "circle", {
           class: "stack-svg__center-halo",
-          cx: n.x, cy: n.y, r: kind.ringR + 4,
-        });
-        append(svgNS, nodesG, "circle", {
-          class: "stack-svg__center-ring",
-          cx: n.x, cy: n.y, r: kind.ringR,
-        });
-        append(svgNS, nodesG, "circle", {
-          class: "stack-svg__center-core",
-          cx: n.x, cy: n.y, r: kind.coreR,
-        });
-      } else {
-        append(svgNS, nodesG, "circle", {
-          class: "stack-svg__node-ring",
-          cx: n.x, cy: n.y, r: kind.ringR,
-        });
-        append(svgNS, nodesG, "circle", {
-          class: "stack-svg__node-core",
-          cx: n.x, cy: n.y, r: kind.coreR,
+          cx: n.x, cy: n.y, r: 30,
         });
       }
 
-      // Label below the node (or above, where edges below would cross it)
-      const labelY = n.labelAbove ? n.y - kind.ringR - 8 : n.y + kind.ringR + 14;
+      append(svgNS, nodesG, "rect", {
+        class: `stack-svg__block stack-svg__block--${n.kind}`,
+        x: r.x1, y: r.y1, width: r.w, height: r.h, rx: 6,
+      });
+
       const label = append(svgNS, nodesG, "text", {
-        class: "stack-svg__node-label",
-        x: n.x, y: labelY,
+        class: `stack-svg__block-label stack-svg__block-label--${n.kind}`,
+        x: n.x, y: n.y, dy: "0.35em",
       });
       label.textContent = n.label;
     });
   }
 
-  /* Straight-line edge between two nodes, and the same in
-     origin-relative form for use inside <animateMotion>. */
-  function edgePath(_fromId, _toId, a, b) {
-    return `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
+  /* Waypoint list → SVG path string (absolute, and origin-relative
+     for use inside <animateMotion>). */
+  function pathAbs(pts) {
+    return pts.map(([x, y], i) => `${i ? "L" : "M"} ${x} ${y}`).join(" ");
   }
-  function relativePath(_fromId, _toId, a, b) {
-    return `M 0 0 L ${b.x - a.x} ${b.y - a.y}`;
+  function pathRel(pts) {
+    const [x0, y0] = pts[0];
+    return pts.map(([x, y], i) => `${i ? "L" : "M"} ${x - x0} ${y - y0}`).join(" ");
   }
 
   /* Small SVG helper — set attributes from an object and append */
