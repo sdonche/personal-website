@@ -92,6 +92,7 @@
     wireMobileNav();
     wireCommandPalette();
     buildStackDiagram();
+    buildCareerTrend();
     observeActiveSection();
     observeReveals();
     observeSkills();
@@ -680,6 +681,101 @@
         x: n.x, y: n.y, dy: "0.35em",
       });
       label.textContent = n.label;
+    });
+  }
+
+  /* ----------------------------------------------------
+     6c. Career historian trend — the Experience section's
+         overview chart. Each role is a trend-pen span on a
+         2011→now time axis; the current role runs to a live
+         emerald "now" edge (cyan = past, emerald = live,
+         slate = education). Clicking a lane jumps to the
+         matching card. Dates: [year, month].
+     ---------------------------------------------------- */
+  const CAREER_LANES = [
+    { id: "role-mustry",         label: "mustry",         spans: [[[2026, 5],  null]],       live: true },
+    { id: "role-vandemoortele",  label: "vandemoortele",  spans: [[[2025, 9],  [2026, 4]]] },
+    { id: "role-clarebout",      label: "clarebout",      spans: [[[2022, 1],  [2025, 9]]] },
+    { id: "role-united-experts", label: "united_experts", spans: [[[2021, 4],  [2022, 1]]] },
+    { id: "role-uz-gent",        label: "uz_gent",        spans: [[[2017, 11], [2021, 4]]] },
+    { id: "education",           label: "ugent",          spans: [[[2011, 9], [2014, 7]], [[2014, 9], [2016, 7]]], edu: true },
+  ];
+
+  function buildCareerTrend() {
+    const svg = document.getElementById("career-svg");
+    if (!svg) return;
+
+    const svgNS  = "http://www.w3.org/2000/svg";
+    const gridG  = svg.querySelector(".career-svg__grid");
+    const lanesG = svg.querySelector(".career-svg__lanes");
+
+    const toT = ([y, m]) => y + (m - 1) / 12;
+    const nowD = new Date();
+    const NOW  = nowD.getFullYear() + nowD.getMonth() / 12;
+
+    const X0 = 130, X1 = 688;          // chart area
+    const T0 = 2011.5, T1 = NOW + 0.4; // time domain (pad the right edge)
+    const X  = t => X0 + ((t - T0) / (T1 - T0)) * (X1 - X0);
+
+    const LANE_Y0 = 42, LANE_H = 30, BAR_H = 14;
+    const yBottom = LANE_Y0 + CAREER_LANES.length * LANE_H;
+
+    /* ---- year grid + axis labels (every 3rd year labeled) ---- */
+    for (let y = 2012; y <= Math.floor(NOW); y++) {
+      append(svgNS, gridG, "line", {
+        class: "career-svg__gridline",
+        x1: X(y), y1: 30, x2: X(y), y2: yBottom + 6,
+      });
+      if ((y - 2012) % 3 === 0) {
+        const t = append(svgNS, gridG, "text", {
+          class: "career-svg__axis-label",
+          x: X(y), y: yBottom + 22,
+        });
+        t.textContent = y;
+      }
+    }
+
+    /* ---- live "now" edge ---- */
+    append(svgNS, gridG, "line", {
+      class: "career-svg__now-line",
+      x1: X(NOW), y1: 30, x2: X(NOW), y2: yBottom + 6,
+    });
+    if (!prefersReducedMotion) {
+      append(svgNS, gridG, "circle", {
+        class: "career-svg__now-dot",
+        cx: X(NOW), cy: 24, r: 3,
+      });
+    }
+    const nowLabel = append(svgNS, gridG, "text", {
+      class: "career-svg__now-label",
+      x: X(NOW) + 8, y: 27,
+    });
+    nowLabel.textContent = "now";
+
+    /* ---- lanes: label + span bars, clickable ---- */
+    CAREER_LANES.forEach((lane, i) => {
+      const yMid = LANE_Y0 + i * LANE_H + LANE_H / 2;
+      const g = append(svgNS, lanesG, "g", { class: "career-svg__lane" });
+
+      const label = append(svgNS, g, "text", {
+        class: "career-svg__lane-label",
+        x: X0 - 12, y: yMid + 3.5,
+      });
+      label.textContent = lane.label;
+
+      lane.spans.forEach(([from, to]) => {
+        const x1 = X(toT(from));
+        const x2 = X(to ? toT(to) : NOW);
+        append(svgNS, g, "rect", {
+          class: "career-svg__bar" +
+            (lane.live ? " career-svg__bar--live" : "") +
+            (lane.edu  ? " career-svg__bar--edu"  : ""),
+          x: x1, y: yMid - BAR_H / 2,
+          width: Math.max(x2 - x1, 6), height: BAR_H, rx: 4,
+        });
+      });
+
+      g.addEventListener("click", () => scrollToSection(lane.id));
     });
   }
 

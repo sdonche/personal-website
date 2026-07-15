@@ -86,7 +86,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
   <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-15.10" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-15.11" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -382,6 +382,30 @@
           <p class="section-eyebrow">// Work History</p>
           <h2 class="section-title">Selected experience</h2>
         </div>
+
+        <!-- Career historian trend — built by buildCareerTrend() in script.js -->
+        <figure class="stack-diagram reveal mt-10">
+          <div class="stack-diagram__header">
+            <span class="stack-diagram__caption">[ CAREER HISTORIAN ]</span>
+            <span class="stack-diagram__live">
+              <span class="stack-diagram__pulse" aria-hidden="true"></span> trend: live
+            </span>
+          </div>
+          <div class="stack-diagram__scroll">
+            <svg
+              id="career-svg"
+              viewBox="0 0 720 250"
+              role="img"
+              aria-label="Career timeline as a historian trend chart, 2011 to now: Ghent University 2011–2016, PhD at UZ Gent 2017–2021, environment consultant 2021–2022, data engineer at Clarebout 2022–2025, MES engineer at Vandemoortele 2025–2026, Industry 4.0 consultant at Mustry Solutions since May 2026 — live."
+            >
+              <g class="career-svg__grid"></g>
+              <g class="career-svg__lanes"></g>
+            </svg>
+          </div>
+          <figcaption class="stack-diagram__cap">
+            Fifteen years as a trend chart — click a span to jump to that chapter.
+          </figcaption>
+        </figure>
 
         <ol class="mt-12 relative timeline">
 
@@ -792,7 +816,7 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/script.js?v=2026-07-15.5" defer></script>
+  <script src="assets/js/script.js?v=2026-07-15.6" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

@@ -80,7 +80,7 @@
   <link rel="stylesheet" href="/assets/css/tailwind.css?v=2026-07-15.1" />
 
   <!-- Custom styles -->
-  <link rel="stylesheet" href="/assets/css/styles.css?v=2026-07-15.10" />
+  <link rel="stylesheet" href="/assets/css/styles.css?v=2026-07-15.11" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -372,6 +372,30 @@
           <p class="section-eyebrow">// Werkervaring</p>
           <h2 class="section-title">Geselecteerde ervaring</h2>
         </div>
+
+        <!-- Career historian trend — built by buildCareerTrend() in script.js -->
+        <figure class="stack-diagram reveal mt-10">
+          <div class="stack-diagram__header">
+            <span class="stack-diagram__caption">[ CAREER HISTORIAN ]</span>
+            <span class="stack-diagram__live">
+              <span class="stack-diagram__pulse" aria-hidden="true"></span> trend: live
+            </span>
+          </div>
+          <div class="stack-diagram__scroll">
+            <svg
+              id="career-svg"
+              viewBox="0 0 720 250"
+              role="img"
+              aria-label="Loopbaan als historian-trendgrafiek, 2011 tot nu: Universiteit Gent 2011–2016, doctoraat aan UZ Gent 2017–2021, milieuconsulent 2021–2022, data engineer bij Clarebout 2022–2025, MES engineer bij Vandemoortele 2025–2026, Industry 4.0 consultant bij Mustry Solutions sinds mei 2026 — live."
+            >
+              <g class="career-svg__grid"></g>
+              <g class="career-svg__lanes"></g>
+            </svg>
+          </div>
+          <figcaption class="stack-diagram__cap">
+            Vijftien jaar als trendgrafiek — klik op een balk om naar dat hoofdstuk te springen.
+          </figcaption>
+        </figure>
 
         <ol class="mt-12 relative timeline">
 
@@ -775,7 +799,7 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="/assets/js/script.js?v=2026-07-15.5" defer></script>
+  <script src="/assets/js/script.js?v=2026-07-15.6" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README) -->
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="/assets/js/goatcounter.js"></script>
