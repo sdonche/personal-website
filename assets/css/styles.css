@@ -950,3 +950,54 @@ html { color-scheme: dark; }
   .reveal, .js .reveal { opacity: 1; transform: none; }
   .skill.is-animated::before { transition: none; }
 }
+
+
+/* ----------------------------------------------------
+   10. Print — the same URL doubles as a clean CV.
+       White paper, dark text, chrome hidden, link
+       targets surfaced for the publications.
+   ---------------------------------------------------- */
+@media print {
+  *, *::before, *::after {
+    background: transparent !important;
+    color: #111 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+  body { background: #fff !important; font-size: 11pt; }
+
+  /* Chrome with no meaning on paper */
+  body > header,                    /* fixed top bar */
+  body > div[aria-hidden="true"],   /* fixed background grid */
+  .tag-nav,
+  #cmdk,
+  .scroll-hint,
+  .stack-diagram,                   /* cyan-on-white SVG would be unreadable */
+  #contact-form,
+  p:has([data-email-reveal]),
+  #hero a[href="#experience"],      /* hero buttons */
+  #hero a[href="#contact"],
+  footer { display: none !important; }
+
+  main { padding-left: 0 !important; }
+  main > section { padding: 0.75rem 0 !important; min-height: 0 !important; }
+  .section-band { border: 0 !important; }
+
+  /* Scroll-reveal must never hide content on paper */
+  .reveal, .js .reveal { opacity: 1 !important; transform: none !important; }
+
+  /* Self-rated bars are meaningless in monochrome — keep the skill names */
+  .skill::before, .skill::after { display: none !important; }
+
+  .timeline-item, .edu-card, .skill-group { break-inside: avoid; }
+  h2 { break-after: avoid; }
+
+  /* Surface link targets (DOIs, company site) */
+  main a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75em;
+    color: #555 !important;
+  }
+}
