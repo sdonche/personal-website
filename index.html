@@ -86,7 +86,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
   <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-15.9" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-15.10" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -187,6 +187,13 @@
         <li><a href="#skills">skills</a></li>
         <li><a href="#contact">contact</a></li>
       </ul>
+
+      <!-- QV quality legend -->
+      <div class="tag-nav__legend font-mono">
+        <p><span class="legend-dot legend-dot--stale" aria-hidden="true"></span> stale — not yet viewed</p>
+        <p><span class="legend-dot legend-dot--good" aria-hidden="true"></span> good — visited</p>
+        <p><span class="legend-dot legend-dot--live" aria-hidden="true"></span> live — on screen now</p>
+      </div>
 
       <footer class="tag-nav__footer">
         <button id="cmdk-open" type="button" class="tag-nav__cmdk" aria-label="Open tag search (Cmd+K)">
@@ -785,7 +792,7 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/script.js?v=2026-07-15.4" defer></script>
+  <script src="assets/js/script.js?v=2026-07-15.5" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

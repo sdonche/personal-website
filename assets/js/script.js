@@ -35,6 +35,7 @@
       err:     "Transmission failed. Please try again.",
       net:     "Network error. Please try again or use email.",
       subject: "Hello from your website",
+      qv: { stale: "Not yet viewed", good: "Visited", live: "On screen now" },
     },
     nl: {
       pending: "Verzenden…",
@@ -43,6 +44,7 @@
       err:     "Verzenden mislukt. Probeer het opnieuw.",
       net:     "Netwerkfout. Probeer opnieuw of gebruik e-mail.",
       subject: "Hallo via je website",
+      qv: { stale: "Nog niet bekeken", good: "Bezocht", live: "Nu in beeld" },
     },
   };
   const T = I18N[document.documentElement.lang] || I18N.en;
@@ -231,9 +233,10 @@
       if (id === activeId) qv = "live";
       else if (visited.has(id)) qv = "good";
       el.dataset.qv = qv;
-      // Expose the live section to assistive tech
+      // Expose the live section to assistive tech + explain the state on hover
       if (qv === "live") el.setAttribute("aria-current", "true");
       else el.removeAttribute("aria-current");
+      el.title = T.qv[qv];
       const badge = el.querySelector(".qv-badge");
       if (badge) badge.textContent = qv.toUpperCase();
     });

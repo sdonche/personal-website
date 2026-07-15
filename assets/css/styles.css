@@ -533,6 +533,27 @@ html { color-scheme: dark; }
 }
 
 /* Footer — Cmd+K hint */
+/* QV quality legend — a real tag browser would have one. Teaches the
+   STALE/GOOD/LIVE mechanic to visitors who don't speak Ignition. */
+.tag-nav__legend {
+  padding: 0.75rem 0.25rem 0.25rem;
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  color: rgb(100 116 139);
+}
+.tag-nav__legend p { margin: 0; display: flex; align-items: center; gap: 0.45rem; }
+.tag-nav__legend .legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.legend-dot--stale { background: rgb(234 179 8); }
+.legend-dot--good  { background: var(--color-brand-400); }
+.legend-dot--live  { background: var(--color-accent); }
+
 .tag-nav__footer {
   margin-top: auto;
   padding-top: 0.75rem;
