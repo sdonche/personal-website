@@ -114,6 +114,14 @@ printf '%s' 'you@example.com' | base64
 
 ---
 
+## Dutch version — /nl/
+
+[nl/index.html](nl/index.html) is a full Dutch (Flemish) translation of the single page, served at **samdonche.com/nl/**. Both pages carry `hreflang` alternates (also in the sitemap) so search engines serve the right language; the top bar and footer have EN/NL switchers.
+
+**Maintenance rule: every content edit to `index.html` must be mirrored in `nl/index.html`.** The two pages share `script.js` (dynamic strings like form statuses come from the `I18N` map keyed by `<html lang>`), all CSS and all assets — only the HTML differs. Chrome stays English on both (tag browser labels, `SYSTEM: ONLINE`, diagram labels, ⌘K palette): industrial-system language is part of the aesthetic. Publication titles stay English — that's how they were published.
+
+---
+
 ## Analytics — GoatCounter
 
 Pageviews are counted by **[GoatCounter](https://www.goatcounter.com)** (site code `samdonche` — dashboard at <https://samdonche.goatcounter.com>). It sets **no cookies** and stores no personal data, so no consent banner is needed.

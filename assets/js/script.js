@@ -25,6 +25,28 @@
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isMac = /Mac|iPhone|iPad/i.test(navigator.platform);
 
+  /* Dynamic strings, keyed by the page's <html lang> (en on /, nl on /nl/).
+     Static copy lives in the HTML pages themselves. */
+  const I18N = {
+    en: {
+      pending: "Transmitting…",
+      mailto:  "Opened your mail client — finish & send to deliver.",
+      ok:      "Message delivered. I&rsquo;ll reply soon.",
+      err:     "Transmission failed. Please try again.",
+      net:     "Network error. Please try again or use email.",
+      subject: "Hello from your website",
+    },
+    nl: {
+      pending: "Verzenden…",
+      mailto:  "Je e-mailprogramma is geopend — verstuur het bericht om het te bezorgen.",
+      ok:      "Bericht ontvangen. Ik antwoord snel.",
+      err:     "Verzenden mislukt. Probeer het opnieuw.",
+      net:     "Netwerkfout. Probeer opnieuw of gebruik e-mail.",
+      subject: "Hallo via je website",
+    },
+  };
+  const T = I18N[document.documentElement.lang] || I18N.en;
+
   /* ----------------------------------------------------
      Section registry — single source of truth.
        id          : matches the section anchor in index.html
@@ -785,16 +807,16 @@
       const action = form.getAttribute("action") || "";
       const useFormspree = action.includes("formspree.io/f/") && !action.includes("YOUR_FORM_ID");
 
-      setStatus("Transmitting…", "pending");
+      setStatus(T.pending, "pending");
 
       if (!useFormspree) {
         const data = new FormData(form);
-        const subject = encodeURIComponent(data.get("_subject") || "Hello from your website");
+        const subject = encodeURIComponent(data.get("_subject") || T.subject);
         const body = encodeURIComponent(
           `Name: ${data.get("name")}\nEmail: ${data.get("email")}\n\n${data.get("message")}`
         );
         window.location.href = `mailto:${FALLBACK_EMAIL}?subject=${subject}&body=${body}`;
-        setStatus("Opened your mail client — finish & send to deliver.", "ok");
+        setStatus(T.mailto, "ok");
         return;
       }
 
@@ -806,13 +828,13 @@
         });
         if (res.ok) {
           form.reset();
-          setStatus("Message delivered. I&rsquo;ll reply soon.", "ok");
+          setStatus(T.ok, "ok");
         } else {
           const j = await res.json().catch(() => ({}));
-          setStatus(j.error || "Transmission failed. Please try again.", "err");
+          setStatus(j.error || T.err, "err");
         }
       } catch {
-        setStatus("Network error. Please try again or use email.", "err");
+        setStatus(T.net, "err");
       }
     });
 

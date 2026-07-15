@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" class="dark scroll-smooth">
+<html lang="nl" class="dark scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Flag JS as available before paint, so scroll-reveal only hides content it can later reveal -->
   <script>document.documentElement.classList.add('js');</script>
   <meta name="theme-color" content="#020617" />
-  <meta name="description" content="Sam Donche — Industry 4.0 Consultant based in Ieper, Belgium. Industrial digital architecture, MES, data engineering." />
+  <meta name="description" content="Sam Donche — Industry 4.0 Consultant uit Ieper. Industriële digitale architectuur, MES en data engineering." />
   <meta name="author" content="Sam Donche" />
   <title>Sam Donche — Industry 4.0 Consultant</title>
 
   <!-- Canonical + language alternates -->
-  <link rel="canonical" href="https://samdonche.com/" />
+  <link rel="canonical" href="https://samdonche.com/nl/" />
   <link rel="alternate" hreflang="en" href="https://samdonche.com/" />
   <link rel="alternate" hreflang="nl-BE" href="https://samdonche.com/nl/" />
   <link rel="alternate" hreflang="x-default" href="https://samdonche.com/" />
@@ -20,12 +20,10 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Sam Donche" />
   <meta property="og:title" content="Sam Donche — Industry 4.0 Consultant" />
-  <meta property="og:description" content="Industry 4.0 Consultant — building the digital backbone for factories." />
-  <meta property="og:url" content="https://samdonche.com/" />
-  <meta property="og:locale" content="en_US" />
-  <meta property="og:locale:alternate" content="nl_BE" />
-  <!-- og-card.jpg is generated (dark card: name, title, portrait) — new filename forces
-       LinkedIn & co. to re-scrape instead of serving their cached copy of the old image -->
+  <meta property="og:description" content="Industry 4.0 Consultant — bouwt de digitale ruggengraat voor fabrieken." />
+  <meta property="og:url" content="https://samdonche.com/nl/" />
+  <meta property="og:locale" content="nl_BE" />
+  <meta property="og:locale:alternate" content="en_US" />
   <meta property="og:image" content="https://samdonche.com/assets/img/og-card.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -34,10 +32,10 @@
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Sam Donche — Industry 4.0 Consultant" />
-  <meta name="twitter:description" content="Industry 4.0 Consultant — building the digital backbone for factories." />
+  <meta name="twitter:description" content="Industry 4.0 Consultant — bouwt de digitale ruggengraat voor fabrieken." />
   <meta name="twitter:image" content="https://samdonche.com/assets/img/og-card.jpg" />
 
-  <!-- Structured data (schema.org Person). Email intentionally omitted to keep it un-scrapeable. -->
+  <!-- Structured data (schema.org Person). E-mail bewust weggelaten. -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -50,7 +48,7 @@
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Ieper",
-      "addressRegion": "West Flanders",
+      "addressRegion": "West-Vlaanderen",
       "addressCountry": "BE"
     },
     "sameAs": [
@@ -68,25 +66,21 @@
   }
   </script>
 
-  <!-- Favicon: inline SVG for modern browsers, PNG fallback for Safari (which ignores SVG favicons) -->
+  <!-- Favicon: inline SVG for modern browsers, PNG fallback for Safari -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Ccircle cx='16' cy='16' r='5' fill='none' stroke='%2322d3ee' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%2322d3ee'/%3E%3C/svg%3E" />
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png" />
 
-  <!-- Fonts — self-hosted (see assets/css/fonts.css); no requests to Google (GDPR + perf).
-       Preload the two latin variable fonts used above the fold; crossorigin is required
-       on font preloads even same-origin, or the browser fetches them twice. -->
-  <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/fonts.css?v=2026-07-13" />
+  <!-- Fonts — self-hosted (see /assets/css/fonts.css) -->
+  <link rel="preload" href="/assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="/assets/css/fonts.css?v=2026-07-13" />
 
-  <!-- Tailwind CSS v4, precompiled — design tokens live in assets/css/tailwind.input.css.
-       Rebuild after changing Tailwind classes (see README "Rebuilding the CSS"), then bump the ?v= below. -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=2026-07-15" />
+  <!-- Tailwind CSS v4, precompiled -->
+  <link rel="stylesheet" href="/assets/css/tailwind.css?v=2026-07-15" />
 
-  <!-- Custom styles (animations, grid bg, network nav specifics) -->
-  <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-15.7" />
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="/assets/css/styles.css?v=2026-07-15.7" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -104,7 +98,7 @@
        SKIP LINK (a11y)
        ============================================================ -->
   <a href="#hero" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-3 focus:py-2 focus:rounded focus:bg-brand-400 focus:text-slate-950 focus:font-semibold">
-    Skip to content
+    Naar inhoud
   </a>
 
   <!-- ============================================================
@@ -127,7 +121,7 @@
         <span aria-hidden="true" class="text-slate-700">|</span>
         <span id="local-time" aria-live="off">--:--:--</span>
         <span aria-hidden="true" class="text-slate-700">|</span>
-        <a href="/nl/" hreflang="nl-BE" lang="nl" class="hover:text-brand-300 transition-colors">NL</a>
+        <a href="/" hreflang="en" lang="en" class="hover:text-brand-300 transition-colors">EN</a>
       </div>
 
       <!-- Mobile-only: open tag-browser sidebar overlay -->
@@ -135,7 +129,7 @@
         id="nav-toggle"
         type="button"
         class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition"
-        aria-label="Open navigation"
+        aria-label="Navigatie openen"
         aria-expanded="false"
         aria-controls="tag-nav"
       >
@@ -148,9 +142,6 @@
 
   <!-- ============================================================
        TAG-BROWSER NAVIGATION (Ignition-style)
-       Desktop: fixed left sidebar below the top bar
-       Mobile:  slide-in overlay toggled by #nav-toggle
-       Tree items + QV (quality-value) badges are rendered by script.js
        ============================================================ -->
   <aside
     id="tag-nav"
@@ -167,7 +158,7 @@
           id="nav-close"
           type="button"
           class="tag-nav__close lg:hidden"
-          aria-label="Close navigation"
+          aria-label="Navigatie sluiten"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 mx-auto">
             <path d="M6 6l12 12M18 6L6 18"/>
@@ -189,7 +180,7 @@
       </ul>
 
       <footer class="tag-nav__footer">
-        <button id="cmdk-open" type="button" class="tag-nav__cmdk" aria-label="Open tag search (Cmd+K)">
+        <button id="cmdk-open" type="button" class="tag-nav__cmdk" aria-label="Tagzoeker openen (Cmd+K)">
           <span class="tag-nav__cmdk-keys"><kbd>⌘</kbd><kbd>K</kbd></span>
           <span class="tag-nav__cmdk-label">search tags</span>
         </button>
@@ -206,36 +197,35 @@
       <div class="max-w-6xl mx-auto w-full grid lg:grid-cols-[1fr_auto] gap-12 items-center">
         <div class="reveal">
           <p class="font-mono text-xs uppercase tracking-[0.3em] text-brand-400 mb-4 flex items-center gap-2">
-            <span class="h-px w-8 bg-brand-400/60"></span> Digital backbone for factories
+            <span class="h-px w-8 bg-brand-400/60"></span> Digitale ruggengraat voor fabrieken
           </p>
           <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
-            Connecting machines,<br/>
-            data, and <span class="text-brand-400">decisions.</span>
+            Machines, data en<br/>
+            <span class="text-brand-400">beslissingen</span> verbinden.
           </h1>
           <p class="mt-6 text-lg text-slate-400 max-w-xl leading-relaxed">
-            I&rsquo;m <span class="text-slate-200 font-medium">Sam Donche</span>, Industry 4.0 Consultant based in Ieper, Belgium. I help manufacturers connect their assets, structure their data, and turn operational reality into decisions worth acting on.
+            Ik ben <span class="text-slate-200 font-medium">Sam Donche</span>, Industry 4.0 Consultant uit Ieper. Ik help fabrikanten hun machines te verbinden, hun data te structureren en de operationele realiteit om te zetten in beslissingen die ertoe doen.
           </p>
           <div class="mt-8 flex flex-wrap gap-3">
             <a href="#experience"
                class="inline-flex items-center gap-2 px-5 py-3 rounded-md bg-brand-400 text-slate-950 font-semibold hover:bg-brand-300 transition shadow-[0_0_30px_-5px_rgba(34,211,238,0.5)]">
-              View work
+              Bekijk werk
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </a>
             <a href="#contact"
                class="inline-flex items-center gap-2 px-5 py-3 rounded-md border border-slate-700 text-slate-200 hover:border-brand-400/60 hover:text-brand-300 transition">
-              Get in touch
+              Neem contact op
             </a>
           </div>
 
-          <!-- Status line (replaces the old stat tiles) — years computed in script.js,
-               static "4+" is the no-JS fallback -->
+          <!-- Status line — years computed in script.js, static "4+" is the no-JS fallback -->
           <p class="mt-12 font-mono text-xs text-slate-500">
             <span class="text-brand-400" aria-hidden="true">&gt;</span>
-            <span id="stat-industry-yrs" class="text-slate-200">4+</span> yrs in industry
-            <span class="text-slate-700">·</span> manufacturing
-            <span class="text-slate-700">·</span> aerospace
-            <span class="text-slate-700">·</span> textiles
-            <span class="text-slate-700">·</span> energy
+            <span id="stat-industry-yrs" class="text-slate-200">4+</span> jaar in de industrie
+            <span class="text-slate-700">·</span> maakindustrie
+            <span class="text-slate-700">·</span> luchtvaart
+            <span class="text-slate-700">·</span> textiel
+            <span class="text-slate-700">·</span> energie
           </p>
         </div>
 
@@ -253,45 +243,45 @@
                   <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
                   <span class="relative rounded-full h-1.5 w-1.5 bg-accent"></span>
                 </span>
-                Active
+                Actief
               </span>
             </div>
 
             <!-- Identity attributes -->
             <dl class="px-5 py-4 space-y-3">
               <div class="grid grid-cols-[5.5rem_1fr] items-baseline gap-3">
-                <dt class="font-mono text-[10px] tracking-wider text-slate-500">Role</dt>
+                <dt class="font-mono text-[10px] tracking-wider text-slate-500">Rol</dt>
                 <dd class="text-sm text-slate-100">Industry 4.0 Consultant</dd>
               </div>
               <div class="grid grid-cols-[5.5rem_1fr] items-baseline gap-3">
-                <dt class="font-mono text-[10px] tracking-wider text-slate-500">Company</dt>
+                <dt class="font-mono text-[10px] tracking-wider text-slate-500">Bedrijf</dt>
                 <dd class="text-sm text-slate-100"><a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="hover:text-brand-300 underline-offset-4 hover:underline transition-colors">Mustry Solutions</a></dd>
               </div>
               <div class="grid grid-cols-[5.5rem_1fr] items-baseline gap-3">
-                <dt class="font-mono text-[10px] tracking-wider text-slate-500">Region</dt>
-                <dd class="text-sm text-slate-100">Belgium <span class="text-slate-500">·</span> EU</dd>
+                <dt class="font-mono text-[10px] tracking-wider text-slate-500">Regio</dt>
+                <dd class="text-sm text-slate-100">België <span class="text-slate-500">·</span> EU</dd>
               </div>
             </dl>
 
             <!-- Availability -->
             <div class="px-5 py-4 border-t border-slate-800">
-              <p class="font-mono text-[10px] tracking-wider text-slate-500 mb-3">Available for</p>
+              <p class="font-mono text-[10px] tracking-wider text-slate-500 mb-3">Beschikbaar voor</p>
               <ul class="space-y-2 text-sm text-slate-200">
                 <li class="flex items-baseline gap-2.5">
                   <span class="h-1.5 w-1.5 rounded-full bg-brand-400 flex-shrink-0 translate-y-[3px]"></span>
-                  <span>Advisory engagements</span>
+                  <span>Adviesopdrachten</span>
                 </li>
                 <li class="flex items-baseline gap-2.5">
                   <span class="h-1.5 w-1.5 rounded-full bg-brand-400 flex-shrink-0 translate-y-[3px]"></span>
-                  <span>Implementation projects</span>
+                  <span>Implementatieprojecten</span>
                 </li>
                 <li class="flex items-baseline gap-2.5">
                   <span class="h-1.5 w-1.5 rounded-full bg-brand-400 flex-shrink-0 translate-y-[3px]"></span>
-                  <span>Architecture audits</span>
+                  <span>Architectuuraudits</span>
                 </li>
               </ul>
               <p class="mt-4 font-mono text-[10px] tracking-wider text-slate-500">
-                Engagements via <a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="text-slate-400 hover:text-brand-300 transition-colors">Mustry Solutions ↗</a>
+                Opdrachten via <a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="text-slate-400 hover:text-brand-300 transition-colors">Mustry Solutions ↗</a>
               </p>
             </div>
 
@@ -307,7 +297,7 @@
       </div>
 
       <!-- Scroll hint -->
-      <a href="#about" aria-label="Scroll to About" class="scroll-hint absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-widest text-slate-500 hover:text-brand-300 transition-colors">
+      <a href="#about" aria-label="Scroll naar Over" class="scroll-hint absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-widest text-slate-500 hover:text-brand-300 transition-colors">
         &#9660; scroll
       </a>
     </section>
@@ -318,25 +308,25 @@
     <section id="about" class="px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
       <div class="max-w-4xl mx-auto">
         <div class="reveal">
-          <p class="section-eyebrow">// About</p>
-          <h2 class="section-title">From the lab bench to the plant floor.</h2>
+          <p class="section-eyebrow">// Over</p>
+          <h2 class="section-title">Van het labo naar de fabrieksvloer.</h2>
         </div>
         <div class="mt-10 grid md:grid-cols-3 gap-8 reveal">
           <div class="md:col-span-2 space-y-5 text-slate-300 leading-relaxed">
             <p>
-              I started in biomedical research — four years of PhD work at UZ Gent on PET-guided radiotherapy and imaging biomarkers, four peer-reviewed publications, and the kind of data analysis discipline that only comes from staring at noisy signals for a long time.
+              Ik ben gestart in biomedisch onderzoek — vier jaar doctoraatswerk aan het UZ Gent rond PET-gestuurde radiotherapie en beeldvormingsbiomarkers, vier peer-reviewed publicaties, en de discipline in data-analyse die je alleen krijgt door lang naar ruisende signalen te staren.
             </p>
             <p>
-              I moved to industry in 2022, first as a data engineer at <span class="text-slate-200">Clarebout Potatoes</span>, then as MES project engineer at <span class="text-slate-200">Vandemoortele</span>. Same instinct, different context: capture what the process is actually doing, structure it so people trust it, and feed it back to the operators and engineers who make decisions on the floor.
+              In 2022 maakte ik de overstap naar de industrie, eerst als data engineer bij <span class="text-slate-200">Clarebout Potatoes</span>, daarna als MES project engineer bij <span class="text-slate-200">Vandemoortele</span>. Zelfde instinct, andere context: vastleggen wat het proces écht doet, het zo structureren dat mensen erop vertrouwen, en het terugkoppelen naar de operatoren en ingenieurs die op de vloer beslissen.
             </p>
             <p>
-              Now I do that work as an Industry 4.0 Consultant at <a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="text-slate-200 hover:text-brand-300 underline-offset-4 hover:underline transition-colors">Mustry Solutions</a> — designing scalable industrial digital architectures across manufacturing, aerospace, textiles and energy. If you&rsquo;d like to work with me, that&rsquo;s where the engagement runs through.
+              Vandaag doe ik dat werk als Industry 4.0 Consultant bij <a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="text-slate-200 hover:text-brand-300 underline-offset-4 hover:underline transition-colors">Mustry Solutions</a> — ik ontwerp schaalbare industriële digitale architecturen voor klanten in de maakindustrie, luchtvaart, textiel en energie. Wil je met mij samenwerken? Dan loopt de opdracht via hen.
             </p>
           </div>
           <aside class="space-y-3 font-mono text-xs">
             <figure class="rounded-md border border-slate-800 bg-slate-900/30 overflow-hidden">
               <img
-                src="assets/img/portrait.jpg?v=2026-07-15"
+                src="/assets/img/portrait.jpg?v=2026-07-15"
                 alt="Sam Donche"
                 width="720" height="900"
                 loading="lazy" decoding="async"
@@ -348,14 +338,14 @@
               </figcaption>
             </figure>
             <div class="rounded-md border border-slate-800 bg-slate-900/30 p-4">
-              <p class="text-[10px] tracking-wider text-slate-500 mb-2">Currently</p>
+              <p class="text-[10px] tracking-wider text-slate-500 mb-2">Momenteel</p>
               <p><a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="text-slate-200 hover:text-brand-300 transition-colors">Mustry Solutions ↗</a></p>
               <p class="text-slate-500 mt-1">Industry 4.0 Consultant</p>
             </div>
             <div class="rounded-md border border-slate-800 bg-slate-900/30 p-4">
-              <p class="text-[10px] tracking-wider text-slate-500 mb-2">Based</p>
-              <p class="text-slate-200">Ieper, West Flanders</p>
-              <p class="text-slate-500 mt-1">Belgium · Remote-friendly</p>
+              <p class="text-[10px] tracking-wider text-slate-500 mb-2">Gevestigd</p>
+              <p class="text-slate-200">Ieper, West-Vlaanderen</p>
+              <p class="text-slate-500 mt-1">België · Ook remote</p>
             </div>
             <div class="rounded-md border border-slate-800 bg-slate-900/30 p-4">
               <p class="text-[10px] tracking-wider text-slate-500 mb-2">Focus</p>
@@ -372,8 +362,8 @@
     <section id="experience" class="section-band px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
       <div class="max-w-4xl mx-auto">
         <div class="reveal">
-          <p class="section-eyebrow">// Work History</p>
-          <h2 class="section-title">Selected experience</h2>
+          <p class="section-eyebrow">// Werkervaring</p>
+          <h2 class="section-title">Geselecteerde ervaring</h2>
         </div>
 
         <ol class="mt-12 relative timeline">
@@ -383,12 +373,12 @@
             <div class="timeline-card">
               <div class="flex flex-wrap items-baseline justify-between gap-2">
                 <h3 class="text-lg font-semibold text-slate-100">Industry 4.0 Consultant</h3>
-                <span class="font-mono text-xs text-brand-300">May 2026 — Present</span>
+                <span class="font-mono text-xs text-brand-300">mei 2026 — heden</span>
               </div>
-              <p class="text-sm text-slate-400 mt-1"><a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="hover:text-brand-300 transition-colors">Mustry Solutions</a> · Flanders, Belgium</p>
+              <p class="text-sm text-slate-400 mt-1"><a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="hover:text-brand-300 transition-colors">Mustry Solutions</a> · Vlaanderen, België</p>
               <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
-                <li>Design and implement scalable industrial digital architectures that connect production assets and turn operational data into business insight.</li>
-                <li>Work across manufacturing, aerospace, textiles and energy clients using Ignition, TimescaleDB, Canary Labs, Factry and Grafana.</li>
+                <li>Ontwerpt en implementeert schaalbare industriële digitale architecturen die productie-assets verbinden en operationele data omzetten in zakelijk inzicht.</li>
+                <li>Werkt voor klanten in de maakindustrie, luchtvaart, textiel en energie met Ignition, TimescaleDB, Canary Labs, Factry en Grafana.</li>
               </ul>
               <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
                 <span class="tag">Industry 4.0</span><span class="tag">Ignition</span><span class="tag">TimescaleDB</span><span class="tag">Grafana</span>
@@ -401,12 +391,12 @@
             <div class="timeline-card">
               <div class="flex flex-wrap items-baseline justify-between gap-2">
                 <h3 class="text-lg font-semibold text-slate-100">MES Project Engineer</h3>
-                <span class="font-mono text-xs text-brand-300">Sep 2025 — Apr 2026</span>
+                <span class="font-mono text-xs text-brand-300">sep 2025 — apr 2026</span>
               </div>
-              <p class="text-sm text-slate-400 mt-1">Vandemoortele · Izegem, Belgium</p>
+              <p class="text-sm text-slate-400 mt-1">Vandemoortele · Izegem, België</p>
               <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
-                <li>Delivered Manufacturing Execution System projects for a leading European food group (oils, fats &amp; bakery products).</li>
-                <li>Bridged production-floor operations and IT systems to give planners and operators a shared, real-time view of plant performance.</li>
+                <li>Leverde Manufacturing Execution System-projecten op voor een toonaangevende Europese voedingsgroep (oliën, vetten &amp; bakkerijproducten).</li>
+                <li>Sloeg de brug tussen productievloer en IT-systemen, zodat planners en operatoren een gedeeld realtime beeld van de fabrieksprestaties kregen.</li>
               </ul>
               <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
                 <span class="tag">MES</span><span class="tag">Food &amp; Beverage</span><span class="tag">OT/IT</span>
@@ -419,12 +409,12 @@
             <div class="timeline-card">
               <div class="flex flex-wrap items-baseline justify-between gap-2">
                 <h3 class="text-lg font-semibold text-slate-100">Data Engineer</h3>
-                <span class="font-mono text-xs text-brand-300">Jan 2022 — Sep 2025</span>
+                <span class="font-mono text-xs text-brand-300">jan 2022 — sep 2025</span>
               </div>
-              <p class="text-sm text-slate-400 mt-1">Clarebout Potatoes NV · Komen-Waasten, Belgium</p>
+              <p class="text-sm text-slate-400 mt-1">Clarebout Potatoes NV · Komen-Waasten, België</p>
               <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
-                <li>Built and maintained the data backbone of one of Europe&rsquo;s largest potato processors — pipelines, models and reporting that production, quality and supply chain rely on daily.</li>
-                <li>Three and a half years bridging operational data and the analytics that turn it into decisions.</li>
+                <li>Bouwde en onderhield de dataruggengraat van een van Europa&rsquo;s grootste aardappelverwerkers — pipelines, modellen en rapportering waar productie, kwaliteit en supply chain dagelijks op steunen.</li>
+                <li>Drieënhalf jaar de brug tussen operationele data en de analyses die er beslissingen van maken.</li>
               </ul>
               <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
                 <span class="tag">Python</span><span class="tag">SQL Server</span><span class="tag">Data Pipelines</span><span class="tag">GitOps</span>
@@ -436,16 +426,16 @@
             <div class="timeline-marker"></div>
             <div class="timeline-card">
               <div class="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 class="text-lg font-semibold text-slate-100">Environment &amp; Noise Consultant</h3>
-                <span class="font-mono text-xs text-brand-300">Apr 2021 — Jan 2022</span>
+                <h3 class="text-lg font-semibold text-slate-100">Consulent Milieu &amp; Geluid</h3>
+                <span class="font-mono text-xs text-brand-300">apr 2021 — jan 2022</span>
               </div>
-              <p class="text-sm text-slate-400 mt-1">United Experts · Ieper, Belgium</p>
+              <p class="text-sm text-slate-400 mt-1">United Experts · Ieper, België</p>
               <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
-                <li>Consulted on environmental compliance and acoustic measurement for industrial clients across Flanders.</li>
-                <li>Translated regulatory frameworks into measurement plans, reports and remediation advice.</li>
+                <li>Adviseerde industriële klanten in heel Vlaanderen over milieucompliance en akoestische metingen.</li>
+                <li>Vertaalde regelgevende kaders naar meetplannen, rapporten en remediëringsadvies.</li>
               </ul>
               <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
-                <span class="tag">Environment</span><span class="tag">Acoustics</span><span class="tag">Compliance</span>
+                <span class="tag">Milieu</span><span class="tag">Akoestiek</span><span class="tag">Compliance</span>
               </div>
             </div>
           </li>
@@ -454,16 +444,16 @@
             <div class="timeline-marker"></div>
             <div class="timeline-card">
               <div class="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 class="text-lg font-semibold text-slate-100">PhD Student / Assistant Academic Staff</h3>
-                <span class="font-mono text-xs text-brand-300">Nov 2017 — Apr 2021</span>
+                <h3 class="text-lg font-semibold text-slate-100">Doctoraatsstudent / Assisterend academisch personeel</h3>
+                <span class="font-mono text-xs text-brand-300">nov 2017 — apr 2021</span>
               </div>
-              <p class="text-sm text-slate-400 mt-1">Ghent University Hospital (UZ Gent) · Ghent, Belgium</p>
+              <p class="text-sm text-slate-400 mt-1">Universitair Ziekenhuis Gent (UZ Gent) · Gent, België</p>
               <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
-                <li>Research on PET-guided radiotherapy and imaging biomarkers in glioblastoma models — radiosynthesis, preclinical evaluation and quantitative image analysis.</li>
-                <li>Four peer-reviewed publications spanning Raman spectroscopy, PET tracer development and PET-guided therapy.</li>
+                <li>Onderzoek naar PET-gestuurde radiotherapie en beeldvormingsbiomarkers in glioblastoommodellen — radiosynthese, preklinische evaluatie en kwantitatieve beeldanalyse.</li>
+                <li>Vier peer-reviewed publicaties over Raman-spectroscopie, PET-tracerontwikkeling en PET-gestuurde therapie.</li>
               </ul>
               <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
-                <span class="tag">Imaging</span><span class="tag">PET / MRI</span><span class="tag">Quantitative Analysis</span><span class="tag">Research</span>
+                <span class="tag">Imaging</span><span class="tag">PET / MRI</span><span class="tag">Kwantitatieve analyse</span><span class="tag">Onderzoek</span>
               </div>
             </div>
           </li>
@@ -477,70 +467,70 @@
     <section id="education" class="px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
       <div class="max-w-4xl mx-auto">
         <div class="reveal">
-          <p class="section-eyebrow">// Education</p>
-          <h2 class="section-title">Foundations</h2>
+          <p class="section-eyebrow">// Opleiding</p>
+          <h2 class="section-title">Fundamenten</h2>
         </div>
 
         <div class="mt-10 grid md:grid-cols-2 gap-5">
           <article class="edu-card reveal">
             <div class="flex items-start justify-between gap-3">
-              <h3 class="font-semibold text-slate-100">M.Sc. Bio-Science Engineering</h3>
+              <h3 class="font-semibold text-slate-100">Master in de bio-ingenieurswetenschappen</h3>
               <span class="font-mono text-xs text-brand-300 shrink-0">2014 — 2016</span>
             </div>
-            <p class="text-sm text-slate-400 mt-1">Ghent University</p>
-            <p class="mt-3 text-sm text-slate-300">Quantitative life sciences and engineering — the analytical foundation behind everything I do with industrial data today.</p>
+            <p class="text-sm text-slate-400 mt-1">Universiteit Gent</p>
+            <p class="mt-3 text-sm text-slate-300">Kwantitatieve levenswetenschappen en engineering — de analytische basis onder alles wat ik vandaag met industriële data doe.</p>
           </article>
 
           <article class="edu-card reveal">
             <div class="flex items-start justify-between gap-3">
-              <h3 class="font-semibold text-slate-100">B.Sc. Bio-Science Engineering</h3>
+              <h3 class="font-semibold text-slate-100">Bachelor in de bio-ingenieurswetenschappen</h3>
               <span class="font-mono text-xs text-brand-300 shrink-0">2011 — 2014</span>
             </div>
-            <p class="text-sm text-slate-400 mt-1">Ghent University</p>
-            <p class="mt-3 text-sm text-slate-300">Specialisation in Cell &amp; Gene Technology.</p>
+            <p class="text-sm text-slate-400 mt-1">Universiteit Gent</p>
+            <p class="mt-3 text-sm text-slate-300">Afstudeerrichting cel- en gentechnologie.</p>
           </article>
         </div>
 
-        <!-- Professional development (completed course tracks — no certification claims) -->
+        <!-- Professional development -->
         <div class="mt-10 reveal">
-          <h3 class="section-eyebrow mb-4">// Professional Development</h3>
+          <h3 class="section-eyebrow mb-4">// Professionele ontwikkeling</h3>
           <ul class="grid sm:grid-cols-2 gap-3 font-mono text-xs">
             <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3 text-slate-300">
               <span class="text-slate-100">Google Cloud Data Engineering</span>
-              <span class="block text-slate-500 mt-1">Completed coursework track</span>
+              <span class="block text-slate-500 mt-1">Afgewerkt lessentraject</span>
             </li>
             <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3 text-slate-300">
               <span class="text-slate-100">Python for Data</span>
-              <span class="block text-slate-500 mt-1">Data structures · Databases with Python · Capstone</span>
+              <span class="block text-slate-500 mt-1">Datastructuren · Databases met Python · Capstone</span>
             </li>
           </ul>
         </div>
 
-        <!-- Publications (from PhD years — peer-reviewed, DOI-linked) -->
+        <!-- Publications (paper titles stay in English — that's how they were published) -->
         <div class="mt-12 reveal">
-          <h3 class="section-eyebrow mb-4">// Selected Publications</h3>
+          <h3 class="section-eyebrow mb-4">// Geselecteerde publicaties</h3>
           <ul class="space-y-3 text-sm text-slate-300">
             <li class="rounded-md border border-slate-800 bg-slate-900/30 hover:border-brand-400/40 transition-colors">
               <a href="https://doi.org/10.3389/fmed.2019.00005" target="_blank" rel="noopener" class="group block px-4 py-3">
-                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors">The path toward PET-guided radiation therapy for glioblastoma in laboratory animals: a mini review.</span>
-                <span class="mt-1.5 block font-mono text-xs text-slate-500">Frontiers in Medicine · 2019 · <span class="text-brand-400/80">first author</span> · doi ↗</span>
+                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors" lang="en">The path toward PET-guided radiation therapy for glioblastoma in laboratory animals: a mini review.</span>
+                <span class="mt-1.5 block font-mono text-xs text-slate-500">Frontiers in Medicine · 2019 · <span class="text-brand-400/80">eerste auteur</span> · doi ↗</span>
               </a>
             </li>
             <li class="rounded-md border border-slate-800 bg-slate-900/30 hover:border-brand-400/40 transition-colors">
               <a href="https://doi.org/10.1186/s13014-019-1290-4" target="_blank" rel="noopener" class="group block px-4 py-3">
-                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors">Technical feasibility of [18F]FET and [18F]FAZA PET guided radiotherapy in a F98 glioblastoma rat model.</span>
+                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors" lang="en">Technical feasibility of [18F]FET and [18F]FAZA PET guided radiotherapy in a F98 glioblastoma rat model.</span>
                 <span class="mt-1.5 block font-mono text-xs text-slate-500">Radiation Oncology · 2019 · doi ↗</span>
               </a>
             </li>
             <li class="rounded-md border border-slate-800 bg-slate-900/30 hover:border-brand-400/40 transition-colors">
               <a href="https://doi.org/10.1016/j.nucmedbio.2020.03.006" target="_blank" rel="noopener" class="group block px-4 py-3">
-                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors">Radiosynthesis, in vitro and preliminary in vivo evaluation of the novel glutamine derived PET tracers [18F]fluorophenylglutamine and [18F]fluorobiphenylglutamine.</span>
+                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors" lang="en">Radiosynthesis, in vitro and preliminary in vivo evaluation of the novel glutamine derived PET tracers [18F]fluorophenylglutamine and [18F]fluorobiphenylglutamine.</span>
                 <span class="mt-1.5 block font-mono text-xs text-slate-500">Nuclear Medicine and Biology · 2020 · doi ↗</span>
               </a>
             </li>
             <li class="rounded-md border border-slate-800 bg-slate-900/30 hover:border-brand-400/40 transition-colors">
               <a href="https://doi.org/10.1021/acsomega.8b02404" target="_blank" rel="noopener" class="group block px-4 py-3">
-                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors">Added value of microscale Raman chemical analysis in mild traumatic brain injury (TBI): a comparison with macroscale MRI.</span>
+                <span class="block text-slate-200 group-hover:text-brand-300 transition-colors" lang="en">Added value of microscale Raman chemical analysis in mild traumatic brain injury (TBI): a comparison with macroscale MRI.</span>
                 <span class="mt-1.5 block font-mono text-xs text-slate-500">ACS Omega · 2018 · doi ↗</span>
               </a>
             </li>
@@ -555,14 +545,11 @@
     <section id="skills" class="section-band px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
       <div class="max-w-5xl mx-auto">
         <div class="reveal">
-          <p class="section-eyebrow">// Skills</p>
+          <p class="section-eyebrow">// Vaardigheden</p>
           <h2 class="section-title">Toolbelt</h2>
         </div>
 
-        <!--
-          Decorative tech-stack diagram. Pure visual — no interaction.
-          Built by buildStackDiagram() in script.js from the STACK_NODES registry.
-        -->
+        <!-- Decorative tech-stack diagram, built by buildStackDiagram() in script.js -->
         <figure class="stack-diagram reveal mt-10">
           <div class="stack-diagram__header">
             <span class="stack-diagram__caption">[ INDUSTRIAL PIPELINE ]</span>
@@ -576,7 +563,7 @@
               id="stack-svg"
               viewBox="0 0 720 320"
               role="img"
-              aria-label="Industrial data pipeline: field devices (PLCs, sensors, OPC UA) publish through an Ignition Edge gateway to an MQTT broker. The Ignition backend consumes from the broker, persists to SQL and time-series databases, and feeds an Ignition frontend that serves HMI, SCADA, MES, Grafana dashboards and business applications."
+              aria-label="Industriële datapipeline: veldapparatuur (PLC's, sensoren, OPC UA) publiceert via een Ignition Edge-gateway naar een MQTT-broker. De Ignition-backend leest van de broker, slaat op in SQL- en tijdreeksdatabases en voedt een Ignition-frontend voor HMI, SCADA, MES, Grafana-dashboards en bedrijfsapplicaties."
             >
               <g class="stack-svg__stages"></g>
               <g class="stack-svg__edges"></g>
@@ -585,7 +572,7 @@
             </svg>
           </div>
           <figcaption class="stack-diagram__cap">
-            A typical MQTT-based industrial pipeline. Field signals flow through an edge gateway and broker into the Ignition backend, which persists to SQL and time-series stores and feeds a frontend tier consumed by HMI, SCADA, MES, Grafana and apps.
+            Een typische industriële pipeline op basis van MQTT. Veldsignalen stromen via een edge-gateway en broker naar de Ignition-backend, die opslaat in SQL- en tijdreeksdatabases en een frontend voedt voor HMI, SCADA, MES, Grafana en apps.
           </figcaption>
         </figure>
 
@@ -597,7 +584,7 @@
             <ul class="skill-list">
               <li class="skill" data-level="90"><span>Python</span></li>
               <li class="skill" data-level="90"><span>SQL · Microsoft SQL Server</span></li>
-              <li class="skill" data-level="80"><span>Data pipelines &amp; ETL</span></li>
+              <li class="skill" data-level="80"><span>Datapipelines &amp; ETL</span></li>
               <li class="skill" data-level="75"><span>Google Cloud (Data Engineering)</span></li>
             </ul>
           </div>
@@ -606,9 +593,9 @@
             <h3 class="skill-group__title">Industry 4.0 / MES</h3>
             <ul class="skill-list">
               <li class="skill" data-level="85"><span>Manufacturing Execution Systems</span></li>
-              <li class="skill" data-level="80"><span>Industrial data architecture</span></li>
+              <li class="skill" data-level="80"><span>Industriële data-architectuur</span></li>
               <li class="skill" data-level="80"><span>Ignition (Inductive Automation)</span></li>
-              <li class="skill" data-level="75"><span>OT/IT integration</span></li>
+              <li class="skill" data-level="75"><span>OT/IT-integratie</span></li>
             </ul>
           </div>
 
@@ -616,38 +603,38 @@
             <h3 class="skill-group__title">DevOps &amp; Tooling</h3>
             <ul class="skill-list">
               <li class="skill" data-level="85"><span>GitOps</span></li>
-              <li class="skill" data-level="80"><span>CI/CD pipelines</span></li>
-              <li class="skill" data-level="80"><span>Git / version control</span></li>
+              <li class="skill" data-level="80"><span>CI/CD-pipelines</span></li>
+              <li class="skill" data-level="80"><span>Git / versiebeheer</span></li>
               <li class="skill" data-level="80"><span>Grafana &amp; dashboards</span></li>
             </ul>
           </div>
 
           <div class="skill-group reveal">
-            <h3 class="skill-group__title">Analysis &amp; Research</h3>
+            <h3 class="skill-group__title">Analyse &amp; onderzoek</h3>
             <ul class="skill-list">
-              <li class="skill" data-level="90"><span>Quantitative data analysis</span></li>
-              <li class="skill" data-level="85"><span>Imaging analytics (PET / MRI / Raman)</span></li>
-              <li class="skill" data-level="85"><span>Scientific writing</span></li>
+              <li class="skill" data-level="90"><span>Kwantitatieve data-analyse</span></li>
+              <li class="skill" data-level="85"><span>Beeldanalyse (PET / MRI / Raman)</span></li>
+              <li class="skill" data-level="85"><span>Wetenschappelijk schrijven</span></li>
             </ul>
           </div>
 
           <div class="skill-group reveal">
-            <h3 class="skill-group__title">Domain Experience</h3>
+            <h3 class="skill-group__title">Domeinervaring</h3>
             <ul class="skill-list">
-              <li class="skill" data-level="85"><span>Food &amp; beverage manufacturing</span></li>
-              <li class="skill" data-level="75"><span>Environmental &amp; acoustic compliance</span></li>
-              <li class="skill" data-level="80"><span>Biomedical R&amp;D</span></li>
+              <li class="skill" data-level="85"><span>Voedingsindustrie</span></li>
+              <li class="skill" data-level="75"><span>Milieu- &amp; geluidscompliance</span></li>
+              <li class="skill" data-level="80"><span>Biomedische R&amp;D</span></li>
             </ul>
           </div>
 
           <div class="skill-group reveal">
-            <h3 class="skill-group__title">Spoken Languages</h3>
+            <h3 class="skill-group__title">Talen</h3>
             <ul class="skill-list">
-              <li class="skill" data-level="100"><span>Nederlands <span class="text-slate-500">— native</span></span></li>
-              <li class="skill" data-level="85"><span>English <span class="text-slate-500">— professional</span></span></li>
-              <li class="skill" data-level="50"><span>Français <span class="text-slate-500">— limited working</span></span></li>
-              <li class="skill" data-level="30"><span>Deutsch <span class="text-slate-500">— elementary</span></span></li>
-              <li class="skill" data-level="30"><span>Norsk (Bokmål) <span class="text-slate-500">— elementary</span></span></li>
+              <li class="skill" data-level="100"><span>Nederlands <span class="text-slate-500">— moedertaal</span></span></li>
+              <li class="skill" data-level="85"><span>Engels <span class="text-slate-500">— professioneel</span></span></li>
+              <li class="skill" data-level="50"><span>Frans <span class="text-slate-500">— beperkt professioneel</span></span></li>
+              <li class="skill" data-level="30"><span>Duits <span class="text-slate-500">— basis</span></span></li>
+              <li class="skill" data-level="30"><span>Noors (Bokmål) <span class="text-slate-500">— basis</span></span></li>
             </ul>
           </div>
         </div>
@@ -661,16 +648,13 @@
       <div class="max-w-3xl mx-auto">
         <div class="reveal">
           <p class="section-eyebrow">// Contact</p>
-          <h2 class="section-title">Open a channel.</h2>
+          <h2 class="section-title">Open een kanaal.</h2>
           <p class="mt-4 text-slate-400 max-w-xl">
-            Got a project at the edge of OT and IT? A pilot you&rsquo;d like a second pair of eyes on? Drop a message — I read everything. Client engagements run through <a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="text-slate-300 hover:text-brand-300 underline-offset-4 hover:underline transition-colors">Mustry Solutions</a>.
+            Een project op het snijvlak van OT en IT? Een pilot die een tweede paar ogen kan gebruiken? Stuur een bericht — ik lees alles. Opdrachten lopen via <a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="text-slate-300 hover:text-brand-300 underline-offset-4 hover:underline transition-colors">Mustry Solutions</a>.
           </p>
         </div>
 
-        <!--
-          Formspree-backed (form ID in the action URL). If the ID is ever removed,
-          the script.js fallback opens the visitor's mail client instead.
-        -->
+        <!-- Formspree-backed; script.js falls back to a mailto: if the ID is ever removed -->
         <form
           id="contact-form"
           class="mt-10 grid gap-5 reveal"
@@ -680,21 +664,21 @@
         >
           <div class="grid sm:grid-cols-2 gap-5">
             <label class="field">
-              <span class="field__label">Name</span>
+              <span class="field__label">Naam</span>
               <input type="text" name="name" required autocomplete="name" class="field__input" />
             </label>
             <label class="field">
-              <span class="field__label">Email</span>
+              <span class="field__label">E-mail</span>
               <input type="email" name="email" required autocomplete="email" class="field__input" />
             </label>
           </div>
           <label class="field">
-            <span class="field__label">Subject</span>
+            <span class="field__label">Onderwerp</span>
             <!-- _subject is a Formspree special field: it becomes the notification email's subject line -->
             <input type="text" name="_subject" class="field__input" />
           </label>
           <label class="field">
-            <span class="field__label">Message</span>
+            <span class="field__label">Bericht</span>
             <textarea name="message" rows="5" required class="field__input resize-y"></textarea>
           </label>
 
@@ -702,19 +686,19 @@
 
           <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
             <p id="form-status" class="font-mono text-xs text-slate-500" role="status" aria-live="polite">
-              Connection ready · transport: https
+              Verbinding klaar · transport: https
             </p>
             <button type="submit"
               class="inline-flex items-center gap-2 px-5 py-3 rounded-md bg-brand-400 text-slate-950 font-semibold hover:bg-brand-300 transition shadow-[0_0_30px_-5px_rgba(34,211,238,0.5)]">
-              <span>Transmit</span>
+              <span>Verstuur</span>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>
             </button>
           </div>
         </form>
 
         <p class="mt-8 text-sm text-slate-500">
-          Prefer email?
-          <a data-email="c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t" data-email-reveal href="#contact" class="text-brand-300 hover:text-brand-200 underline-offset-4 hover:underline" title="Click to reveal email address">reveal email address</a>
+          Liever e-mail?
+          <a data-email="c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t" data-email-reveal href="#contact" class="text-brand-300 hover:text-brand-200 underline-offset-4 hover:underline" title="Klik om het e-mailadres te tonen">toon e-mailadres</a>
         </p>
       </div>
     </section>
@@ -728,15 +712,15 @@
       <!-- Closing CTA echo — last thing a visitor reads -->
       <p class="font-mono text-xs text-slate-400 mb-6 text-center sm:text-left">
         <span class="text-accent" aria-hidden="true">&#9679;</span>
-        Channel still open &mdash;
-        <a href="#contact" class="text-brand-300 hover:text-brand-200 underline-offset-4 hover:underline">get in touch</a>
+        Kanaal blijft open &mdash;
+        <a href="#contact" class="text-brand-300 hover:text-brand-200 underline-offset-4 hover:underline">neem contact op</a>
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
       <p class="font-mono text-xs">
-        &copy; <span id="year"></span> Sam Donche · built with caffeine &amp; uptime
+        &copy; <span id="year"></span> Sam Donche · gebouwd met cafeïne &amp; uptime
       </p>
       <div class="flex items-center gap-5">
-        <a href="/nl/" hreflang="nl-BE" lang="nl" class="font-mono text-xs text-slate-500 hover:text-brand-300 transition-colors">NL</a>
+        <a href="/" hreflang="en" lang="en" class="font-mono text-xs text-slate-500 hover:text-brand-300 transition-colors">EN</a>
         <a href="https://github.com/sdonche" target="_blank" rel="noopener" aria-label="GitHub" class="text-slate-500 hover:text-brand-300 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" class="h-4 w-4"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
         </a>
@@ -746,7 +730,7 @@
         <a href="https://x.com/SamDonche" target="_blank" rel="noopener" aria-label="X (Twitter)" class="text-slate-500 hover:text-brand-300 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>
         </a>
-        <a data-email="c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t" data-email-text="false" href="#contact" aria-label="Email" class="text-slate-500 hover:text-brand-300 transition-colors">
+        <a data-email="c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t" data-email-text="false" href="#contact" aria-label="E-mail" class="text-slate-500 hover:text-brand-300 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" class="h-4 w-4"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7.5l9 6 9-6"/></svg>
         </a>
       </div>
@@ -756,9 +740,8 @@
 
   <!-- ============================================================
        COMMAND PALETTE (⌘K / Ctrl+K)
-       Hidden by default. script.js handles open/close, filter, navigate.
        ============================================================ -->
-  <div id="cmdk" class="cmdk" role="dialog" aria-modal="true" aria-label="Tag search" hidden>
+  <div id="cmdk" class="cmdk" role="dialog" aria-modal="true" aria-label="Tagzoeker" hidden>
     <div class="cmdk__backdrop" data-cmdk-close></div>
     <div class="cmdk__panel" role="document">
       <div class="cmdk__input-wrap">
@@ -770,12 +753,12 @@
           placeholder="search tags…  e.g. experience/mustry"
           autocomplete="off"
           spellcheck="false"
-          aria-label="Search tags"
+          aria-label="Tags zoeken"
           aria-controls="cmdk-list"
         />
         <kbd class="cmdk__esc" aria-hidden="true">ESC</kbd>
       </div>
-      <ul id="cmdk-list" class="cmdk__results" role="listbox" aria-label="Tag results"></ul>
+      <ul id="cmdk-list" class="cmdk__results" role="listbox" aria-label="Tagresultaten"></ul>
       <footer class="cmdk__footer">
         <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
         <span><kbd>↵</kbd> open</span>
@@ -785,10 +768,9 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/script.js?v=2026-07-15.4" defer></script>
+  <script src="/assets/js/script.js?v=2026-07-15.4" defer></script>
 
-  <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
-       Skips localhost automatically, so local dev doesn't pollute the stats. -->
-  <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="assets/js/goatcounter.js"></script>
+  <!-- GoatCounter analytics — cookie-free, self-hosted script (see README) -->
+  <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="/assets/js/goatcounter.js"></script>
 </body>
 </html>
