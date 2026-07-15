@@ -253,8 +253,14 @@
      scrollToSection — shared by nav, palette, links
      ---------------------------------------------------- */
   function scrollToSection(id) {
-    const target = document.getElementById(id);
+    let target = document.getElementById(id);
     if (!target) return;
+    // Role cards live inside the experience inspector — the card may be
+    // hidden, so select it in the chart and scroll to the section instead.
+    if (ROLE_IDS.has(id) && document.querySelector(".role-detail")) {
+      selectRole(id);
+      target = document.getElementById("experience") || target;
+    }
     // Close the mobile nav BEFORE scrolling: while it's open the body is
     // scroll-locked (overflow: hidden), which silently cancels scrollIntoView.
     const nav = document.getElementById("tag-nav");
@@ -701,6 +707,19 @@
     { id: "education",           label: "ugent",          spans: [[[2011, 9], [2014, 7]], [[2014, 9], [2016, 7]]], edu: true },
   ];
 
+  const ROLE_IDS = new Set(CAREER_LANES.filter(l => !l.edu).map(l => l.id));
+
+  /* Show exactly one role card below the chart (inspector pattern).
+     All cards stay in the DOM for SEO, print and no-JS visitors. */
+  function selectRole(id) {
+    document.querySelectorAll(".role-detail .timeline-item").forEach(li => {
+      li.classList.toggle("is-selected", li.id === id);
+    });
+    document.querySelectorAll(".career-svg__lane").forEach(g => {
+      g.classList.toggle("is-selected", g.dataset.role === id);
+    });
+  }
+
   function buildCareerTrend() {
     const svg = document.getElementById("career-svg");
     if (!svg) return;
@@ -708,28 +727,29 @@
     const svgNS  = "http://www.w3.org/2000/svg";
     const gridG  = svg.querySelector(".career-svg__grid");
     const lanesG = svg.querySelector(".career-svg__lanes");
+    const figure = svg.closest("figure");
 
     const toT = ([y, m]) => y + (m - 1) / 12;
     const nowD = new Date();
     const NOW  = nowD.getFullYear() + nowD.getMonth() / 12;
 
-    const X0 = 130, X1 = 688;          // chart area
+    const X0 = 120, X1 = 688;          // chart area
     const T0 = 2011.5, T1 = NOW + 0.4; // time domain (pad the right edge)
     const X  = t => X0 + ((t - T0) / (T1 - T0)) * (X1 - X0);
 
-    const LANE_Y0 = 42, LANE_H = 30, BAR_H = 14;
+    const LANE_Y0 = 38, LANE_H = 26, BAR_H = 14;
     const yBottom = LANE_Y0 + CAREER_LANES.length * LANE_H;
 
     /* ---- year grid + axis labels (every 3rd year labeled) ---- */
     for (let y = 2012; y <= Math.floor(NOW); y++) {
       append(svgNS, gridG, "line", {
         class: "career-svg__gridline",
-        x1: X(y), y1: 30, x2: X(y), y2: yBottom + 6,
+        x1: X(y), y1: 28, x2: X(y), y2: yBottom + 4,
       });
       if ((y - 2012) % 3 === 0) {
         const t = append(svgNS, gridG, "text", {
           class: "career-svg__axis-label",
-          x: X(y), y: yBottom + 22,
+          x: X(y), y: yBottom + 18,
         });
         t.textContent = y;
       }
@@ -738,24 +758,55 @@
     /* ---- live "now" edge ---- */
     append(svgNS, gridG, "line", {
       class: "career-svg__now-line",
-      x1: X(NOW), y1: 30, x2: X(NOW), y2: yBottom + 6,
+      x1: X(NOW), y1: 28, x2: X(NOW), y2: yBottom + 4,
     });
     if (!prefersReducedMotion) {
       append(svgNS, gridG, "circle", {
         class: "career-svg__now-dot",
-        cx: X(NOW), cy: 24, r: 3,
+        cx: X(NOW), cy: 22, r: 3,
       });
     }
     const nowLabel = append(svgNS, gridG, "text", {
       class: "career-svg__now-label",
-      x: X(NOW) + 8, y: 27,
+      x: X(NOW) + 8, y: 25,
     });
     nowLabel.textContent = "now";
 
-    /* ---- lanes: label + span bars, clickable ---- */
+    /* ---- hover popover (content pulled from the role cards, so it's
+            already in the page's language) ---- */
+    const tip = document.createElement("div");
+    tip.className = "trend-tip";
+    tip.setAttribute("aria-hidden", "true");
+    figure.appendChild(tip);
+
+    function tipContent(lane) {
+      if (lane.edu) {
+        const nl = document.documentElement.lang === "nl";
+        return { title: nl ? "Universiteit Gent" : "Ghent University", meta: "2011 — 2016" };
+      }
+      const li = document.getElementById(lane.id);
+      return {
+        title: li?.querySelector("h3")?.textContent || lane.label,
+        meta:  li?.querySelector("h3 + span")?.textContent || "",
+      };
+    }
+
+    function showTip(lane, evt) {
+      const c = tipContent(lane);
+      tip.innerHTML = `${escapeHtml(c.title)}<span class="trend-tip__meta">${escapeHtml(c.meta)}</span>`;
+      const r = figure.getBoundingClientRect();
+      const x = Math.min(evt.clientX - r.left + 14, r.width - 190);
+      tip.style.left = `${Math.max(x, 8)}px`;
+      tip.style.top  = `${evt.clientY - r.top + 16}px`;
+      tip.classList.add("is-visible");
+    }
+    const hideTip = () => tip.classList.remove("is-visible");
+
+    /* ---- lanes: label + span bars; hover = popover, click = inspect ---- */
     CAREER_LANES.forEach((lane, i) => {
       const yMid = LANE_Y0 + i * LANE_H + LANE_H / 2;
       const g = append(svgNS, lanesG, "g", { class: "career-svg__lane" });
+      g.dataset.role = lane.id;
 
       const label = append(svgNS, g, "text", {
         class: "career-svg__lane-label",
@@ -775,8 +826,19 @@
         });
       });
 
-      g.addEventListener("click", () => scrollToSection(lane.id));
+      g.addEventListener("mousemove", (e) => showTip(lane, e));
+      g.addEventListener("mouseleave", hideTip);
+      g.addEventListener("click", () => {
+        hideTip();
+        if (lane.edu) { scrollToSection(lane.id); return; }
+        selectRole(lane.id);
+        visited.add(lane.id);
+        refreshQV();
+      });
     });
+
+    /* Default selection: the live role */
+    if (document.querySelector(".role-detail")) selectRole("role-mustry");
   }
 
   /* Waypoint list → SVG path string (absolute, and origin-relative

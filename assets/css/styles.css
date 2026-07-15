@@ -964,6 +964,42 @@ html { color-scheme: dark; }
   transform-box: fill-box;
   animation: qv-pulse 1.6s ease-in-out infinite;
 }
+.career-svg__lane.is-selected .career-svg__lane-label { fill: rgb(241 245 249); }
+.career-svg__lane.is-selected .career-svg__bar {
+  fill: rgba(34, 211, 238, 0.38);
+  stroke-width: 1.75;
+}
+.career-svg__lane.is-selected .career-svg__bar--live {
+  fill: rgba(52, 211, 153, 0.4);
+}
+
+/* Hover popover over the trend chart */
+.trend-tip {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  background: rgba(2, 6, 23, 0.96);
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  border-radius: 6px;
+  padding: 0.45rem 0.65rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: rgb(226 232 240);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.trend-tip.is-visible { opacity: 1; }
+.trend-tip__meta { display: block; margin-top: 2px; color: rgb(100 116 139); }
+
+/* Inspector mode: the chart selects which single role card shows below.
+   All cards remain in the DOM (SEO / print / no-JS show everything). */
+.role-detail { list-style: none; margin: 0; padding: 0; }
+.role-detail .timeline-marker { display: none; }
+.role-detail .timeline-item { padding-left: 0; margin-bottom: 1.25rem; }
+.js .role-detail .timeline-item { display: none; }
+.js .role-detail .timeline-item.is-selected { display: block; }
 
 /* Halo pulse behind the broker block */
 .stack-svg__center-halo {
@@ -1080,6 +1116,9 @@ html { color-scheme: dark; }
 
   .timeline-item, .edu-card, .skill-group { break-inside: avoid; }
   h2 { break-after: avoid; }
+
+  /* Inspector shows one card on screen — paper gets the full history */
+  .role-detail .timeline-item { display: block !important; margin-bottom: 1rem; }
 
   /* Surface link targets (DOIs, company site) */
   main a[href^="http"]::after {
