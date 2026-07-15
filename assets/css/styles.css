@@ -926,12 +926,13 @@ html { color-scheme: dark; }
 /* ----------------------------------------------------
    Misc: slow bounce, animations from Tailwind extras
    ---------------------------------------------------- */
-.animate-bounce-slow {
-  animation: bounce-slow 2.4s ease-in-out infinite;
+/* Hero scroll hint — pulses like an instrument reading, not a bouncing toy */
+.scroll-hint {
+  animation: scroll-hint-pulse 2.4s ease-in-out infinite;
 }
-@keyframes bounce-slow {
-  0%, 100% { transform: translate(-50%, 0); }
-  50%      { transform: translate(-50%, 6px); }
+@keyframes scroll-hint-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 1; }
 }
 
 
