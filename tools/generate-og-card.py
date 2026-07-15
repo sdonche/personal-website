@@ -17,8 +17,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 # ---- content -----------------------------------------------------------
 NAME     = "Sam Donche"
 TITLE    = "Industry 4.0 Consultant"
-EYEBROW  = "INDUSTRY 4.0 / IIOT"
-TAGLINE  = "MES · Data Engineering · Ignition"
+EYEBROW  = "MACHINES · DATA · DECISIONS"
+CTA      = "Get in touch →"
 DOMAIN   = "samdonche.com"
 PORTRAIT = "assets/img/portrait.jpg"
 OUT      = "assets/img/og-card.jpg"
@@ -62,13 +62,23 @@ def tracked(draw, xy, text, font, fill, tracking=0):
 LX = 90 * S
 ey_y = 160 * S
 d.line([(LX, ey_y + 16 * S), (LX + 56 * S, ey_y + 16 * S)], fill=CYAN, width=2 * S)
-tracked(d, (LX + 76 * S, ey_y), EYEBROW, eyebrow_f, CYAN, tracking=7)
+tracked(d, (LX + 76 * S, ey_y), EYEBROW, eyebrow_f, CYAN, tracking=5)
 d.text((LX, 215 * S), NAME, font=name_f, fill=WHITE)
 d.text((LX, 345 * S), TITLE, font=title_f, fill=SLATE3)
-d.text((LX, 425 * S), TAGLINE, font=mono_f, fill=SLATE5)
-dot_y = 520 * S
-d.ellipse([LX, dot_y + 8 * S, LX + 14 * S, dot_y + 22 * S], fill=ACCENT)
-d.text((LX + 28 * S, dot_y), DOMAIN, font=mono_f, fill=SLATE4)
+
+# CTA styled like the site's primary button (cyan fill, dark text)
+cta_f = F("inter-600.ttf", 30)
+cta_y = 440 * S
+pad_x, pad_y = 30 * S, 18 * S
+cta_w = int(d.textlength(CTA, font=cta_f)) + 2 * pad_x
+cta_h = 30 * S + 2 * pad_y
+d.rounded_rectangle([LX, cta_y, LX + cta_w, cta_y + cta_h], radius=10 * S, fill=CYAN)
+d.text((LX + pad_x, cta_y + pad_y - 2 * S), CTA, font=cta_f, fill=BG)
+
+dot_y = 545 * S
+dx = LX + cta_w + 40 * S
+d.ellipse([dx, cta_y + cta_h // 2 - 7 * S, dx + 14 * S, cta_y + cta_h // 2 + 7 * S], fill=ACCENT)
+d.text((dx + 28 * S, cta_y + cta_h // 2 - 17 * S), DOMAIN, font=mono_f, fill=SLATE4)
 
 # right: portrait in the profile-inspector card treatment
 card_w = 340 * S
