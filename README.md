@@ -65,6 +65,8 @@ Then bump the `?v=` cache-buster on the `tailwind.css` `<link>` in `index.html`.
 
 ## Editing your content
 
+> **⚠ Mirror rule:** every content change to `index.html` must also be made in **every other language version** — currently [nl/index.html](nl/index.html). See "Dutch version" below.
+
 All content lives inline in [index.html](index.html) (the shipped HTML intentionally carries no editing-guide comments — this table is the map):
 
 | Section       | Where to edit                                                                       |
