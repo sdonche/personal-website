@@ -808,59 +808,56 @@ html { color-scheme: dark; }
   opacity: 0.85;
 }
 
-/* Particles flow INWARD (signals converging on the pipeline) */
+/* Particles — data flowing along the edges; downstream of the frontend
+   they turn emerald: data becomes decisions */
 .stack-svg__particles circle {
   fill: var(--color-brand-400);
   opacity: 0.9;
   filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));
 }
+.stack-svg__particles circle.is-out {
+  fill: var(--color-accent);
+  filter: drop-shadow(0 0 3px rgba(52, 211, 153, 0.8));
+}
 
-/* Satellite nodes */
-.stack-svg__node-ring {
-  fill: rgba(15, 23, 42, 0.95);
-  stroke: rgba(34, 211, 238, 0.55);
-  stroke-width: 1.5;
+/* Nodes — labeled blocks, schematic style */
+.stack-svg__block {
+  fill: rgba(15, 23, 42, 0.92);
+  stroke: rgba(34, 211, 238, 0.38);
+  stroke-width: 1.25;
 }
-.stack-svg__node-core {
-  fill: var(--color-brand-400);
-  opacity: 0.85;
+.stack-svg__block--broker {
+  fill: rgba(12, 35, 48, 0.95);
+  stroke: var(--color-brand-400);
+  stroke-width: 1.75;
 }
-.stack-svg__node-label {
+.stack-svg__block--consumer {
+  stroke: rgba(52, 211, 153, 0.42);
+}
+.stack-svg__block-label {
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 10.5px;
+  font-size: 10px;
   fill: rgb(203 213 225);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-anchor: middle;
 }
+.stack-svg__block-label--broker {
+  font-weight: 600;
+  fill: var(--color-brand-300);
+  letter-spacing: 0.14em;
+}
+.stack-svg__block-label--consumer {
+  fill: rgba(110, 231, 183, 0.92);
+}
 
-/* Center node — gateway, bigger + pulsing */
+/* Halo pulse behind the broker block */
 .stack-svg__center-halo {
   fill: var(--color-brand-400);
   opacity: 0;
   transform-origin: center;
   transform-box: fill-box;
   animation: stack-halo 2.6s ease-out infinite;
-}
-.stack-svg__center-ring {
-  fill: rgba(15, 23, 42, 0.95);
-  stroke: var(--color-brand-400);
-  stroke-width: 2;
-}
-.stack-svg__center-core {
-  fill: var(--color-brand-400);
-  transform-origin: center;
-  transform-box: fill-box;
-  animation: stack-center-pulse 2.6s ease-in-out infinite;
-}
-.stack-svg__center-label {
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 7.5px;
-  font-weight: 600;
-  fill: var(--color-brand-300);
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  text-anchor: middle;
 }
 
 .stack-diagram__cap {
@@ -872,10 +869,6 @@ html { color-scheme: dark; }
   line-height: 1.55;
 }
 
-@keyframes stack-center-pulse {
-  0%, 100% { transform: scale(1);    opacity: 0.85; }
-  50%      { transform: scale(1.18); opacity: 1;    }
-}
 @keyframes stack-halo {
   0%   { transform: scale(1);   opacity: 0.5; }
   100% { transform: scale(2.4); opacity: 0;   }
