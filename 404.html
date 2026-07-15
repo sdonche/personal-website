@@ -17,9 +17,14 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center px-6">
   <div class="text-center max-w-md">
-    <p class="mono text-xs uppercase tracking-[0.3em] text-cyan-400 mb-4">// Error 404</p>
+    <!-- Amber = abnormal state, per the site's color semantics (cyan = data, emerald = live) -->
+    <p class="mono text-xs uppercase tracking-[0.3em] text-amber-400 mb-4">
+      <span class="inline-block h-2 w-2 rounded-full bg-amber-400 align-middle mr-1"></span>
+      // Error 404
+    </p>
     <h1 class="text-5xl font-bold tracking-tight">Signal lost.</h1>
     <p class="mt-4 text-slate-400">The node you&rsquo;re looking for is offline or never existed on this network.</p>
+    <p class="mono mt-3 text-xs text-amber-400/80">quality: BAD · last known good: <a href="/" class="underline underline-offset-4 hover:text-amber-300">samdonche.com</a></p>
     <a href="/" class="mono mt-8 inline-flex items-center gap-2 px-5 py-3 rounded-md bg-cyan-400 text-slate-950 font-semibold hover:bg-cyan-300 transition">
       ← Return to gateway
     </a>

@@ -701,7 +701,8 @@ html { color-scheme: dark; }
   padding: 1.5rem;
   text-align: center;
   font-size: 0.78rem;
-  color: rgb(100 116 139);
+  /* Failed query = mini warning state — amber, like a STALE tag */
+  color: rgb(234 179 8);
 }
 
 .cmdk__footer {
