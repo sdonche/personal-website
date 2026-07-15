@@ -347,6 +347,12 @@ html { color-scheme: dark; }
   border: 1px solid rgb(30 41 59);
   color: rgb(148 163 184);
 }
+/* Desktop: the sidebar is permanent, so there is nothing to close.
+   (This must live here — the display above would otherwise override
+   the lg:hidden utility, since styles.css loads after tailwind.css.) */
+@media (min-width: 64rem) {
+  .tag-nav__close { display: none; }
+}
 .tag-nav__close:hover {
   color: rgb(241 245 249);
   border-color: rgba(34, 211, 238, 0.4);
