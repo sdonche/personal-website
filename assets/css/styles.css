@@ -995,7 +995,9 @@ html { color-scheme: dark; }
 
 /* Inspector mode: the chart selects which single role card shows below.
    All cards remain in the DOM (SEO / print / no-JS show everything). */
-.role-detail { list-style: none; margin: 0; padding: 0; }
+/* margin lives here (not a Tailwind utility) — this rule loads after
+   tailwind.css and would silently zero out an mt-* class */
+.role-detail { list-style: none; margin: 2rem 0 0; padding: 0; }
 .role-detail .timeline-marker { display: none; }
 .role-detail .timeline-item { padding-left: 0; margin-bottom: 1.25rem; }
 .js .role-detail .timeline-item { display: none; }
