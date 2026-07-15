@@ -257,6 +257,17 @@ html { color-scheme: dark; }
   box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
 }
 
+/* Field-level fault state (rose = failure tier, like the error status).
+   :user-invalid only matches after real user interaction, so fields don't
+   scream red before anyone has typed. */
+.field__input:user-invalid {
+  border-color: rgba(251, 113, 133, 0.55);
+}
+.field__input:user-invalid:focus {
+  border-color: rgb(251 113 133);
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.15);
+}
+
 
 /* ----------------------------------------------------
    7. Tag-browser navigation (Ignition-style sidebar)

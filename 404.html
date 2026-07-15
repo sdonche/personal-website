@@ -8,8 +8,10 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png" />
   <!-- Root-relative: Apache's ErrorDocument serves this page at arbitrary URLs/depths -->
-  <link rel="stylesheet" href="/assets/css/tailwind.css" />
-  <link rel="stylesheet" href="/assets/css/fonts.css" />
+  <!-- Keep these ?v= values in sync with index.html — unversioned URLs create a
+       separate month-long cache entry that goes stale independently -->
+  <link rel="stylesheet" href="/assets/css/tailwind.css?v=2026-07-15.1" />
+  <link rel="stylesheet" href="/assets/css/fonts.css?v=2026-07-13" />
   <style>
     body { font-family: "Inter", system-ui, sans-serif; }
     .mono { font-family: "JetBrains Mono", monospace; }
