@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 # ---- content -----------------------------------------------------------
 NAME     = "Sam Donche"
 TITLE    = "Industry 4.0 Consultant"
-EYEBROW  = "MACHINES · DATA · DECISIONS"
+EYEBROW  = "DIGITAL BACKBONE FOR FACTORIES"
 CTA      = "Get in touch →"
 DOMAIN   = "samdonche.com"
 PORTRAIT = "assets/img/portrait.jpg"
@@ -62,7 +62,7 @@ def tracked(draw, xy, text, font, fill, tracking=0):
 LX = 90 * S
 ey_y = 160 * S
 d.line([(LX, ey_y + 16 * S), (LX + 56 * S, ey_y + 16 * S)], fill=CYAN, width=2 * S)
-tracked(d, (LX + 76 * S, ey_y), EYEBROW, eyebrow_f, CYAN, tracking=5)
+tracked(d, (LX + 76 * S, ey_y), EYEBROW, eyebrow_f, CYAN, tracking=3)
 d.text((LX, 215 * S), NAME, font=name_f, fill=WHITE)
 d.text((LX, 345 * S), TITLE, font=title_f, fill=SLATE3)
 
