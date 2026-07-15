@@ -808,6 +808,13 @@
       const g = append(svgNS, lanesG, "g", { class: "career-svg__lane" });
       g.dataset.role = lane.id;
 
+      // full-row hit target (behind label + bars)
+      append(svgNS, g, "rect", {
+        class: "career-svg__hit",
+        x: 4, y: yMid - LANE_H / 2 + 1,
+        width: 712, height: LANE_H - 2, rx: 5,
+      });
+
       const label = append(svgNS, g, "text", {
         class: "career-svg__lane-label",
         x: X0 - 12, y: yMid + 3.5,

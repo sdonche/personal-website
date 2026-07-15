@@ -964,6 +964,12 @@ html { color-scheme: dark; }
   transform-box: fill-box;
   animation: qv-pulse 1.6s ease-in-out infinite;
 }
+/* Full-width row hit area — bigger click target, and the row tint makes
+   "this is interactive" legible before you find the cursor change */
+.career-svg__hit { fill: transparent; }
+.career-svg__lane:hover .career-svg__hit { fill: rgba(148, 163, 184, 0.06); }
+.career-svg__lane.is-selected .career-svg__hit { fill: rgba(34, 211, 238, 0.07); }
+
 .career-svg__lane.is-selected .career-svg__lane-label { fill: rgb(241 245 249); }
 .career-svg__lane.is-selected .career-svg__bar {
   fill: rgba(34, 211, 238, 0.38);
@@ -996,8 +1002,10 @@ html { color-scheme: dark; }
 /* Inspector mode: the chart selects which single role card shows below.
    All cards remain in the DOM (SEO / print / no-JS show everything). */
 /* margin lives here (not a Tailwind utility) — this rule loads after
-   tailwind.css and would silently zero out an mt-* class */
-.role-detail { list-style: none; margin: 2rem 0 0; padding: 0; }
+   tailwind.css and would silently zero out an mt-* class.
+   max-width + radius match the chart panel above so their edges align. */
+.role-detail { list-style: none; margin: 2rem auto 0; padding: 0; max-width: 880px; }
+.role-detail .timeline-card { border-radius: 12px; }
 .role-detail .timeline-marker { display: none; }
 .role-detail .timeline-item { padding-left: 0; margin-bottom: 1.25rem; }
 .js .role-detail .timeline-item { display: none; }
