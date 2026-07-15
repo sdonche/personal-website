@@ -82,7 +82,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
   <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-15" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-15.2" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -221,22 +221,16 @@
             </a>
           </div>
 
-          <!-- Stat strip -->
-          <dl class="mt-12 grid grid-cols-3 gap-4 max-w-lg">
-            <div class="rounded-md border border-slate-800 bg-slate-900/40 p-4">
-              <dt class="font-mono text-[10px] uppercase tracking-widest text-slate-500">Industry Yrs</dt>
-              <!-- Computed from INDUSTRY_START in script.js; static text is the no-JS fallback -->
-              <dd id="stat-industry-yrs" class="text-2xl font-semibold text-brand-300 mt-1">4+</dd>
-            </div>
-            <div class="rounded-md border border-slate-800 bg-slate-900/40 p-4">
-              <dt class="font-mono text-[10px] uppercase tracking-widest text-slate-500">Sectors</dt>
-              <dd class="text-2xl font-semibold text-brand-300 mt-1">4</dd>
-            </div>
-            <div class="rounded-md border border-slate-800 bg-slate-900/40 p-4">
-              <dt class="font-mono text-[10px] uppercase tracking-widest text-slate-500">Languages</dt>
-              <dd class="text-2xl font-semibold text-brand-300 mt-1">5</dd>
-            </div>
-          </dl>
+          <!-- Status line (replaces the old stat tiles) — years computed in script.js,
+               static "4+" is the no-JS fallback -->
+          <p class="mt-12 font-mono text-xs text-slate-500">
+            <span class="text-brand-400" aria-hidden="true">&gt;</span>
+            <span id="stat-industry-yrs" class="text-slate-200">4+</span> yrs in industry
+            <span class="text-slate-700">·</span> manufacturing
+            <span class="text-slate-700">·</span> aerospace
+            <span class="text-slate-700">·</span> textiles
+            <span class="text-slate-700">·</span> energy
+          </p>
         </div>
 
         <!-- Profile inspector — mirrors the sidebar tag-browser language -->
