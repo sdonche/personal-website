@@ -124,6 +124,15 @@ html { color-scheme: dark; }
   animation: pulse-dot 2.2s ease-in-out infinite;
 }
 
+/* Current role (first item) pulses emerald — live, like the ACTIVE badge */
+.timeline-item:first-child .timeline-marker {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.1);
+}
+.timeline-item:first-child .timeline-marker::after {
+  background: var(--color-accent);
+}
+
 @keyframes pulse-dot {
   0%, 100% { transform: scale(0.6); opacity: 0.3; }
   50%      { transform: scale(1);   opacity: 0.9; }
@@ -416,28 +425,30 @@ html { color-scheme: dark; }
   border-color: rgba(234, 179, 8, 0.25);
 }
 
-/* QV status: GOOD — visited at least once */
-.tag-nav__item[data-qv="good"] .qv-dot   { background: var(--color-accent); }
+/* QV status: GOOD — visited at least once.
+   Color semantics site-wide: cyan = data/machine side, emerald = live/now. */
+.tag-nav__item[data-qv="good"] .qv-dot   { background: var(--color-brand-400); }
 .tag-nav__item[data-qv="good"] .qv-badge {
-  color: var(--color-accent);
-  border-color: rgba(52, 211, 153, 0.25);
+  color: var(--color-brand-400);
+  border-color: rgba(34, 211, 238, 0.25);
 }
 
-/* QV status: LIVE — currently in view (overrides above) */
+/* QV status: LIVE — currently in view (overrides above); emerald = "online now",
+   same signal as the System: Online dot and the profile card's ACTIVE state */
 .tag-nav__item[data-qv="live"] {
-  background: rgba(34, 211, 238, 0.08);
+  background: rgba(52, 211, 153, 0.07);
   color: rgb(241 245 249);
-  box-shadow: inset 2px 0 0 0 var(--color-brand-400);
+  box-shadow: inset 2px 0 0 0 var(--color-accent);
 }
 .tag-nav__item[data-qv="live"] .qv-dot {
-  background: var(--color-brand-400);
-  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.9), 0 0 8px rgba(34, 211, 238, 0.7);
+  background: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.9), 0 0 8px rgba(52, 211, 153, 0.7);
   animation: qv-pulse 1.6s ease-in-out infinite;
 }
 .tag-nav__item[data-qv="live"] .qv-badge {
-  color: var(--color-brand-300);
-  border-color: rgba(34, 211, 238, 0.4);
-  background: rgba(34, 211, 238, 0.08);
+  color: rgb(110 231 183);
+  border-color: rgba(52, 211, 153, 0.4);
+  background: rgba(52, 211, 153, 0.08);
 }
 
 @keyframes qv-pulse {
