@@ -494,28 +494,28 @@
 
   /* Node visual presets per kind */
   const STACK_KINDS = {
-    field:    { ringR: 5,  coreR: 2   },
-    edge:     { ringR: 8,  coreR: 3   },
-    broker:   { ringR: 13, coreR: 5, isCenter: true },
-    server:   { ringR: 8,  coreR: 3   },
-    storage:  { ringR: 7,  coreR: 2.5 },
-    consumer: { ringR: 6,  coreR: 2.5 },
+    field:    { ringR: 7,  coreR: 2.5 },
+    edge:     { ringR: 10, coreR: 3.5 },
+    broker:   { ringR: 15, coreR: 6, isCenter: true },
+    server:   { ringR: 11, coreR: 4   },
+    storage:  { ringR: 9,  coreR: 3   },
+    consumer: { ringR: 8,  coreR: 3   },
   };
 
   /* Nodes — id keyed for easy edge references.
-     Main horizontal flow runs along y=170 (field, edge, broker, consumers'
-     middle). Backend/Frontend flank the centerline at y=130 so the two
-     storage nodes can sit below the backend at y=240. */
+     The main flow (field → edge → broker → backend → frontend) sits on ONE
+     centerline (y=170) so the spine reads as a straight left-to-right line;
+     the two storage nodes hang below the backend in a symmetric V. */
   const STACK_NODES = {
     plc:      { x:  60, y:  95, label: "PLC / RTU",     kind: "field"    },
     sensor:   { x:  60, y: 170, label: "Sensor",        kind: "field"    },
     opcua:    { x:  60, y: 245, label: "OPC UA",        kind: "field"    },
     edge:     { x: 180, y: 170, label: "Ignition Edge", kind: "edge"     },
     mqtt:     { x: 300, y: 170, label: "MQTT",          kind: "broker"   },
-    backend:  { x: 420, y: 130, label: "Backend",       kind: "server"   },
-    sql:      { x: 390, y: 240, label: "SQL DB",        kind: "storage"  },
-    tsdb:     { x: 460, y: 240, label: "Timeseries DB", kind: "storage"  },
-    frontend: { x: 540, y: 130, label: "Frontend",      kind: "server"   },
+    backend:  { x: 420, y: 170, label: "Backend",       kind: "server", labelAbove: true },
+    sql:      { x: 368, y: 258, label: "SQL DB",        kind: "storage"  },
+    tsdb:     { x: 472, y: 258, label: "Timeseries DB", kind: "storage"  },
+    frontend: { x: 540, y: 170, label: "Frontend",      kind: "server"   },
     hmi:      { x: 660, y:  80, label: "HMI",           kind: "consumer" },
     scada:    { x: 660, y: 125, label: "SCADA",         kind: "consumer" },
     mes:      { x: 660, y: 170, label: "MES",           kind: "consumer" },
@@ -523,19 +523,20 @@
     apps:     { x: 660, y: 260, label: "Apps",          kind: "consumer" },
   };
 
-  /* Edges as [fromId, toId] — particles flow from→to */
+  /* Edges as [fromId, toId] — particles flow from→to.
+     spine: true marks the main data path, drawn with more emphasis. */
   const STACK_EDGES = [
     ["plc",      "edge"],
-    ["sensor",   "edge"],
+    ["sensor",   "edge",     { spine: true }],
     ["opcua",    "edge"],
-    ["edge",     "mqtt"],
-    ["mqtt",     "backend"],
-    ["backend",  "frontend"],
+    ["edge",     "mqtt",     { spine: true }],
+    ["mqtt",     "backend",  { spine: true }],
+    ["backend",  "frontend", { spine: true }],
     ["backend",  "sql"],
     ["backend",  "tsdb"],
     ["frontend", "hmi"],
     ["frontend", "scada"],
-    ["frontend", "mes"],
+    ["frontend", "mes",      { spine: true }],
     ["frontend", "graf"],
     ["frontend", "apps"],
   ];
@@ -571,12 +572,13 @@
     });
 
     /* ---- Edges ---- */
-    STACK_EDGES.forEach(([fromId, toId]) => {
+    STACK_EDGES.forEach(([fromId, toId, opts]) => {
       const from = STACK_NODES[fromId];
       const to   = STACK_NODES[toId];
       if (!from || !to) return;
       append(svgNS, edgesG, "path", {
         d: edgePath(fromId, toId, from, to),
+        class: opts && opts.spine ? "is-spine" : "",
       });
     });
 
@@ -588,7 +590,7 @@
         if (!from || !to) return;
 
         const dot = append(svgNS, particlesG, "circle", {
-          r: 1.8,
+          r: 2.4,
           cx: from.x,
           cy: from.y,
         });
@@ -631,8 +633,8 @@
         });
       }
 
-      // Label below the node
-      const labelY = n.y + kind.ringR + 12;
+      // Label below the node (or above, where edges below would cross it)
+      const labelY = n.labelAbove ? n.y - kind.ringR - 8 : n.y + kind.ringR + 14;
       const label = append(svgNS, nodesG, "text", {
         class: "stack-svg__node-label",
         x: n.x, y: labelY,

@@ -794,13 +794,18 @@ html { color-scheme: dark; }
   stroke-dasharray: 2 4;
 }
 
-/* Edges — dashed to feel "signal-y" */
+/* Edges — dashed to feel "signal-y"; the spine (main data path) is heavier */
 .stack-svg__edges path {
   stroke: currentColor;
   fill: none;
   stroke-width: 1;
   stroke-dasharray: 3 4;
-  opacity: 0.55;
+  opacity: 0.4;
+}
+.stack-svg__edges path.is-spine {
+  stroke-width: 1.6;
+  stroke-dasharray: 6 4;
+  opacity: 0.85;
 }
 
 /* Particles flow INWARD (signals converging on the pipeline) */
@@ -822,10 +827,10 @@ html { color-scheme: dark; }
 }
 .stack-svg__node-label {
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 9px;
+  font-size: 10.5px;
   fill: rgb(203 213 225);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-anchor: middle;
 }
 
