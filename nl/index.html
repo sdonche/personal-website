@@ -84,7 +84,7 @@
   <link rel="stylesheet" href="/assets/css/tailwind.css?v=2026-07-15.1" />
 
   <!-- Custom styles -->
-  <link rel="stylesheet" href="/assets/css/styles.css?v=2026-07-15.14" />
+  <link rel="stylesheet" href="/assets/css/styles.css?v=2026-07-15.15" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -177,8 +177,7 @@
       <ul id="tag-nav-tree" class="tag-nav__tree">
         <li><a href="#hero">home</a></li>
         <li><a href="#about">about</a></li>
-        <li><a href="#experience">experience</a></li>
-        <li><a href="#education">education</a></li>
+        <li><a href="#experience">trajectory</a></li>
         <li><a href="#skills">skills</a></li>
         <li><a href="#contact">contact</a></li>
       </ul>
@@ -233,10 +232,7 @@
           <p class="mt-12 font-mono text-xs text-slate-500">
             <span class="text-brand-400" aria-hidden="true">&gt;</span>
             <span id="stat-industry-yrs" class="text-slate-200">4+</span> jaar in de industrie
-            <span class="text-slate-700">·</span> maakindustrie
-            <span class="text-slate-700">·</span> luchtvaart
-            <span class="text-slate-700">·</span> textiel
-            <span class="text-slate-700">·</span> energie
+            <span class="text-slate-700">&amp;</span> Ignition-ontwikkeling
           </p>
         </div>
 
@@ -373,8 +369,8 @@
     <section id="experience" class="section-band px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
       <div class="max-w-4xl mx-auto">
         <div class="reveal">
-          <p class="section-eyebrow">// Werkervaring</p>
-          <h2 class="section-title">Geselecteerde ervaring</h2>
+          <p class="section-eyebrow">// Tijdlijn</p>
+          <h2 class="section-title">Traject</h2>
         </div>
 
         <!-- Career historian trend — built by buildCareerTrend() in script.js -->
@@ -395,6 +391,11 @@
               <g class="career-svg__grid"></g>
               <g class="career-svg__lanes"></g>
             </svg>
+          </div>
+          <div class="trend-legend font-mono">
+            <span><span class="legend-dot legend-dot--exp" aria-hidden="true"></span> ervaring</span>
+            <span><span class="legend-dot legend-dot--now" aria-hidden="true"></span> huidig</span>
+            <span><span class="legend-dot legend-dot--edu" aria-hidden="true"></span> opleiding</span>
           </div>
           <figcaption class="stack-diagram__cap">
             Vijftien jaar als trend — beweeg over een balk voor details, klik om dat hoofdstuk hieronder te bekijken.
@@ -492,70 +493,33 @@
               </div>
             </div>
           </li>
+
+          <li id="edu-ugent" class="timeline-item reveal">
+            <div class="timeline-marker"></div>
+            <div class="timeline-card">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 class="text-lg font-semibold text-slate-100">Universiteit Gent</h3>
+                <span class="font-mono text-xs text-brand-300">2011 — 2016</span>
+              </div>
+              <p class="text-sm text-slate-400 mt-1">Bio-ingenieurswetenschappen · Gent, België</p>
+              <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
+                <li><span class="text-slate-200">Master in de bio-ingenieurswetenschappen</span> (2014–2016) — kwantitatieve levenswetenschappen en engineering, de analytische basis onder alles wat ik vandaag met industriële data doe.</li>
+                <li><span class="text-slate-200">Bachelor in de bio-ingenieurswetenschappen</span> (2011–2014) — afstudeerrichting cel- en gentechnologie.</li>
+              </ul>
+              <p class="mt-4 font-mono text-[11px] text-slate-500">Professionele ontwikkeling — Google Cloud Data Engineering · Python for Data</p>
+              <div class="mt-3 flex flex-wrap gap-2 font-mono text-[10px]">
+                <span class="tag">Bio-ing.</span><span class="tag">Cel- &amp; gentechnologie</span>
+              </div>
+            </div>
+          </li>
         </ol>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         EDUCATION
-         ============================================================ -->
-    <section id="education" class="px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
-      <div class="max-w-4xl mx-auto">
-        <div class="reveal">
-          <p class="section-eyebrow">// Opleiding</p>
-          <h2 class="section-title">Fundamenten</h2>
-        </div>
-
-        <div class="mt-10 grid md:grid-cols-2 gap-5">
-          <article class="edu-card reveal">
-            <div class="flex items-start justify-between gap-3">
-              <h3 class="font-semibold text-slate-100">Master in de bio-ingenieurswetenschappen</h3>
-              <span class="font-mono text-xs text-brand-300 shrink-0">2014 — 2016</span>
-            </div>
-            <p class="text-sm text-slate-400 mt-1">Universiteit Gent</p>
-            <p class="mt-3 text-sm text-slate-300">Kwantitatieve levenswetenschappen en engineering — de analytische basis onder alles wat ik vandaag met industriële data doe.</p>
-          </article>
-
-          <article class="edu-card reveal">
-            <div class="flex items-start justify-between gap-3">
-              <h3 class="font-semibold text-slate-100">Bachelor in de bio-ingenieurswetenschappen</h3>
-              <span class="font-mono text-xs text-brand-300 shrink-0">2011 — 2014</span>
-            </div>
-            <p class="text-sm text-slate-400 mt-1">Universiteit Gent</p>
-            <p class="mt-3 text-sm text-slate-300">Afstudeerrichting cel- en gentechnologie.</p>
-          </article>
-        </div>
-
-        <!-- Professional development -->
-        <div class="mt-10 reveal">
-          <h3 class="section-eyebrow mb-4">// Professionele ontwikkeling</h3>
-          <ul class="grid sm:grid-cols-2 gap-3 font-mono text-xs">
-            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3 text-slate-300">
-              <span class="text-slate-100">Google Cloud Data Engineering</span>
-              <span class="block text-slate-500 mt-1">Afgewerkt lessentraject</span>
-            </li>
-            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3 text-slate-300">
-              <span class="text-slate-100">Python for Data</span>
-              <span class="block text-slate-500 mt-1">Datastructuren · Databases met Python · Capstone</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Publications relocated to /nl/publications/ — one link, not a section -->
-        <p class="mt-10 reveal text-sm text-slate-400">
-          <a href="/nl/publications/" class="inline-flex items-center gap-2 hover:text-brand-300 underline-offset-4 hover:underline transition-colors">
-            <span class="font-mono text-xs uppercase tracking-widest text-brand-400">// Publicaties</span>
-            <span>— zes peer-reviewed artikels &amp; drie congresbijdragen</span>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </a>
-        </p>
       </div>
     </section>
 
     <!-- ============================================================
          SKILLS
          ============================================================ -->
-    <section id="skills" class="section-band px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
+    <section id="skills" class="px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
       <div class="max-w-5xl mx-auto">
         <div class="reveal">
           <p class="section-eyebrow">// Vaardigheden</p>
@@ -781,7 +745,7 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="/assets/js/script.js?v=2026-07-15.8" defer></script>
+  <script src="/assets/js/script.js?v=2026-07-15.9" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README) -->
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="/assets/js/goatcounter.js"></script>

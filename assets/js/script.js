@@ -61,13 +61,13 @@
   const SECTIONS = [
     { id: "hero",                 label: "home" },
     { id: "about",                label: "about" },
-    { id: "experience",           label: "experience", parent: "experience" },
+    { id: "experience",           label: "trajectory", parent: "experience" },
     { id: "role-mustry",          label: "mustry",          group: "experience", desc: "Industry 4.0 Consultant" },
     { id: "role-vandemoortele",   label: "vandemoortele",   group: "experience", desc: "MES Project Engineer" },
     { id: "role-clarebout",       label: "clarebout",       group: "experience", desc: "Data Engineer" },
     { id: "role-united-experts",  label: "united_experts",  group: "experience", desc: "Env. & Noise Consultant" },
     { id: "role-uz-gent",         label: "uz_gent",         group: "experience", desc: "PhD / Imaging Research" },
-    { id: "education",            label: "education" },
+    { id: "edu-ugent",            label: "ugent",           group: "experience", desc: "Bio-Science Engineering" },
     { id: "skills",               label: "skills" },
     { id: "contact",              label: "contact" },
   ];
@@ -75,7 +75,7 @@
   /* Top-level sections that scroll-snap the page (used by the active-section
      observer to highlight the right parent in the sidebar). */
   const TOP_LEVEL_IDS = new Set([
-    "hero", "about", "experience", "education", "skills", "contact",
+    "hero", "about", "experience", "skills", "contact",
   ]);
 
   /* Visited tracker — drives QV badges. */
@@ -704,16 +704,20 @@
     { id: "role-clarebout",      label: "clarebout",      spans: [[[2022, 1],  [2025, 9]]] },
     { id: "role-united-experts", label: "united_experts", spans: [[[2021, 4],  [2022, 1]]] },
     { id: "role-uz-gent",        label: "uz_gent",        spans: [[[2017, 11], [2021, 4]]] },
-    { id: "education",           label: "ugent",          spans: [[[2011, 9], [2014, 7]], [[2014, 9], [2016, 7]]], edu: true },
+    { id: "edu-ugent",           label: "ugent",          spans: [[[2011, 9], [2014, 7]], [[2014, 9], [2016, 7]]], edu: true },
   ];
 
-  const ROLE_IDS = new Set(CAREER_LANES.filter(l => !l.edu).map(l => l.id));
+  const ROLE_IDS = new Set(CAREER_LANES.map(l => l.id));
 
-  /* Show exactly one role card below the chart (inspector pattern).
-     All cards stay in the DOM for SEO, print and no-JS visitors. */
+  /* Show exactly one card below the chart (inspector pattern) — roles and
+     education alike. All cards stay in the DOM for SEO, print and no-JS. */
   function selectRole(id) {
     document.querySelectorAll(".role-detail .timeline-item").forEach(li => {
-      li.classList.toggle("is-selected", li.id === id);
+      const on = li.id === id;
+      li.classList.toggle("is-selected", on);
+      // the card may have been display:none when the reveal observer ran, so
+      // force it visible on selection rather than leaving it at opacity 0
+      if (on) li.classList.add("is-visible");
     });
     document.querySelectorAll(".career-svg__lane").forEach(g => {
       g.classList.toggle("is-selected", g.dataset.role === id);
@@ -837,7 +841,6 @@
       g.addEventListener("mouseleave", hideTip);
       g.addEventListener("click", () => {
         hideTip();
-        if (lane.edu) { scrollToSection(lane.id); return; }
         selectRole(lane.id);
         visited.add(lane.id);
         refreshQV();

@@ -90,7 +90,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
   <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-15.14" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-15.15" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -186,8 +186,7 @@
       <ul id="tag-nav-tree" class="tag-nav__tree">
         <li><a href="#hero">home</a></li>
         <li><a href="#about">about</a></li>
-        <li><a href="#experience">experience</a></li>
-        <li><a href="#education">education</a></li>
+        <li><a href="#experience">trajectory</a></li>
         <li><a href="#skills">skills</a></li>
         <li><a href="#contact">contact</a></li>
       </ul>
@@ -243,10 +242,7 @@
           <p class="mt-12 font-mono text-xs text-slate-500">
             <span class="text-brand-400" aria-hidden="true">&gt;</span>
             <span id="stat-industry-yrs" class="text-slate-200">4+</span> yrs in industry
-            <span class="text-slate-700">·</span> manufacturing
-            <span class="text-slate-700">·</span> aerospace
-            <span class="text-slate-700">·</span> textiles
-            <span class="text-slate-700">·</span> energy
+            <span class="text-slate-700">&amp;</span> Ignition development
           </p>
         </div>
 
@@ -383,8 +379,8 @@
     <section id="experience" class="section-band px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
       <div class="max-w-4xl mx-auto">
         <div class="reveal">
-          <p class="section-eyebrow">// Work History</p>
-          <h2 class="section-title">Selected experience</h2>
+          <p class="section-eyebrow">// Timeline</p>
+          <h2 class="section-title">Trajectory</h2>
         </div>
 
         <!-- Career historian trend — built by buildCareerTrend() in script.js -->
@@ -405,6 +401,11 @@
               <g class="career-svg__grid"></g>
               <g class="career-svg__lanes"></g>
             </svg>
+          </div>
+          <div class="trend-legend font-mono">
+            <span><span class="legend-dot legend-dot--exp" aria-hidden="true"></span> experience</span>
+            <span><span class="legend-dot legend-dot--now" aria-hidden="true"></span> current</span>
+            <span><span class="legend-dot legend-dot--edu" aria-hidden="true"></span> education</span>
           </div>
           <figcaption class="stack-diagram__cap">
             Fifteen years as a trend — hover a span for details, click to inspect that chapter below.
@@ -502,70 +503,33 @@
               </div>
             </div>
           </li>
+
+          <li id="edu-ugent" class="timeline-item reveal">
+            <div class="timeline-marker"></div>
+            <div class="timeline-card">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 class="text-lg font-semibold text-slate-100">Ghent University</h3>
+                <span class="font-mono text-xs text-brand-300">2011 — 2016</span>
+              </div>
+              <p class="text-sm text-slate-400 mt-1">Bio-Science Engineering · Ghent, Belgium</p>
+              <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
+                <li><span class="text-slate-200">M.Sc. Bio-Science Engineering</span> (2014–2016) — quantitative life sciences and engineering, the analytical foundation behind everything I do with industrial data today.</li>
+                <li><span class="text-slate-200">B.Sc. Bio-Science Engineering</span> (2011–2014) — specialisation in Cell &amp; Gene Technology.</li>
+              </ul>
+              <p class="mt-4 font-mono text-[11px] text-slate-500">Professional development — Google Cloud Data Engineering · Python for Data</p>
+              <div class="mt-3 flex flex-wrap gap-2 font-mono text-[10px]">
+                <span class="tag">Bio-Science Eng.</span><span class="tag">Cell &amp; Gene Tech</span>
+              </div>
+            </div>
+          </li>
         </ol>
-      </div>
-    </section>
-
-    <!-- ============================================================
-         EDUCATION
-         ============================================================ -->
-    <section id="education" class="px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
-      <div class="max-w-4xl mx-auto">
-        <div class="reveal">
-          <p class="section-eyebrow">// Education</p>
-          <h2 class="section-title">Foundations</h2>
-        </div>
-
-        <div class="mt-10 grid md:grid-cols-2 gap-5">
-          <article class="edu-card reveal">
-            <div class="flex items-start justify-between gap-3">
-              <h3 class="font-semibold text-slate-100">M.Sc. Bio-Science Engineering</h3>
-              <span class="font-mono text-xs text-brand-300 shrink-0">2014 — 2016</span>
-            </div>
-            <p class="text-sm text-slate-400 mt-1">Ghent University</p>
-            <p class="mt-3 text-sm text-slate-300">Quantitative life sciences and engineering — the analytical foundation behind everything I do with industrial data today.</p>
-          </article>
-
-          <article class="edu-card reveal">
-            <div class="flex items-start justify-between gap-3">
-              <h3 class="font-semibold text-slate-100">B.Sc. Bio-Science Engineering</h3>
-              <span class="font-mono text-xs text-brand-300 shrink-0">2011 — 2014</span>
-            </div>
-            <p class="text-sm text-slate-400 mt-1">Ghent University</p>
-            <p class="mt-3 text-sm text-slate-300">Specialisation in Cell &amp; Gene Technology.</p>
-          </article>
-        </div>
-
-        <!-- Professional development (completed course tracks — no certification claims) -->
-        <div class="mt-10 reveal">
-          <h3 class="section-eyebrow mb-4">// Professional Development</h3>
-          <ul class="grid sm:grid-cols-2 gap-3 font-mono text-xs">
-            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3 text-slate-300">
-              <span class="text-slate-100">Google Cloud Data Engineering</span>
-              <span class="block text-slate-500 mt-1">Completed coursework track</span>
-            </li>
-            <li class="rounded-md border border-slate-800 bg-slate-900/30 px-4 py-3 text-slate-300">
-              <span class="text-slate-100">Python for Data</span>
-              <span class="block text-slate-500 mt-1">Data structures · Databases with Python · Capstone</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Publications relocated to /publications/ — one link, not a section -->
-        <p class="mt-10 reveal text-sm text-slate-400">
-          <a href="/publications/" class="inline-flex items-center gap-2 hover:text-brand-300 underline-offset-4 hover:underline transition-colors">
-            <span class="font-mono text-xs uppercase tracking-widest text-brand-400">// Publications</span>
-            <span>— six peer-reviewed articles &amp; three conference contributions</span>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </a>
-        </p>
       </div>
     </section>
 
     <!-- ============================================================
          SKILLS
          ============================================================ -->
-    <section id="skills" class="section-band px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
+    <section id="skills" class="px-4 sm:px-6 py-24 lg:py-32 scroll-mt-20">
       <div class="max-w-5xl mx-auto">
         <div class="reveal">
           <p class="section-eyebrow">// Skills</p>
@@ -798,7 +762,7 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/script.js?v=2026-07-15.8" defer></script>
+  <script src="assets/js/script.js?v=2026-07-15.9" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

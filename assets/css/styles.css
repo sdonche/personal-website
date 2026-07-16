@@ -978,6 +978,27 @@ html { color-scheme: dark; }
 .career-svg__lane.is-selected .career-svg__bar--live {
   fill: rgba(52, 211, 153, 0.4);
 }
+.career-svg__lane.is-selected .career-svg__bar--edu {
+  fill: rgba(148, 163, 184, 0.32);
+}
+
+/* Trend legend — what the bar colors mean (experience / current / education) */
+.trend-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  justify-content: center;
+  margin-top: 0.9rem;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(100 116 139);
+}
+.trend-legend > span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.trend-legend .legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.legend-dot--exp { background: rgba(34, 211, 238, 0.55); }
+.legend-dot--now { background: var(--color-accent); }
+.legend-dot--edu { background: rgba(148, 163, 184, 0.4); }
 
 /* Hover popover over the trend chart */
 .trend-tip {
