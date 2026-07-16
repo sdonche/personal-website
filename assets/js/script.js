@@ -709,6 +709,22 @@
 
   const ROLE_IDS = new Set(CAREER_LANES.map(l => l.id));
 
+  /* Certifications — point-in-time events, drawn as diamond markers on a
+     rail below the lanes (a duration would be a bar; a credential is a
+     moment). date: [year, month]; url optional (verification link). */
+  const CERTS = [
+    { date: [2016, 6], name: "Laboratory Animal Science: FELASA Category C", issuer: "Ghent University", url: null },
+  ];
+
+  const MONTHS = {
+    en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    nl: ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"],
+  };
+  function monthYear([y, m]) {
+    const arr = MONTHS[document.documentElement.lang] || MONTHS.en;
+    return `${arr[m - 1]} ${y}`;
+  }
+
   /* Show exactly one card below the chart (inspector pattern) — roles and
      education alike. All cards stay in the DOM for SEO, print and no-JS. */
   function selectRole(id) {
@@ -795,14 +811,17 @@
       };
     }
 
-    function showTip(lane, evt) {
-      const c = tipContent(lane);
-      tip.innerHTML = `${escapeHtml(c.title)}<span class="trend-tip__meta">${escapeHtml(c.meta)}</span>`;
+    function positionTip(title, meta, evt) {
+      tip.innerHTML = `${escapeHtml(title)}<span class="trend-tip__meta">${escapeHtml(meta)}</span>`;
       const r = figure.getBoundingClientRect();
       const x = Math.min(evt.clientX - r.left + 14, r.width - 190);
       tip.style.left = `${Math.max(x, 8)}px`;
       tip.style.top  = `${evt.clientY - r.top + 16}px`;
       tip.classList.add("is-visible");
+    }
+    function showTip(lane, evt) {
+      const c = tipContent(lane);
+      positionTip(c.title, c.meta, evt);
     }
     const hideTip = () => tip.classList.remove("is-visible");
 
@@ -846,6 +865,37 @@
         refreshQV();
       });
     });
+
+    /* ---- Certification markers on a rail below the lanes ---- */
+    if (CERTS.length) {
+      const certY = yBottom + 34;
+      const certLabel = append(svgNS, gridG, "text", {
+        class: "career-svg__lane-label",
+        x: X0 - 12, y: certY + 3.5,
+      });
+      certLabel.textContent = "certs";
+
+      CERTS.forEach((cert) => {
+        const cx = X(toT(cert.date));
+        const r = 6;
+        const g = append(svgNS, lanesG, "g", { class: "career-svg__cert" });
+        append(svgNS, g, "line", {
+          class: "career-svg__cert-guide",
+          x1: cx, y1: yBottom + 4, x2: cx, y2: certY - r,
+        });
+        append(svgNS, g, "path", {
+          class: "career-svg__cert-mark",
+          d: `M ${cx} ${certY - r} L ${cx + r} ${certY} L ${cx} ${certY + r} L ${cx - r} ${certY} Z`,
+        });
+        const meta = `${cert.issuer} · ${monthYear(cert.date)}${cert.url ? " · verify ↗" : ""}`;
+        g.addEventListener("mousemove", (e) => positionTip(cert.name, meta, e));
+        g.addEventListener("mouseleave", hideTip);
+        g.addEventListener("click", (e) => {
+          if (cert.url) { window.open(cert.url, "_blank", "noopener"); return; }
+          positionTip(cert.name, meta, e);   // touch: show details on tap
+        });
+      });
+    }
 
     /* Default selection: the live role */
     if (document.querySelector(".role-detail")) selectRole("role-mustry");
