@@ -13,6 +13,11 @@ window.SKILL_META = {
   "desc": "Supervisory control: watch and steer plant processes in real time.",
   "role": "gauge"
  },
+ "hmi": {
+  "name": "HMI",
+  "desc": "Operator screens for monitoring and running equipment.",
+  "role": "screen"
+ },
  "mqtt": {
   "name": "MQTT",
   "desc": "Lightweight publish/subscribe messaging, the backbone of IIoT data.",
@@ -195,5 +200,6 @@ window.SKILL_ROLE_ICONS = {
  "infinity": "<path d=\"M6.5 9.5c1.5-1.5 3.5-1.5 5 0l5 5c1.5 1.5 3.5 1.5 5 0s1.5-3.5 0-5-3.5-1.5-5 0l-5 5c-1.5 1.5-3.5 1.5-5 0s-1.5-3.5 0-5z\"/>",
  "link": "<path d=\"M9 15l6-6\"/><path d=\"M10.5 6.5l1-1a4 4 0 0 1 6 6l-1 1\"/><path d=\"M13.5 17.5l-1 1a4 4 0 0 1-6-6l1-1\"/>",
  "loop": "<path d=\"M4 12a8 8 0 0 1 13.7-5.6L20 8\"/><path d=\"M20 4v4h-4\"/><path d=\"M20 12a8 8 0 0 1-13.7 5.6L4 16\"/><path d=\"M4 20v-4h4\"/>",
- "protocol": "<path d=\"M9 3v5M15 3v5\"/><path d=\"M7 8h10v3a5 5 0 0 1-10 0z\"/><path d=\"M12 16v5\"/>"
+ "protocol": "<path d=\"M9 3v5M15 3v5\"/><path d=\"M7 8h10v3a5 5 0 0 1-10 0z\"/><path d=\"M12 16v5\"/>",
+ "screen": "<rect x=\"3\" y=\"4.5\" width=\"18\" height=\"12\" rx=\"1.5\"/><path d=\"M8 20.5h8M12 16.5v4\"/>"
 };

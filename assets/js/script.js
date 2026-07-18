@@ -504,17 +504,16 @@
            3. DELIVERY    the GitOps rail that ships it
          Every block carries a `skills` list; hovering a skill
          chip below lights up its block(s) here and vice-versa
-         (wireStackHighlight). Coordinates are in the 720×390
+         (wireStackHighlight). Coordinates are in the 720×410
          viewBox. Particles travel source→target to convey flow.
      ---------------------------------------------------- */
 
   const STACK_STAGES = [
-    { x:  75, label: "FIELD" },
-    { x: 200, label: "EDGE" },
-    { x: 330, label: "BROKER" },
-    { x: 455, label: "BACKEND" },
-    { x: 575, label: "FRONTEND" },
-    { x: 668, label: "CONSUMERS" },
+    { x:  70, label: "FIELD" },
+    { x: 190, label: "EDGE" },
+    { x: 315, label: "BROKER" },
+    { x: 450, label: "GATEWAY" },
+    { x: 645, label: "CONSUMERS" },
   ];
 
   /* Nodes are labeled blocks (schematic style, like Ignition designer views).
@@ -522,31 +521,33 @@
      to the chips below it for the hover cross-highlight. */
   const STACK_NODES = {
     /* --- data-flow tier (field devices are physical OT, so they sit OFF
-           the platform slab; everything from the edge rightward runs on it) --- */
-    plc:      { x:  75, y:  95, label: "PLC / RTU",     kind: "field"    },
-    sensor:   { x:  75, y: 170, label: "Sensor",        kind: "field"    },
-    opcua:    { x:  75, y: 245, label: "OPC UA",        kind: "field",    skills: ["opc-ua"] },
-    edge:     { x: 200, y: 150, label: "Ignition Edge", kind: "edge",     skills: ["ignition", "ot-it", "kepware"] },
-    nodered:  { x: 200, y: 210, label: "Node-RED",      kind: "edge",     skills: ["node-red"] },
-    mqtt:     { x: 330, y: 170, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "ot-it", "kafka"] },
-    backend:  { x: 455, y: 158, label: "Ignition",      kind: "server",   skills: ["ignition"] },
-    svc:      { x: 455, y: 214, label: "Services",      kind: "server",   skills: ["python", "fastapi", "pydantic", "sqlalchemy", "data-pipelines"] },
-    sql:      { x: 388, y: 270, label: "PostgreSQL",    kind: "storage",  skills: ["postgresql", "sql-server"] },
-    redis:    { x: 460, y: 270, label: "Redis",         kind: "storage",  skills: ["redis"], w: 56 },
-    tsdb:     { x: 528, y: 270, label: "Historian",     kind: "storage",  skills: ["influxdb", "timescaledb", "data-pipelines"] },
-    frontend: { x: 575, y: 170, label: "Frontend",      kind: "server",   skills: ["ignition", "traefik"] },
-    hmi:      { x: 668, y:  80, label: "HMI",           kind: "consumer", w: 64 },
-    scada:    { x: 668, y: 125, label: "SCADA",         kind: "consumer", w: 64, skills: ["scada"] },
-    mes:      { x: 668, y: 170, label: "MES",           kind: "consumer", w: 64, skills: ["mes"] },
-    graf:     { x: 668, y: 215, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana", "prometheus"] },
-    apps:     { x: 668, y: 260, label: "Apps",          kind: "consumer", w: 64 },
+           the platform slab; everything from the edge rightward runs on it).
+           One Ignition gateway both persists data and serves the consumers —
+           the earlier split into two "Ignition" boxes was misleading. --- */
+    plc:      { x:  70, y:  95, label: "PLC / RTU",     kind: "field"    },
+    sensor:   { x:  70, y: 170, label: "Sensor",        kind: "field"    },
+    opcua:    { x:  70, y: 245, label: "OPC UA",        kind: "field",    skills: ["opc-ua"] },
+    edge:     { x: 190, y: 150, label: "Ignition Edge", kind: "edge",     skills: ["ignition", "ot-it", "kepware"] },
+    nodered:  { x: 190, y: 210, label: "Node-RED",      kind: "edge",     skills: ["node-red"] },
+    mqtt:     { x: 315, y: 170, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "ot-it", "kafka"] },
+    backend:  { x: 450, y: 160, label: "Ignition",      kind: "server",   skills: ["ignition", "traefik"] },
+    svc:      { x: 450, y: 216, label: "Services",      kind: "server",   skills: ["python", "fastapi", "pydantic", "sqlalchemy", "data-pipelines"] },
+    sql:      { x: 385, y: 272, label: "PostgreSQL",    kind: "storage",  skills: ["postgresql", "sql-server"] },
+    redis:    { x: 457, y: 272, label: "Redis",         kind: "storage",  skills: ["redis"], w: 56 },
+    tsdb:     { x: 525, y: 272, label: "Historian",     kind: "storage",  skills: ["influxdb", "timescaledb", "data-pipelines"] },
+    hmi:      { x: 645, y:  80, label: "HMI",           kind: "consumer", w: 64, skills: ["hmi"] },
+    scada:    { x: 645, y: 122, label: "SCADA",         kind: "consumer", w: 64, skills: ["scada"] },
+    mes:      { x: 645, y: 164, label: "MES",           kind: "consumer", w: 64, skills: ["mes"] },
+    graf:     { x: 645, y: 206, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana", "prometheus"] },
+    apps:     { x: 645, y: 248, label: "Apps",          kind: "consumer", w: 64 },
 
     /* --- platform tier: a single foundation slab the whole software stack
-           runs on (field devices excepted) --- */
-    linux:    { x: 255, y: 328, label: "Linux",         kind: "platform", skills: ["linux"], w: 58 },
-    docker:   { x: 365, y: 328, label: "Docker",        kind: "platform", skills: ["docker"] },
-    k8s:      { x: 475, y: 328, label: "Kubernetes",    kind: "platform", skills: ["kubernetes"] },
-    azure:    { x: 590, y: 328, label: "Azure",         kind: "platform", skills: ["azure"], w: 60 },
+           runs on (field devices excepted). "Cloud" stays generic — multiple
+           cloud platforms, not just one. --- */
+    linux:    { x: 255, y: 349, label: "Linux",         kind: "platform", skills: ["linux"], w: 58 },
+    docker:   { x: 365, y: 349, label: "Docker",        kind: "platform", skills: ["docker"] },
+    k8s:      { x: 475, y: 349, label: "Kubernetes",    kind: "platform", skills: ["kubernetes"] },
+    cloud:    { x: 590, y: 349, label: "Cloud",         kind: "platform", skills: ["azure"], w: 60 },
   };
 
   /* Skills routed to the "provisioned & shipped via GitOps" tag rather than to
@@ -558,7 +559,7 @@
        route:        "elbow" (H-V-H between columns), "tbranch" (drop from the
                      block bottom, then split), "comb" (shared trunk fan-out);
                      omitted = straight horizontal
-       out: true     downstream of the frontend — particles turn emerald
+       out: true     downstream of the gateway — particles turn emerald
                      (data becomes decisions) */
   const STACK_EDGES = [
     ["plc",      "edge",     { route: "elbow" }],
@@ -568,15 +569,15 @@
     ["nodered",  "mqtt",     { route: "elbow" }],
     ["mqtt",     "backend",  { spine: true }],
     ["backend",  "svc",      { route: "tbranch" }],
-    ["backend",  "frontend", { spine: true }],
+    ["backend",  "tsdb",     { route: "tbranch" }],
     ["svc",      "sql",      { route: "tbranch" }],
     ["svc",      "redis",    { route: "tbranch" }],
-    ["backend",  "tsdb",     { route: "tbranch" }],
-    ["frontend", "hmi",      { route: "comb", out: true }],
-    ["frontend", "scada",    { route: "comb", out: true }],
-    ["frontend", "mes",      { route: "comb", out: true, spine: true }],
-    ["frontend", "graf",     { route: "comb", out: true }],
-    ["frontend", "apps",     { route: "comb", out: true }],
+    // consumers fan out from the single Ignition gateway
+    ["backend",  "hmi",      { route: "comb", out: true }],
+    ["backend",  "scada",    { route: "comb", out: true }],
+    ["backend",  "mes",      { route: "comb", out: true, spine: true }],
+    ["backend",  "graf",     { route: "comb", out: true }],
+    ["backend",  "apps",     { route: "comb", out: true }],
   ];
 
   /* Block geometry helpers */
@@ -616,7 +617,7 @@
   /* Tier scaffolding — a single platform slab under the whole software span
      (edge → consumers), plus a "provisioned & shipped via GitOps" tag. Kept as
      constants so the build and the highlight share them. */
-  const PLATFORM_SLAB = { x1: 150, y1: 305, x2: 705, y2: 351 };
+  const PLATFORM_SLAB = { x1: 150, y1: 326, x2: 705, y2: 374 };
   const SOFTWARE_SPAN = { x1: 170, x2: 700 };   // the flow region that sits on the slab
 
   function buildStackDiagram() {
@@ -644,7 +645,7 @@
         append(svgNS, stagesG, "line", {
           class: "stack-svg__stage-divider",
           x1: midX, y1: 45,
-          x2: midX, y2: 290,
+          x2: midX, y2: 296,
         });
       }
     });
@@ -664,7 +665,7 @@
     const sp = SOFTWARE_SPAN, midX = (sp.x1 + sp.x2) / 2;
     append(svgNS, stagesG, "path", {
       class: "stack-svg__runson",
-      d: `M ${sp.x1} 292 L ${sp.x1} 298 L ${sp.x2} 298 L ${sp.x2} 292 M ${midX} 298 L ${midX} ${b.y1}`,
+      d: `M ${sp.x1} 306 L ${sp.x1} 312 L ${sp.x2} 312 L ${sp.x2} 306 M ${midX} 312 L ${midX} ${b.y1}`,
     });
 
     // "provisioned & shipped via GitOps" — a tag that taps up into the slab.
@@ -673,13 +674,13 @@
       class: "stack-node stack-node--tag", "data-skills": DELIVERY_SKILLS.join(" "),
     });
     append(svgNS, gitTag, "path", {
-      class: "stack-svg__tap", d: `M 180 372 L 180 ${b.y2}`,
+      class: "stack-svg__tap", d: `M 180 397 L 180 ${b.y2}`,
     });
     append(svgNS, gitTag, "path", {
-      class: "stack-svg__tap-head", d: "M 176 356 L 180 351 L 184 356",
+      class: "stack-svg__tap-head", d: `M 176 379 L 180 ${b.y2} L 184 379`,
     });
     const gitText = append(svgNS, gitTag, "text", {
-      class: "stack-svg__tag-label", x: 194, y: 372,
+      class: "stack-svg__tag-label", x: 194, y: 397,
     });
     gitText.textContent = "provisioned & shipped via GitOps";
 

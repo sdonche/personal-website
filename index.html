@@ -543,9 +543,9 @@
           <div class="stack-diagram__scroll">
             <svg
               id="stack-svg"
-              viewBox="0 0 720 390"
+              viewBox="0 0 720 410"
               role="img"
-              aria-label="Reference architecture for a factory data backbone. Data-flow tier: field devices (PLCs, sensors, OPC UA) publish through an Ignition Edge gateway and Node-RED to an MQTT broker; the Ignition backend and Python services persist to PostgreSQL, Redis and a historian, and a frontend serves HMI, SCADA, MES, Grafana and apps. Platform tier: the whole software stack runs on a foundation of Linux, Docker, Kubernetes and Azure, provisioned and shipped via GitOps. Hover a skill below to see where it sits, or click it for a description."
+              aria-label="Reference architecture for a factory data backbone. Data-flow tier: field devices (PLCs, sensors, OPC UA) publish through an Ignition Edge gateway and Node-RED to an MQTT broker; an Ignition gateway and Python services persist to PostgreSQL, Redis and a historian, and the gateway serves HMI, SCADA, MES, Grafana and apps. Platform tier: the whole software stack runs on a foundation of Linux, Docker, Kubernetes and cloud, provisioned and shipped via GitOps. Hover a skill below to see where it sits, or click it for a description."
             >
               <g class="stack-svg__stages"></g>
               <g class="stack-svg__edges"></g>
@@ -554,7 +554,7 @@
             </svg>
           </div>
           <figcaption class="stack-diagram__cap">
-            The backbone I build, from factory floor to dashboards, all on one platform.
+            The backbone I build, from factory floor to dashboards.
             <span class="stack-diagram__hint">Hover a skill to see where it lives. Click for what it is.</span>
           </figcaption>
         </figure>
@@ -569,6 +569,7 @@
             <div class="skill-chips">
               <button type="button" class="skill-chip" data-skill="ignition">Ignition</button>
               <button type="button" class="skill-chip" data-skill="scada">SCADA</button>
+              <button type="button" class="skill-chip" data-skill="hmi">HMI</button>
               <button type="button" class="skill-chip" data-skill="mqtt">MQTT</button>
               <button type="button" class="skill-chip" data-skill="sparkplug-b">Sparkplug B</button>
               <button type="button" class="skill-chip" data-skill="unified-namespace">Unified Namespace</button>
@@ -796,8 +797,8 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/skill-meta.js?v=2026-07-18.3" defer></script>
-  <script src="assets/js/script.js?v=2026-07-18.3" defer></script>
+  <script src="assets/js/skill-meta.js?v=2026-07-18.4" defer></script>
+  <script src="assets/js/script.js?v=2026-07-18.4" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->
