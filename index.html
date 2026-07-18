@@ -543,9 +543,9 @@
           <div class="stack-diagram__scroll">
             <svg
               id="stack-svg"
-              viewBox="0 0 720 410"
+              viewBox="0 0 720 430"
               role="img"
-              aria-label="Reference architecture for a factory data backbone. Data-flow tier: field devices (PLCs, sensors, OPC UA) publish through an Ignition Edge gateway and Node-RED to an MQTT broker; an Ignition gateway and Python services persist to PostgreSQL, Redis and a historian, and the gateway serves HMI, SCADA, MES, Grafana and apps. Platform tier: the whole software stack runs on a foundation of Linux, Docker, Kubernetes and cloud, provisioned and shipped via GitOps. Hover a skill below to see where it sits, or click it for a description."
+              aria-label="Reference architecture for a factory data backbone built around a Unified Namespace. Field devices (PLCs, sensors, OPC UA) reach an MQTT broker via an Ignition Edge gateway, Node-RED and direct Sparkplug B devices. The MQTT broker is the central bus: an Ignition gateway and MES both publish and subscribe to it, and a data lake ingests from it. The Ignition gateway also links directly to the edge over an Ignition Gateway Network, and Python services persist to PostgreSQL, Redis and a historian. Consumers: the gateway serves HMI and SCADA, services feed apps and Prometheus, and Grafana reads Prometheus. The whole software stack runs on a foundation of Linux, Docker, Kubernetes and cloud, provisioned and shipped via GitOps. Hover a skill below to see where it sits, or click it for a description."
             >
               <g class="stack-svg__stages"></g>
               <g class="stack-svg__edges"></g>
@@ -798,8 +798,8 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/skill-meta.js?v=2026-07-18.5" defer></script>
-  <script src="assets/js/script.js?v=2026-07-18.5" defer></script>
+  <script src="assets/js/skill-meta.js?v=2026-07-18.6" defer></script>
+  <script src="assets/js/script.js?v=2026-07-18.6" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

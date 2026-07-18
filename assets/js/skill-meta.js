@@ -23,7 +23,8 @@ window.SKILL_META = {
  "mqtt": {
   "name": "MQTT",
   "desc": "Lightweight publish/subscribe messaging, the backbone of IIoT data.",
-  "brand": "M10.657 23.994h-9.45A1.212 1.212 0 0 1 0 22.788v-9.18h.071c5.784 0 10.504 4.65 10.586 10.386Zm7.606 0h-4.045C14.135 16.246 7.795 9.977 0 9.942V6.038h.071c9.983 0 18.121 8.044 18.192 17.956Zm4.53 0h-.97C21.754 12.071 11.995 2.407 0 2.372v-1.16C0 .55.544.006 1.207.006h7.64C15.733 2.49 21.257 7.789 24 14.508v8.291c0 .663-.544 1.195-1.207 1.195ZM16.713.006h6.092A1.19 1.19 0 0 1 24 1.2v5.914c-.91-1.242-2.046-2.65-3.158-3.762C19.588 2.11 18.122.987 16.714.005Z"
+  "brand": "M10.657 23.994h-9.45A1.212 1.212 0 0 1 0 22.788v-9.18h.071c5.784 0 10.504 4.65 10.586 10.386Zm7.606 0h-4.045C14.135 16.246 7.795 9.977 0 9.942V6.038h.071c9.983 0 18.121 8.044 18.192 17.956Zm4.53 0h-.97C21.754 12.071 11.995 2.407 0 2.372v-1.16C0 .55.544.006 1.207.006h7.64C15.733 2.49 21.257 7.789 24 14.508v8.291c0 .663-.544 1.195-1.207 1.195ZM16.713.006h6.092A1.19 1.19 0 0 1 24 1.2v5.914c-.91-1.242-2.046-2.65-3.158-3.762C19.588 2.11 18.122.987 16.714.005Z",
+  "full": "Message Queuing Telemetry Transport"
  },
  "sparkplug-b": {
   "name": "Sparkplug B",
@@ -44,12 +45,14 @@ window.SKILL_META = {
  "ot-it": {
   "name": "OT/IT integration",
   "desc": "Bridging plant-floor equipment with business IT systems.",
-  "role": "link"
+  "role": "link",
+  "full": "Operational Technology / Information Technology"
  },
  "opc-ua": {
   "name": "OPC UA",
   "desc": "Open standard for secure, vendor-neutral machine-to-machine data.",
-  "role": "protocol"
+  "role": "protocol",
+  "full": "Open Platform Communications Unified Architecture"
  },
  "node-red": {
   "name": "Node-RED",
@@ -158,8 +161,9 @@ window.SKILL_META = {
  },
  "gcp": {
   "name": "GCP",
-  "desc": "Google Cloud Platform for compute, data and ML services.",
-  "brand": "M12.19 2.38a9.344 9.344 0 0 0-9.234 6.893c.053-.02-.055.013 0 0-3.875 2.551-3.922 8.11-.247 10.941l.006-.007-.007.03a6.717 6.717 0 0 0 4.077 1.356h5.173l.03.03h5.192c6.687.053 9.376-8.605 3.835-12.35a9.365 9.365 0 0 0-2.821-4.552l-.043.043.006-.05A9.344 9.344 0 0 0 12.19 2.38zm-.358 4.146c1.244-.04 2.518.368 3.486 1.15a5.186 5.186 0 0 1 1.862 4.078v.518c3.53-.07 3.53 5.262 0 5.193h-5.193l-.008.009v-.04H6.785a2.59 2.59 0 0 1-1.067-.23h.001a2.597 2.597 0 1 1 3.437-3.437l3.013-3.012A6.747 6.747 0 0 0 8.11 8.24c.018-.01.04-.026.054-.023a5.186 5.186 0 0 1 3.67-1.69z"
+  "desc": "Compute, data and ML services.",
+  "brand": "M12.19 2.38a9.344 9.344 0 0 0-9.234 6.893c.053-.02-.055.013 0 0-3.875 2.551-3.922 8.11-.247 10.941l.006-.007-.007.03a6.717 6.717 0 0 0 4.077 1.356h5.173l.03.03h5.192c6.687.053 9.376-8.605 3.835-12.35a9.365 9.365 0 0 0-2.821-4.552l-.043.043.006-.05A9.344 9.344 0 0 0 12.19 2.38zm-.358 4.146c1.244-.04 2.518.368 3.486 1.15a5.186 5.186 0 0 1 1.862 4.078v.518c3.53-.07 3.53 5.262 0 5.193h-5.193l-.008.009v-.04H6.785a2.59 2.59 0 0 1-1.067-.23h.001a2.597 2.597 0 1 1 3.437-3.437l3.013-3.012A6.747 6.747 0 0 0 8.11 8.24c.018-.01.04-.026.054-.023a5.186 5.186 0 0 1 3.67-1.69z",
+  "full": "Google Cloud Platform"
  },
  "argo-cd": {
   "name": "Argo CD",
@@ -174,7 +178,8 @@ window.SKILL_META = {
  "ci-cd": {
   "name": "CI/CD",
   "desc": "Automated build, test and deploy pipelines.",
-  "role": "loop"
+  "role": "loop",
+  "full": "Continuous Integration / Continuous Delivery"
  },
  "github-actions": {
   "name": "GitHub Actions",
