@@ -82,7 +82,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
   <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-15.15" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-18" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -451,10 +451,11 @@
               <p class="text-sm text-slate-400 mt-1">Clarebout Potatoes NV · Komen-Waasten, Belgium</p>
               <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
                 <li>Helped build the industrial data backbone from the ground up — moving scattered spreadsheets and siloed databases into a unified namespace on Ignition, published over MQTT into a historian and a data lake.</li>
-                <li>Rolled out across the group&rsquo;s production sites so reporting, analysis and AI projects had one structured foundation to build on instead of a scavenger hunt for data.</li>
+                <li>Built SCADA-style visualisations of the production lines and custom plant-floor applications — weighbridges, checkweighers and other equipment — with heavier logic factored into microservices.</li>
+                <li>Was closely involved in the Kubernetes platform it all ran on, and in rolling it out across the group&rsquo;s production sites so reporting, analysis and AI projects had one structured foundation to build on.</li>
               </ul>
               <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
-                <span class="tag">Ignition</span><span class="tag">MQTT</span><span class="tag">Unified Namespace</span><span class="tag">Data Lake</span><span class="tag">Python</span>
+                <span class="tag">Ignition</span><span class="tag">MQTT</span><span class="tag">Unified Namespace</span><span class="tag">SCADA</span><span class="tag">Microservices</span><span class="tag">Kubernetes</span><span class="tag">Python</span>
               </div>
             </div>
           </li>
@@ -557,65 +558,66 @@
           </figcaption>
         </figure>
 
-        <!-- Each .skill's data-level (0-100) drives its bar fill -->
         <div class="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
 
           <div class="skill-group reveal">
-            <h3 class="skill-group__title">Data Engineering</h3>
-            <ul class="skill-list">
-              <li class="skill" data-level="90"><span>Python</span></li>
-              <li class="skill" data-level="90"><span>SQL · Microsoft SQL Server</span></li>
-              <li class="skill" data-level="80"><span>Data pipelines &amp; ETL</span></li>
-              <li class="skill" data-level="75"><span>Google Cloud (Data Engineering)</span></li>
-            </ul>
+            <h3 class="skill-group__title">Industry 4.0 / IIoT</h3>
+            <div class="skill-chips">
+              <span class="skill-chip">Ignition</span>
+              <span class="skill-chip">SCADA</span>
+              <span class="skill-chip">MQTT</span>
+              <span class="skill-chip">Sparkplug B</span>
+              <span class="skill-chip">Unified Namespace</span>
+              <span class="skill-chip">MES</span>
+              <span class="skill-chip">OT/IT integration</span>
+            </div>
           </div>
 
           <div class="skill-group reveal">
-            <h3 class="skill-group__title">Industry 4.0 / MES</h3>
-            <ul class="skill-list">
-              <li class="skill" data-level="85"><span>Manufacturing Execution Systems</span></li>
-              <li class="skill" data-level="80"><span>Industrial data architecture</span></li>
-              <li class="skill" data-level="80"><span>Ignition (Inductive Automation)</span></li>
-              <li class="skill" data-level="75"><span>OT/IT integration</span></li>
-            </ul>
+            <h3 class="skill-group__title">Data &amp; Backend</h3>
+            <div class="skill-chips">
+              <span class="skill-chip">Python</span>
+              <span class="skill-chip">FastAPI</span>
+              <span class="skill-chip">PostgreSQL</span>
+              <span class="skill-chip">SQL Server</span>
+              <span class="skill-chip">Redis</span>
+              <span class="skill-chip">Data pipelines</span>
+              <span class="skill-chip">Grafana</span>
+            </div>
           </div>
 
           <div class="skill-group reveal">
-            <h3 class="skill-group__title">DevOps &amp; Tooling</h3>
-            <ul class="skill-list">
-              <li class="skill" data-level="85"><span>GitOps</span></li>
-              <li class="skill" data-level="80"><span>CI/CD pipelines</span></li>
-              <li class="skill" data-level="80"><span>Git / version control</span></li>
-              <li class="skill" data-level="80"><span>Grafana &amp; dashboards</span></li>
-            </ul>
+            <h3 class="skill-group__title">Cloud &amp; Infrastructure</h3>
+            <div class="skill-chips">
+              <span class="skill-chip">Kubernetes</span>
+              <span class="skill-chip">Docker</span>
+              <span class="skill-chip">Terraform</span>
+              <span class="skill-chip">Argo CD</span>
+              <span class="skill-chip">Azure</span>
+              <span class="skill-chip">GitOps</span>
+              <span class="skill-chip">CI/CD</span>
+              <span class="skill-chip">Linux</span>
+              <span class="skill-chip">Git</span>
+            </div>
           </div>
 
           <div class="skill-group reveal">
             <h3 class="skill-group__title">Analysis &amp; Research</h3>
-            <ul class="skill-list">
-              <li class="skill" data-level="90"><span>Quantitative data analysis</span></li>
-              <li class="skill" data-level="85"><span>Imaging analytics (PET / MRI / Raman)</span></li>
-              <li class="skill" data-level="85"><span>Scientific writing</span></li>
-            </ul>
+            <div class="skill-chips">
+              <span class="skill-chip">Quantitative data analysis</span>
+              <span class="skill-chip">Imaging analytics (PET / MRI / Raman)</span>
+              <span class="skill-chip">Scientific writing</span>
+            </div>
           </div>
 
-          <div class="skill-group reveal">
-            <h3 class="skill-group__title">Domain Experience</h3>
-            <ul class="skill-list">
-              <li class="skill" data-level="85"><span>Food &amp; beverage manufacturing</span></li>
-              <li class="skill" data-level="75"><span>Environmental &amp; acoustic compliance</span></li>
-              <li class="skill" data-level="80"><span>Biomedical R&amp;D</span></li>
-            </ul>
-          </div>
-
-          <div class="skill-group reveal">
+          <div class="skill-group reveal md:col-span-2">
             <h3 class="skill-group__title">Spoken Languages</h3>
-            <ul class="skill-list">
-              <li class="skill" data-level="100"><span>Nederlands <span class="text-slate-500">— native</span></span></li>
-              <li class="skill" data-level="85"><span>English <span class="text-slate-500">— professional</span></span></li>
-              <li class="skill" data-level="50"><span>Français <span class="text-slate-500">— limited working</span></span></li>
-              <li class="skill" data-level="30"><span>Deutsch <span class="text-slate-500">— elementary</span></span></li>
-              <li class="skill" data-level="30"><span>Norsk (Bokmål) <span class="text-slate-500">— elementary</span></span></li>
+            <ul class="lang-list">
+              <li>Nederlands <span class="text-slate-500">— native</span></li>
+              <li>English <span class="text-slate-500">— professional</span></li>
+              <li>Français <span class="text-slate-500">— limited working</span></li>
+              <li>Deutsch <span class="text-slate-500">— elementary</span></li>
+              <li>Norsk (Bokmål) <span class="text-slate-500">— elementary</span></li>
             </ul>
           </div>
         </div>
@@ -778,7 +780,7 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/script.js?v=2026-07-18" defer></script>
+  <script src="assets/js/script.js?v=2026-07-18.1" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

@@ -83,7 +83,6 @@
     buildCareerTrend();
     observeActiveSection();
     observeReveals();
-    observeSkills();
     wireContactForm();
     wireEmailLinks();
   }
@@ -882,36 +881,7 @@
   }
 
   /* ----------------------------------------------------
-     8. Skill bars
-     ---------------------------------------------------- */
-  function observeSkills() {
-    const skills = document.querySelectorAll(".skill[data-level]");
-    if (!skills.length) return;
-
-    skills.forEach(s => {
-      const level = Math.max(0, Math.min(100, parseInt(s.dataset.level, 10) || 0));
-      s.style.setProperty("--level", `${level}%`);
-    });
-
-    if (prefersReducedMotion) {
-      skills.forEach(s => s.classList.add("is-animated"));
-      return;
-    }
-
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add("is-animated");
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.25 });
-
-    skills.forEach(s => io.observe(s));
-  }
-
-  /* ----------------------------------------------------
-     8b. Email links
+     8. Email links
      ---------------------------------------------------- */
   const B64_EMAIL = "c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t";
 

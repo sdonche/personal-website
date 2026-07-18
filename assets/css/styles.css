@@ -193,40 +193,31 @@ html { color-scheme: dark; }
   margin-bottom: 1rem;
 }
 
-.skill-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.85rem; }
+/* Skill chips — plain tools, no self-rated bars (see GitHub for the live stack) */
+.skill-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.skill-chip {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  color: rgb(203 213 225);
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgb(30 41 59);
+  transition: border-color .15s ease, color .15s ease;
+}
+.skill-group:hover .skill-chip { border-color: rgba(34, 211, 238, 0.22); }
 
-.skill {
-  position: relative;
+/* Spoken languages — proficiency words, not chips */
+.lang-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.5rem;
   font-size: 0.875rem;
-  color: rgb(226 232 240); /* slate-200 */
+  color: rgb(226 232 240);
 }
-.skill > span { display: block; margin-bottom: 0.35rem; }
-
-.skill::after {
-  /* track */
-  content: "";
-  display: block;
-  height: 4px;
-  border-radius: 2px;
-  background: rgb(30 41 59);
-  position: relative;
-}
-
-.skill::before {
-  /* fill — width set inline by JS via custom property */
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 4px;
-  width: 0;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--color-brand-400), var(--color-accent));
-  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 1;
-  box-shadow: 0 0 8px rgba(34, 211, 238, 0.35);
-}
-.skill.is-animated::before { width: var(--level, 0%); }
 
 
 /* ----------------------------------------------------
@@ -1102,7 +1093,6 @@ html { color-scheme: dark; }
     transition-duration: 0.001ms !important;
   }
   .reveal, .js .reveal { opacity: 1; transform: none; }
-  .skill.is-animated::before { transition: none; }
 }
 
 
@@ -1141,9 +1131,6 @@ html { color-scheme: dark; }
 
   /* Scroll-reveal must never hide content on paper */
   .reveal, .js .reveal { opacity: 1 !important; transform: none !important; }
-
-  /* Self-rated bars are meaningless in monochrome — keep the skill names */
-  .skill::before, .skill::after { display: none !important; }
 
   .timeline-item, .edu-card, .skill-group { break-inside: avoid; }
   h2 { break-after: avoid; }

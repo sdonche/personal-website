@@ -29,7 +29,7 @@
   <link rel="preload" href="../../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="../../assets/css/fonts.css?v=2026-07-13" />
   <link rel="stylesheet" href="../../assets/css/tailwind.css?v=2026-07-18.1" />
-  <link rel="stylesheet" href="../../assets/css/styles.css?v=2026-07-15.15" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=2026-07-18" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -81,7 +81,7 @@
           The shape we landed on split cleanly by where the work lived. <span class="text-slate-100">Ignition</span> ran on the factory floor: pulling data off the machines, storing it in a historian, organising it into a unified namespace, and publishing everything to an <span class="text-slate-100">MQTT</span> broker — and <span class="text-slate-100">Sparkplug B</span> let devices that couldn&rsquo;t be wired straight into Ignition join over MQTT instead. A company data lake ingested from that MQTT stream, and another team connected it to the rest of the business&rsquo;s data sources. <span class="text-slate-100">OutSystems</span> handled the office side and anything living outside the plant network — reporting, analysis, document processing, and client-facing portals. We also built applications to talk directly to the equipment that runs a food plant: weighbridges, checkweighers, and the like.
         </p>
         <p>
-          One lesson worth passing on: Ignition is open enough that you can build almost anything inside it — so we did, at first, and it bit us. As the logic grew, we moved the heavier pieces out into microservices and it got far more maintainable. Same story with reporting: we tried it in Ignition, decided it belonged elsewhere, and moved it. Pick the right layer for each job rather than making one platform do everything.
+          One lesson worth passing on: Ignition is open enough that you can build almost anything inside it — so we did, at first, and it bit us. As the logic grew, we moved the heavier pieces out into microservices, running on Kubernetes, and it got far more maintainable. Same story with reporting: we tried it in Ignition, decided it belonged elsewhere, and moved it. Pick the right layer for each job rather than making one platform do everything.
         </p>
         <p>
           By the time I left, Ignition was running on all five production sites, with roughly half a million tags flowing across the gateways. One site had a full visualisation of every line — SCADA-like, without the control — so people could finally <em class="text-slate-200 not-italic font-medium">see</em> production as it happened.
@@ -96,7 +96,7 @@
       </blockquote>
 
       <div class="mt-10 flex flex-wrap gap-2 font-mono text-[10px] reveal">
-        <span class="tag">Ignition</span><span class="tag">Unified Namespace</span><span class="tag">MQTT</span><span class="tag">Sparkplug B</span><span class="tag">Historian</span><span class="tag">Data Lake</span><span class="tag">OutSystems</span><span class="tag">Microservices</span>
+        <span class="tag">Ignition</span><span class="tag">Unified Namespace</span><span class="tag">MQTT</span><span class="tag">Sparkplug B</span><span class="tag">Historian</span><span class="tag">Data Lake</span><span class="tag">OutSystems</span><span class="tag">Microservices</span><span class="tag">Kubernetes</span>
       </div>
     </article>
 
@@ -115,7 +115,7 @@
     </div>
   </footer>
 
-  <script src="../../assets/js/script.js?v=2026-07-18" defer></script>
+  <script src="../../assets/js/script.js?v=2026-07-18.1" defer></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../../assets/js/goatcounter.js"></script>
 </body>
 </html>
