@@ -494,12 +494,17 @@
   }
 
   /* ----------------------------------------------------
-     6b. Stack diagram — decorative tech-stack pipeline
-         Left → right flow across 5 stages:
-           FIELD   → EDGE → BROKER → SERVER → CONSUMERS
-         Particles travel source→target along each edge to
-         convey directional data flow. Pure visual; no
-         interaction. Coordinates are in the 720×300 viewBox.
+     6b. Stack diagram — the real architecture behind the
+         toolbelt, in three tiers:
+           1. DATA FLOW   field → edge → broker → backend →
+                          stores → consumers (left→right)
+           2. PLATFORM    the band it all runs on (K8s, Docker,
+                          Azure, Linux)
+           3. DELIVERY    the GitOps rail that ships it
+         Every block carries a `skills` list; hovering a skill
+         chip below lights up its block(s) here and vice-versa
+         (wireStackHighlight). Coordinates are in the 720×420
+         viewBox. Particles travel source→target to convey flow.
      ---------------------------------------------------- */
 
   const STACK_STAGES = [
@@ -512,23 +517,38 @@
   ];
 
   /* Nodes are labeled blocks (schematic style, like Ignition designer views).
-     Width is derived from the label unless `w` is given; the main flow
-     (field → edge → broker → backend → frontend) sits on one centerline. */
+     Width is derived from the label unless `w` is given. `skills` ties a block
+     to the chips below it for the hover cross-highlight. */
   const STACK_NODES = {
+    /* --- data-flow tier --- */
     plc:      { x:  75, y:  95, label: "PLC / RTU",     kind: "field"    },
     sensor:   { x:  75, y: 170, label: "Sensor",        kind: "field"    },
     opcua:    { x:  75, y: 245, label: "OPC UA",        kind: "field"    },
-    edge:     { x: 200, y: 170, label: "Ignition Edge", kind: "edge"     },
-    mqtt:     { x: 330, y: 170, label: "MQTT",          kind: "broker"   },
-    backend:  { x: 455, y: 170, label: "Backend",       kind: "server"   },
-    sql:      { x: 395, y: 252, label: "SQL DB",        kind: "storage"  },
-    tsdb:     { x: 520, y: 252, label: "Timeseries DB", kind: "storage"  },
-    frontend: { x: 575, y: 170, label: "Frontend",      kind: "server"   },
+    edge:     { x: 200, y: 170, label: "Ignition Edge", kind: "edge",     skills: ["ignition", "ot-it"] },
+    mqtt:     { x: 330, y: 170, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "ot-it"] },
+    backend:  { x: 455, y: 158, label: "Ignition",      kind: "server",   skills: ["ignition"] },
+    svc:      { x: 455, y: 214, label: "Services",      kind: "server",   skills: ["python", "fastapi", "data-pipelines"] },
+    sql:      { x: 388, y: 270, label: "PostgreSQL",    kind: "storage",  skills: ["postgresql", "sql-server"] },
+    redis:    { x: 460, y: 270, label: "Redis",         kind: "storage",  skills: ["redis"], w: 56 },
+    tsdb:     { x: 528, y: 270, label: "Historian",     kind: "storage",  skills: ["data-pipelines"] },
+    frontend: { x: 575, y: 170, label: "Frontend",      kind: "server",   skills: ["ignition"] },
     hmi:      { x: 668, y:  80, label: "HMI",           kind: "consumer", w: 64 },
-    scada:    { x: 668, y: 125, label: "SCADA",         kind: "consumer", w: 64 },
-    mes:      { x: 668, y: 170, label: "MES",           kind: "consumer", w: 64 },
-    graf:     { x: 668, y: 215, label: "Grafana",       kind: "consumer", w: 64 },
+    scada:    { x: 668, y: 125, label: "SCADA",         kind: "consumer", w: 64, skills: ["scada"] },
+    mes:      { x: 668, y: 170, label: "MES",           kind: "consumer", w: 64, skills: ["mes"] },
+    graf:     { x: 668, y: 215, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana"] },
     apps:     { x: 668, y: 260, label: "Apps",          kind: "consumer", w: 64 },
+
+    /* --- platform tier (the band it all runs on) --- */
+    k8s:      { x: 235, y: 344, label: "Kubernetes",    kind: "platform", skills: ["kubernetes"] },
+    docker:   { x: 350, y: 344, label: "Docker",        kind: "platform", skills: ["docker"] },
+    azure:    { x: 450, y: 344, label: "Azure",         kind: "platform", skills: ["azure"], w: 60 },
+    linux:    { x: 545, y: 344, label: "Linux",         kind: "platform", skills: ["linux"], w: 58 },
+
+    /* --- delivery tier (GitOps rail) --- */
+    git:      { x: 180, y: 402, label: "Git",           kind: "delivery", skills: ["git", "gitops"], w: 52 },
+    cicd:     { x: 250, y: 402, label: "CI/CD",         kind: "delivery", skills: ["ci-cd", "gitops"], w: 58 },
+    argo:     { x: 330, y: 402, label: "Argo CD",       kind: "delivery", skills: ["argo-cd", "gitops"] },
+    tf:       { x: 420, y: 402, label: "Terraform",     kind: "delivery", skills: ["terraform", "gitops"] },
   };
 
   /* Edges as [fromId, toId, opts] — particles flow from→to.
@@ -544,14 +564,23 @@
     ["opcua",    "edge",     { route: "elbow" }],
     ["edge",     "mqtt",     { spine: true }],
     ["mqtt",     "backend",  { spine: true }],
+    ["backend",  "svc",      { route: "tbranch" }],
     ["backend",  "frontend", { spine: true }],
-    ["backend",  "sql",      { route: "tbranch" }],
+    ["svc",      "sql",      { route: "tbranch" }],
+    ["svc",      "redis",    { route: "tbranch" }],
     ["backend",  "tsdb",     { route: "tbranch" }],
     ["frontend", "hmi",      { route: "comb", out: true }],
     ["frontend", "scada",    { route: "comb", out: true }],
     ["frontend", "mes",      { route: "comb", out: true, spine: true }],
     ["frontend", "graf",     { route: "comb", out: true }],
     ["frontend", "apps",     { route: "comb", out: true }],
+  ];
+
+  /* The GitOps rail flows left→right, then a tap rises into the platform band. */
+  const DELIVERY_EDGES = [
+    ["git",  "cicd", {}],
+    ["cicd", "argo", {}],
+    ["argo", "tf",   {}],
   ];
 
   /* Block geometry helpers */
@@ -588,6 +617,11 @@
     return [[a.x2, from.y], [b.x1, to.y]];
   }
 
+  /* Tier scaffolding — the platform band and delivery rail live below the
+     data-flow tier. Kept as constants so the build and the highlight share them. */
+  const PLATFORM_BAND = { x1: 150, y1: 322, x2: 620, y2: 370 };
+  const RUNS_ON_COLS  = [350, 455, 545];   // dashed drops from the flow onto the band
+
   function buildStackDiagram() {
     const svg = document.getElementById("stack-svg");
     if (!svg) return;
@@ -598,7 +632,7 @@
     const particlesG = svg.querySelector(".stack-svg__particles");
     const nodesG     = svg.querySelector(".stack-svg__nodes");
 
-    /* ---- Stage labels at top + faint column dividers ---- */
+    /* ---- Stage labels at top + faint column dividers (data-flow tier only) ---- */
     STACK_STAGES.forEach((stage, i) => {
       const t = append(svgNS, stagesG, "text", {
         class: "stack-svg__stage-label",
@@ -613,24 +647,59 @@
         append(svgNS, stagesG, "line", {
           class: "stack-svg__stage-divider",
           x1: midX, y1: 45,
-          x2: midX, y2: 305,
+          x2: midX, y2: 290,
         });
       }
     });
 
-    /* ---- Edges (orthogonal polylines) ---- */
+    /* ---- Platform band + delivery rail scaffolding (behind the blocks) ---- */
+    const b = PLATFORM_BAND;
+    append(svgNS, stagesG, "rect", {
+      class: "stack-svg__band",
+      x: b.x1, y: b.y1, width: b.x2 - b.x1, height: b.y2 - b.y1, rx: 10,
+    });
+    const platLabel = append(svgNS, stagesG, "text", {
+      class: "stack-svg__tier-label", x: b.x1, y: b.y1 - 8,
+    });
+    platLabel.textContent = "// platform · runs on";
+    const gitLabel = append(svgNS, stagesG, "text", {
+      class: "stack-svg__tier-label", x: b.x1, y: 382,
+    });
+    gitLabel.textContent = "// delivery · gitops";
+
+    // "runs on" — dashed drops from the data tier onto the platform band
+    RUNS_ON_COLS.forEach((x) => {
+      append(svgNS, stagesG, "line", {
+        class: "stack-svg__runson",
+        x1: x, y1: 292, x2: x, y2: b.y1,
+      });
+    });
+    // GitOps tap — the rail turns up into the platform ("this ships onto that")
+    append(svgNS, stagesG, "path", {
+      class: "stack-svg__runson", d: `M 462 402 L 500 402 L 500 ${b.y2}`,
+    });
+
+    /* ---- Edges (orthogonal polylines): data flow + the delivery rail ---- */
     STACK_EDGES.forEach(([fromId, toId, opts]) => {
       const from = STACK_NODES[fromId];
       const to   = STACK_NODES[toId];
       if (!from || !to) return;
-      const pts = edgePoints(from, to, opts);
       append(svgNS, edgesG, "path", {
-        d: pathAbs(pts),
+        d: pathAbs(edgePoints(from, to, opts)),
         class: opts && opts.spine ? "is-spine" : "",
       });
     });
+    DELIVERY_EDGES.forEach(([fromId, toId, opts]) => {
+      const from = STACK_NODES[fromId];
+      const to   = STACK_NODES[toId];
+      if (!from || !to) return;
+      append(svgNS, edgesG, "path", {
+        d: pathAbs(edgePoints(from, to, opts)),
+        class: "is-rail",
+      });
+    });
 
-    /* ---- Particles per edge, flowing from → to along the same route ---- */
+    /* ---- Particles: data flow only (the delivery rail stays static) ---- */
     if (!prefersReducedMotion) {
       STACK_EDGES.forEach(([fromId, toId, opts], i) => {
         const from = STACK_NODES[fromId];
@@ -653,7 +722,8 @@
       });
     }
 
-    /* ---- Nodes: labeled blocks (halo pulse behind the broker) ---- */
+    /* ---- Nodes: labeled blocks wrapped in a group so the whole block
+           (rect + label) highlights together and carries its skill tags ---- */
     Object.values(STACK_NODES).forEach((n) => {
       const r = blockRect(n);
 
@@ -664,16 +734,53 @@
         });
       }
 
-      append(svgNS, nodesG, "rect", {
+      const g = append(svgNS, nodesG, "g", {
+        class: "stack-node",
+        ...(n.skills ? { "data-skills": n.skills.join(" ") } : {}),
+      });
+
+      append(svgNS, g, "rect", {
         class: `stack-svg__block stack-svg__block--${n.kind}`,
         x: r.x1, y: r.y1, width: r.w, height: r.h, rx: 6,
       });
 
-      const label = append(svgNS, nodesG, "text", {
+      const label = append(svgNS, g, "text", {
         class: `stack-svg__block-label stack-svg__block-label--${n.kind}`,
         x: n.x, y: n.y, dy: "0.35em",
       });
       label.textContent = n.label;
+    });
+
+    wireStackHighlight(svg);
+  }
+
+  /* Cross-highlight: hovering a skill chip lights its block(s) in the diagram,
+     and hovering a block lights its chip(s). Pure progressive enhancement —
+     the chips and blocks are fully legible without it. */
+  function wireStackHighlight(svg) {
+    const chips = Array.from(document.querySelectorAll(".skill-chip[data-skill]"));
+    const nodes = Array.from(svg.querySelectorAll(".stack-node[data-skills]"));
+    if (!chips.length || !nodes.length) return;
+
+    const setActive = (slug, on) => {
+      nodes.forEach((g) => {
+        if (g.dataset.skills.split(" ").includes(slug)) g.classList.toggle("is-linked", on);
+      });
+      chips.forEach((c) => {
+        if (c.dataset.skill === slug) c.classList.toggle("is-linked", on);
+      });
+      svg.classList.toggle("is-spotlighting", on ? true : svg.querySelector(".is-linked") != null);
+    };
+
+    chips.forEach((c) => {
+      const slug = c.dataset.skill;
+      c.addEventListener("mouseenter", () => setActive(slug, true));
+      c.addEventListener("mouseleave", () => setActive(slug, false));
+    });
+    nodes.forEach((g) => {
+      const slugs = g.dataset.skills.split(" ");
+      g.addEventListener("mouseenter", () => slugs.forEach((s) => setActive(s, true)));
+      g.addEventListener("mouseleave", () => slugs.forEach((s) => setActive(s, false)));
     });
   }
 

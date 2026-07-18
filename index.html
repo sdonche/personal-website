@@ -82,7 +82,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
   <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-18.1" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-18.2" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -534,7 +534,7 @@
         -->
         <figure class="stack-diagram reveal mt-10">
           <div class="stack-diagram__header">
-            <span class="stack-diagram__caption">[ INDUSTRIAL PIPELINE ]</span>
+            <span class="stack-diagram__caption">[ REFERENCE ARCHITECTURE ]</span>
             <span class="stack-diagram__live">
               <span class="stack-diagram__pulse" aria-hidden="true"></span> data flowing
             </span>
@@ -543,9 +543,9 @@
           <div class="stack-diagram__scroll">
             <svg
               id="stack-svg"
-              viewBox="0 0 720 320"
+              viewBox="0 0 720 420"
               role="img"
-              aria-label="Industrial data pipeline: field devices (PLCs, sensors, OPC UA) publish through an Ignition Edge gateway to an MQTT broker. The Ignition backend consumes from the broker, persists to SQL and time-series databases, and feeds an Ignition frontend that serves HMI, SCADA, MES, Grafana dashboards and business applications."
+              aria-label="Reference architecture for a factory data backbone. Data-flow tier: field devices (PLCs, sensors, OPC UA) publish through an Ignition Edge gateway to an MQTT broker; the Ignition backend and Python/FastAPI services persist to PostgreSQL, Redis and a historian, and a frontend serves HMI, SCADA, MES, Grafana and apps. Platform tier: it all runs on Kubernetes, Docker, Azure and Linux. Delivery tier: shipped via a GitOps rail of Git, CI/CD, Argo CD and Terraform. Hover a skill below to see where it sits."
             >
               <g class="stack-svg__stages"></g>
               <g class="stack-svg__edges"></g>
@@ -554,7 +554,7 @@
             </svg>
           </div>
           <figcaption class="stack-diagram__cap">
-            A typical MQTT-based industrial pipeline. Field signals flow through an edge gateway and broker into the Ignition backend, which persists to SQL and time-series stores and feeds a frontend tier consumed by HMI, SCADA, MES, Grafana and apps.
+            The backbone I build, end to end. Field signals flow left to right into an Ignition and services backend that persists to PostgreSQL, Redis and a historian, then out to SCADA, MES, Grafana and apps. It all runs on a Kubernetes platform, shipped through GitOps. <span class="stack-diagram__hint">Hover a skill to light up where it lives.</span>
           </figcaption>
         </figure>
 
@@ -566,13 +566,13 @@
               Industry 4.0 / IIoT
             </h3>
             <div class="skill-chips">
-              <span class="skill-chip">Ignition</span>
-              <span class="skill-chip">SCADA</span>
-              <span class="skill-chip">MQTT</span>
-              <span class="skill-chip">Sparkplug B</span>
-              <span class="skill-chip">Unified Namespace</span>
-              <span class="skill-chip">MES</span>
-              <span class="skill-chip">OT/IT integration</span>
+              <span class="skill-chip" data-skill="ignition">Ignition</span>
+              <span class="skill-chip" data-skill="scada">SCADA</span>
+              <span class="skill-chip" data-skill="mqtt">MQTT</span>
+              <span class="skill-chip" data-skill="sparkplug-b">Sparkplug B</span>
+              <span class="skill-chip" data-skill="unified-namespace">Unified Namespace</span>
+              <span class="skill-chip" data-skill="mes">MES</span>
+              <span class="skill-chip" data-skill="ot-it">OT/IT integration</span>
             </div>
           </div>
 
@@ -582,13 +582,13 @@
               Data &amp; Backend
             </h3>
             <div class="skill-chips">
-              <span class="skill-chip">Python</span>
-              <span class="skill-chip">FastAPI</span>
-              <span class="skill-chip">PostgreSQL</span>
-              <span class="skill-chip">SQL Server</span>
-              <span class="skill-chip">Redis</span>
-              <span class="skill-chip">Data pipelines</span>
-              <span class="skill-chip">Grafana</span>
+              <span class="skill-chip" data-skill="python">Python</span>
+              <span class="skill-chip" data-skill="fastapi">FastAPI</span>
+              <span class="skill-chip" data-skill="postgresql">PostgreSQL</span>
+              <span class="skill-chip" data-skill="sql-server">SQL Server</span>
+              <span class="skill-chip" data-skill="redis">Redis</span>
+              <span class="skill-chip" data-skill="data-pipelines">Data pipelines</span>
+              <span class="skill-chip" data-skill="grafana">Grafana</span>
             </div>
           </div>
 
@@ -598,15 +598,15 @@
               Cloud &amp; Infrastructure
             </h3>
             <div class="skill-chips">
-              <span class="skill-chip">Kubernetes</span>
-              <span class="skill-chip">Docker</span>
-              <span class="skill-chip">Terraform</span>
-              <span class="skill-chip">Argo CD</span>
-              <span class="skill-chip">Azure</span>
-              <span class="skill-chip">GitOps</span>
-              <span class="skill-chip">CI/CD</span>
-              <span class="skill-chip">Linux</span>
-              <span class="skill-chip">Git</span>
+              <span class="skill-chip" data-skill="kubernetes">Kubernetes</span>
+              <span class="skill-chip" data-skill="docker">Docker</span>
+              <span class="skill-chip" data-skill="terraform">Terraform</span>
+              <span class="skill-chip" data-skill="argo-cd">Argo CD</span>
+              <span class="skill-chip" data-skill="azure">Azure</span>
+              <span class="skill-chip" data-skill="gitops">GitOps</span>
+              <span class="skill-chip" data-skill="ci-cd">CI/CD</span>
+              <span class="skill-chip" data-skill="linux">Linux</span>
+              <span class="skill-chip" data-skill="git">Git</span>
             </div>
           </div>
 
@@ -782,7 +782,7 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/script.js?v=2026-07-18.1" defer></script>
+  <script src="assets/js/script.js?v=2026-07-18.2" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

@@ -212,13 +212,20 @@ html { color-scheme: dark; }
   color: rgb(203 213 225);
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgb(30 41 59);
-  transition: border-color .15s ease, color .15s ease;
+  transition: border-color .15s ease, color .15s ease, background-color .15s ease, box-shadow .15s ease;
 }
 .skill-group:hover .skill-chip { border-color: rgba(34, 211, 238, 0.22); }
 .skill-chip:hover {
   border-color: rgba(34, 211, 238, 0.55);
   color: rgb(241 245 249);
   background: rgba(34, 211, 238, 0.06);
+}
+/* Lit from the diagram side (hovering its block) — mirror the hover look */
+.skill-chip.is-linked {
+  border-color: rgba(34, 211, 238, 0.7);
+  color: rgb(241 245 249);
+  background: rgba(34, 211, 238, 0.1);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.25);
 }
 
 /* Spoken languages — proficiency words, not chips */
@@ -915,6 +922,70 @@ html { color-scheme: dark; }
   fill: rgba(110, 231, 183, 0.92);
 }
 
+/* ---- Platform + delivery tiers (below the data flow) ---- */
+/* Band the whole flow "runs on" */
+.stack-svg__band {
+  fill: rgba(15, 23, 42, 0.35);
+  stroke: rgba(148, 163, 184, 0.18);
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+.stack-svg__tier-label {
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 9px;
+  fill: rgb(100 116 139);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+/* "runs on" drops + the gitops tap — faint, structural, not signal */
+.stack-svg__runson {
+  stroke: rgba(148, 163, 184, 0.22);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+  fill: none;
+}
+/* Delivery rail — static (no particles), dimmer than the live data path */
+.stack-svg__edges path.is-rail {
+  stroke: rgba(148, 163, 184, 0.5);
+  stroke-width: 1.2;
+  stroke-dasharray: none;
+  opacity: 0.6;
+}
+/* Platform blocks — slate/steel, clearly "infrastructure not data" */
+.stack-svg__block--platform {
+  fill: rgba(15, 23, 42, 0.9);
+  stroke: rgba(148, 163, 184, 0.4);
+}
+.stack-svg__block-label--platform {
+  fill: rgb(148 163 184);
+}
+/* Delivery blocks — dimmest tier */
+.stack-svg__block--delivery {
+  fill: rgba(15, 23, 42, 0.8);
+  stroke: rgba(100, 116, 139, 0.45);
+}
+.stack-svg__block-label--delivery {
+  fill: rgb(100 116 139);
+  font-size: 9px;
+}
+
+/* ---- Cross-highlight between the diagram and the skill chips ---- */
+.stack-node { transition: opacity 0.18s ease; }
+.stack-node .stack-svg__block { transition: stroke 0.15s ease, stroke-width 0.15s ease, fill 0.15s ease; }
+.stack-node .stack-svg__block-label { transition: fill 0.15s ease; }
+/* Blocks tied to a skill invite the hover */
+.stack-node[data-skills] { cursor: pointer; }
+/* Spotlight: while a skill is active, fade everything that isn't linked */
+#stack-svg.is-spotlighting .stack-node:not(.is-linked) { opacity: 0.28; }
+.stack-node.is-linked .stack-svg__block {
+  stroke: var(--color-brand-400);
+  stroke-width: 2;
+  fill: rgba(12, 35, 48, 0.98);
+}
+.stack-node.is-linked .stack-svg__block-label {
+  fill: var(--color-brand-300);
+}
+
 /* ---- Career historian trend (Experience section) ---- */
 #career-svg {
   display: block;
@@ -1048,11 +1119,23 @@ html { color-scheme: dark; }
 
 .stack-diagram__cap {
   margin: 1rem auto 0;
-  max-width: 460px;
+  max-width: 520px;
   text-align: center;
   font-size: 0.8125rem;
   color: rgb(100 116 139);
   line-height: 1.55;
+}
+.stack-diagram__hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: rgba(34, 211, 238, 0.7);
+}
+/* Touch devices have no hover — don't imply an interaction that won't fire */
+@media (hover: none) {
+  .stack-diagram__hint { display: none; }
 }
 
 @keyframes stack-halo {
