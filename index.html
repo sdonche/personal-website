@@ -82,7 +82,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
   <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-18.2" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-18.3" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -543,9 +543,9 @@
           <div class="stack-diagram__scroll">
             <svg
               id="stack-svg"
-              viewBox="0 0 720 420"
+              viewBox="0 0 720 390"
               role="img"
-              aria-label="Reference architecture for a factory data backbone. Data-flow tier: field devices (PLCs, sensors, OPC UA) publish through an Ignition Edge gateway to an MQTT broker; the Ignition backend and Python/FastAPI services persist to PostgreSQL, Redis and a historian, and a frontend serves HMI, SCADA, MES, Grafana and apps. Platform tier: it all runs on Kubernetes, Docker, Azure and Linux. Delivery tier: shipped via a GitOps rail of Git, CI/CD, Argo CD and Terraform. Hover a skill below to see where it sits."
+              aria-label="Reference architecture for a factory data backbone. Data-flow tier: field devices (PLCs, sensors, OPC UA) publish through an Ignition Edge gateway and Node-RED to an MQTT broker; the Ignition backend and Python services persist to PostgreSQL, Redis and a historian, and a frontend serves HMI, SCADA, MES, Grafana and apps. Platform tier: the whole software stack runs on a foundation of Linux, Docker, Kubernetes and Azure, provisioned and shipped via GitOps. Hover a skill below to see where it sits, or click it for a description."
             >
               <g class="stack-svg__stages"></g>
               <g class="stack-svg__edges"></g>
@@ -554,7 +554,8 @@
             </svg>
           </div>
           <figcaption class="stack-diagram__cap">
-            The backbone I build, end to end. Field signals flow left to right into an Ignition and services backend that persists to PostgreSQL, Redis and a historian, then out to SCADA, MES, Grafana and apps. It all runs on a Kubernetes platform, shipped through GitOps. <span class="stack-diagram__hint">Hover a skill to light up where it lives.</span>
+            The backbone I build, from factory floor to dashboards, all on one platform.
+            <span class="stack-diagram__hint">Hover a skill to see where it lives. Click for what it is.</span>
           </figcaption>
         </figure>
 
@@ -566,13 +567,16 @@
               Industry 4.0 / IIoT
             </h3>
             <div class="skill-chips">
-              <span class="skill-chip" data-skill="ignition">Ignition</span>
-              <span class="skill-chip" data-skill="scada">SCADA</span>
-              <span class="skill-chip" data-skill="mqtt">MQTT</span>
-              <span class="skill-chip" data-skill="sparkplug-b">Sparkplug B</span>
-              <span class="skill-chip" data-skill="unified-namespace">Unified Namespace</span>
-              <span class="skill-chip" data-skill="mes">MES</span>
-              <span class="skill-chip" data-skill="ot-it">OT/IT integration</span>
+              <button type="button" class="skill-chip" data-skill="ignition">Ignition</button>
+              <button type="button" class="skill-chip" data-skill="scada">SCADA</button>
+              <button type="button" class="skill-chip" data-skill="mqtt">MQTT</button>
+              <button type="button" class="skill-chip" data-skill="sparkplug-b">Sparkplug B</button>
+              <button type="button" class="skill-chip" data-skill="unified-namespace">Unified Namespace</button>
+              <button type="button" class="skill-chip" data-skill="opc-ua">OPC UA</button>
+              <button type="button" class="skill-chip" data-skill="node-red">Node-RED</button>
+              <button type="button" class="skill-chip" data-skill="kepware">Kepware</button>
+              <button type="button" class="skill-chip" data-skill="mes">MES</button>
+              <button type="button" class="skill-chip" data-skill="ot-it">OT/IT integration</button>
             </div>
           </div>
 
@@ -582,13 +586,19 @@
               Data &amp; Backend
             </h3>
             <div class="skill-chips">
-              <span class="skill-chip" data-skill="python">Python</span>
-              <span class="skill-chip" data-skill="fastapi">FastAPI</span>
-              <span class="skill-chip" data-skill="postgresql">PostgreSQL</span>
-              <span class="skill-chip" data-skill="sql-server">SQL Server</span>
-              <span class="skill-chip" data-skill="redis">Redis</span>
-              <span class="skill-chip" data-skill="data-pipelines">Data pipelines</span>
-              <span class="skill-chip" data-skill="grafana">Grafana</span>
+              <button type="button" class="skill-chip" data-skill="python">Python</button>
+              <button type="button" class="skill-chip" data-skill="fastapi">FastAPI</button>
+              <button type="button" class="skill-chip" data-skill="pydantic">Pydantic</button>
+              <button type="button" class="skill-chip" data-skill="sqlalchemy">SQLAlchemy</button>
+              <button type="button" class="skill-chip" data-skill="postgresql">PostgreSQL</button>
+              <button type="button" class="skill-chip" data-skill="sql-server">SQL Server</button>
+              <button type="button" class="skill-chip" data-skill="redis">Redis</button>
+              <button type="button" class="skill-chip" data-skill="influxdb">InfluxDB</button>
+              <button type="button" class="skill-chip" data-skill="timescaledb">TimescaleDB</button>
+              <button type="button" class="skill-chip" data-skill="kafka">Apache Kafka</button>
+              <button type="button" class="skill-chip" data-skill="data-pipelines">Data pipelines</button>
+              <button type="button" class="skill-chip" data-skill="grafana">Grafana</button>
+              <button type="button" class="skill-chip" data-skill="prometheus">Prometheus</button>
             </div>
           </div>
 
@@ -598,15 +608,19 @@
               Cloud &amp; Infrastructure
             </h3>
             <div class="skill-chips">
-              <span class="skill-chip" data-skill="kubernetes">Kubernetes</span>
-              <span class="skill-chip" data-skill="docker">Docker</span>
-              <span class="skill-chip" data-skill="terraform">Terraform</span>
-              <span class="skill-chip" data-skill="argo-cd">Argo CD</span>
-              <span class="skill-chip" data-skill="azure">Azure</span>
-              <span class="skill-chip" data-skill="gitops">GitOps</span>
-              <span class="skill-chip" data-skill="ci-cd">CI/CD</span>
-              <span class="skill-chip" data-skill="linux">Linux</span>
-              <span class="skill-chip" data-skill="git">Git</span>
+              <button type="button" class="skill-chip" data-skill="linux">Linux</button>
+              <button type="button" class="skill-chip" data-skill="docker">Docker</button>
+              <button type="button" class="skill-chip" data-skill="kubernetes">Kubernetes</button>
+              <button type="button" class="skill-chip" data-skill="helm">Helm</button>
+              <button type="button" class="skill-chip" data-skill="traefik">Traefik</button>
+              <button type="button" class="skill-chip" data-skill="azure">Azure</button>
+              <button type="button" class="skill-chip" data-skill="terraform">Terraform</button>
+              <button type="button" class="skill-chip" data-skill="argo-cd">Argo CD</button>
+              <button type="button" class="skill-chip" data-skill="gitops">GitOps</button>
+              <button type="button" class="skill-chip" data-skill="git">Git</button>
+              <button type="button" class="skill-chip" data-skill="github-actions">GitHub Actions</button>
+              <button type="button" class="skill-chip" data-skill="azure-devops">Azure DevOps</button>
+              <button type="button" class="skill-chip" data-skill="ci-cd">CI/CD</button>
             </div>
           </div>
 
@@ -782,7 +796,8 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/script.js?v=2026-07-18.2" defer></script>
+  <script src="assets/js/skill-meta.js?v=2026-07-18.3" defer></script>
+  <script src="assets/js/script.js?v=2026-07-18.3" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

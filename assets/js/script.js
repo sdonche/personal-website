@@ -80,6 +80,7 @@
     wireMobileNav();
     wireCommandPalette();
     buildStackDiagram();
+    initSkillPopover();
     buildCareerTrend();
     observeActiveSection();
     observeReveals();
@@ -503,7 +504,7 @@
            3. DELIVERY    the GitOps rail that ships it
          Every block carries a `skills` list; hovering a skill
          chip below lights up its block(s) here and vice-versa
-         (wireStackHighlight). Coordinates are in the 720×420
+         (wireStackHighlight). Coordinates are in the 720×390
          viewBox. Particles travel source→target to convey flow.
      ---------------------------------------------------- */
 
@@ -520,36 +521,37 @@
      Width is derived from the label unless `w` is given. `skills` ties a block
      to the chips below it for the hover cross-highlight. */
   const STACK_NODES = {
-    /* --- data-flow tier --- */
+    /* --- data-flow tier (field devices are physical OT, so they sit OFF
+           the platform slab; everything from the edge rightward runs on it) --- */
     plc:      { x:  75, y:  95, label: "PLC / RTU",     kind: "field"    },
     sensor:   { x:  75, y: 170, label: "Sensor",        kind: "field"    },
-    opcua:    { x:  75, y: 245, label: "OPC UA",        kind: "field"    },
-    edge:     { x: 200, y: 170, label: "Ignition Edge", kind: "edge",     skills: ["ignition", "ot-it"] },
-    mqtt:     { x: 330, y: 170, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "ot-it"] },
+    opcua:    { x:  75, y: 245, label: "OPC UA",        kind: "field",    skills: ["opc-ua"] },
+    edge:     { x: 200, y: 150, label: "Ignition Edge", kind: "edge",     skills: ["ignition", "ot-it", "kepware"] },
+    nodered:  { x: 200, y: 210, label: "Node-RED",      kind: "edge",     skills: ["node-red"] },
+    mqtt:     { x: 330, y: 170, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "ot-it", "kafka"] },
     backend:  { x: 455, y: 158, label: "Ignition",      kind: "server",   skills: ["ignition"] },
-    svc:      { x: 455, y: 214, label: "Services",      kind: "server",   skills: ["python", "fastapi", "data-pipelines"] },
+    svc:      { x: 455, y: 214, label: "Services",      kind: "server",   skills: ["python", "fastapi", "pydantic", "sqlalchemy", "data-pipelines"] },
     sql:      { x: 388, y: 270, label: "PostgreSQL",    kind: "storage",  skills: ["postgresql", "sql-server"] },
     redis:    { x: 460, y: 270, label: "Redis",         kind: "storage",  skills: ["redis"], w: 56 },
-    tsdb:     { x: 528, y: 270, label: "Historian",     kind: "storage",  skills: ["data-pipelines"] },
-    frontend: { x: 575, y: 170, label: "Frontend",      kind: "server",   skills: ["ignition"] },
+    tsdb:     { x: 528, y: 270, label: "Historian",     kind: "storage",  skills: ["influxdb", "timescaledb", "data-pipelines"] },
+    frontend: { x: 575, y: 170, label: "Frontend",      kind: "server",   skills: ["ignition", "traefik"] },
     hmi:      { x: 668, y:  80, label: "HMI",           kind: "consumer", w: 64 },
     scada:    { x: 668, y: 125, label: "SCADA",         kind: "consumer", w: 64, skills: ["scada"] },
     mes:      { x: 668, y: 170, label: "MES",           kind: "consumer", w: 64, skills: ["mes"] },
-    graf:     { x: 668, y: 215, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana"] },
+    graf:     { x: 668, y: 215, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana", "prometheus"] },
     apps:     { x: 668, y: 260, label: "Apps",          kind: "consumer", w: 64 },
 
-    /* --- platform tier (the band it all runs on) --- */
-    k8s:      { x: 235, y: 344, label: "Kubernetes",    kind: "platform", skills: ["kubernetes"] },
-    docker:   { x: 350, y: 344, label: "Docker",        kind: "platform", skills: ["docker"] },
-    azure:    { x: 450, y: 344, label: "Azure",         kind: "platform", skills: ["azure"], w: 60 },
-    linux:    { x: 545, y: 344, label: "Linux",         kind: "platform", skills: ["linux"], w: 58 },
-
-    /* --- delivery tier (GitOps rail) --- */
-    git:      { x: 180, y: 402, label: "Git",           kind: "delivery", skills: ["git", "gitops"], w: 52 },
-    cicd:     { x: 250, y: 402, label: "CI/CD",         kind: "delivery", skills: ["ci-cd", "gitops"], w: 58 },
-    argo:     { x: 330, y: 402, label: "Argo CD",       kind: "delivery", skills: ["argo-cd", "gitops"] },
-    tf:       { x: 420, y: 402, label: "Terraform",     kind: "delivery", skills: ["terraform", "gitops"] },
+    /* --- platform tier: a single foundation slab the whole software stack
+           runs on (field devices excepted) --- */
+    linux:    { x: 255, y: 328, label: "Linux",         kind: "platform", skills: ["linux"], w: 58 },
+    docker:   { x: 365, y: 328, label: "Docker",        kind: "platform", skills: ["docker"] },
+    k8s:      { x: 475, y: 328, label: "Kubernetes",    kind: "platform", skills: ["kubernetes"] },
+    azure:    { x: 590, y: 328, label: "Azure",         kind: "platform", skills: ["azure"], w: 60 },
   };
+
+  /* Skills routed to the "provisioned & shipped via GitOps" tag rather than to
+     a data-flow block — they describe how the platform is built and deployed. */
+  const DELIVERY_SKILLS = ["terraform", "argo-cd", "gitops", "ci-cd", "git", "github-actions", "azure-devops", "helm"];
 
   /* Edges as [fromId, toId, opts] — particles flow from→to.
        spine: true   main data path, drawn heavier
@@ -560,9 +562,10 @@
                      (data becomes decisions) */
   const STACK_EDGES = [
     ["plc",      "edge",     { route: "elbow" }],
-    ["sensor",   "edge",     { spine: true }],
-    ["opcua",    "edge",     { route: "elbow" }],
+    ["sensor",   "edge",     { route: "elbow" }],
+    ["opcua",    "nodered",  { route: "elbow" }],
     ["edge",     "mqtt",     { spine: true }],
+    ["nodered",  "mqtt",     { route: "elbow" }],
     ["mqtt",     "backend",  { spine: true }],
     ["backend",  "svc",      { route: "tbranch" }],
     ["backend",  "frontend", { spine: true }],
@@ -574,13 +577,6 @@
     ["frontend", "mes",      { route: "comb", out: true, spine: true }],
     ["frontend", "graf",     { route: "comb", out: true }],
     ["frontend", "apps",     { route: "comb", out: true }],
-  ];
-
-  /* The GitOps rail flows left→right, then a tap rises into the platform band. */
-  const DELIVERY_EDGES = [
-    ["git",  "cicd", {}],
-    ["cicd", "argo", {}],
-    ["argo", "tf",   {}],
   ];
 
   /* Block geometry helpers */
@@ -617,10 +613,11 @@
     return [[a.x2, from.y], [b.x1, to.y]];
   }
 
-  /* Tier scaffolding — the platform band and delivery rail live below the
-     data-flow tier. Kept as constants so the build and the highlight share them. */
-  const PLATFORM_BAND = { x1: 150, y1: 322, x2: 620, y2: 370 };
-  const RUNS_ON_COLS  = [350, 455, 545];   // dashed drops from the flow onto the band
+  /* Tier scaffolding — a single platform slab under the whole software span
+     (edge → consumers), plus a "provisioned & shipped via GitOps" tag. Kept as
+     constants so the build and the highlight share them. */
+  const PLATFORM_SLAB = { x1: 150, y1: 305, x2: 705, y2: 351 };
+  const SOFTWARE_SPAN = { x1: 170, x2: 700 };   // the flow region that sits on the slab
 
   function buildStackDiagram() {
     const svg = document.getElementById("stack-svg");
@@ -652,34 +649,41 @@
       }
     });
 
-    /* ---- Platform band + delivery rail scaffolding (behind the blocks) ---- */
-    const b = PLATFORM_BAND;
+    /* ---- Platform slab scaffolding (behind the blocks) ---- */
+    const b = PLATFORM_SLAB;
     append(svgNS, stagesG, "rect", {
-      class: "stack-svg__band",
+      class: "stack-svg__slab",
       x: b.x1, y: b.y1, width: b.x2 - b.x1, height: b.y2 - b.y1, rx: 10,
     });
     const platLabel = append(svgNS, stagesG, "text", {
       class: "stack-svg__tier-label", x: b.x1, y: b.y1 - 8,
     });
-    platLabel.textContent = "// platform · runs on";
-    const gitLabel = append(svgNS, stagesG, "text", {
-      class: "stack-svg__tier-label", x: b.x1, y: 382,
-    });
-    gitLabel.textContent = "// delivery · gitops";
+    platLabel.textContent = "// platform · the software above runs on this";
 
-    // "runs on" — dashed drops from the data tier onto the platform band
-    RUNS_ON_COLS.forEach((x) => {
-      append(svgNS, stagesG, "line", {
-        class: "stack-svg__runson",
-        x1: x, y1: 292, x2: x, y2: b.y1,
-      });
-    });
-    // GitOps tap — the rail turns up into the platform ("this ships onto that")
+    // "runs on" bracket — the whole software span rests on the slab
+    const sp = SOFTWARE_SPAN, midX = (sp.x1 + sp.x2) / 2;
     append(svgNS, stagesG, "path", {
-      class: "stack-svg__runson", d: `M 462 402 L 500 402 L 500 ${b.y2}`,
+      class: "stack-svg__runson",
+      d: `M ${sp.x1} 292 L ${sp.x1} 298 L ${sp.x2} 298 L ${sp.x2} 292 M ${midX} 298 L ${midX} ${b.y1}`,
     });
 
-    /* ---- Edges (orthogonal polylines): data flow + the delivery rail ---- */
+    // "provisioned & shipped via GitOps" — a tag that taps up into the slab.
+    // Grouped as a stack-node so every delivery/IaC chip lights it up.
+    const gitTag = append(svgNS, nodesG, "g", {
+      class: "stack-node stack-node--tag", "data-skills": DELIVERY_SKILLS.join(" "),
+    });
+    append(svgNS, gitTag, "path", {
+      class: "stack-svg__tap", d: `M 180 372 L 180 ${b.y2}`,
+    });
+    append(svgNS, gitTag, "path", {
+      class: "stack-svg__tap-head", d: "M 176 356 L 180 351 L 184 356",
+    });
+    const gitText = append(svgNS, gitTag, "text", {
+      class: "stack-svg__tag-label", x: 194, y: 372,
+    });
+    gitText.textContent = "provisioned & shipped via GitOps";
+
+    /* ---- Edges (orthogonal polylines): the data flow ---- */
     STACK_EDGES.forEach(([fromId, toId, opts]) => {
       const from = STACK_NODES[fromId];
       const to   = STACK_NODES[toId];
@@ -687,15 +691,6 @@
       append(svgNS, edgesG, "path", {
         d: pathAbs(edgePoints(from, to, opts)),
         class: opts && opts.spine ? "is-spine" : "",
-      });
-    });
-    DELIVERY_EDGES.forEach(([fromId, toId, opts]) => {
-      const from = STACK_NODES[fromId];
-      const to   = STACK_NODES[toId];
-      if (!from || !to) return;
-      append(svgNS, edgesG, "path", {
-        d: pathAbs(edgePoints(from, to, opts)),
-        class: "is-rail",
       });
     });
 
@@ -782,6 +777,79 @@
       g.addEventListener("mouseenter", () => slugs.forEach((s) => setActive(s, true)));
       g.addEventListener("mouseleave", () => slugs.forEach((s) => setActive(s, false)));
     });
+  }
+
+  /* Clicking a skill chip opens a popover: an on-brand icon (a real brand glyph
+     recoloured to the site cyan, or a cyan role-icon) plus a one-line "what it
+     is". Data lives in skill-meta.js. Hover still drives the diagram highlight;
+     click drives the description — and on touch, where hover is dead, this is
+     the interaction. */
+  function initSkillPopover() {
+    const meta  = window.SKILL_META || {};
+    const roles = window.SKILL_ROLE_ICONS || {};
+    const chips = Array.from(document.querySelectorAll(".skill-chip[data-skill]"));
+    if (!chips.length) return;
+
+    const pop = document.createElement("div");
+    pop.className = "skill-popover";
+    pop.setAttribute("role", "dialog");
+    pop.hidden = true;
+    document.body.appendChild(pop);
+    let current = null;
+
+    const iconSVG = (m) => m.brand
+      ? `<svg class="skill-popover__glyph is-brand" viewBox="0 0 24 24" aria-hidden="true"><path d="${m.brand}"/></svg>`
+      : `<svg class="skill-popover__glyph is-role" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${roles[m.role] || ""}</svg>`;
+
+    function close() {
+      if (!current) return;
+      pop.hidden = true;
+      current.setAttribute("aria-expanded", "false");
+      current = null;
+    }
+
+    function open(chip) {
+      const m = meta[chip.dataset.skill];
+      if (!m) return;
+      pop.innerHTML =
+        `<div class="skill-popover__head">${iconSVG(m)}<span class="skill-popover__name">${m.name}</span></div>` +
+        `<p class="skill-popover__desc">${m.desc}</p>`;
+      pop.hidden = false;
+
+      const r = chip.getBoundingClientRect();
+      const pw = pop.offsetWidth, ph = pop.offsetHeight;
+      const vw = document.documentElement.clientWidth;
+      let left = r.left + window.scrollX + r.width / 2 - pw / 2;
+      left = Math.max(window.scrollX + 10, Math.min(left, window.scrollX + vw - pw - 10));
+      // default below the chip; flip above if it would overflow the viewport
+      let top = r.bottom + window.scrollY + 8;
+      if (r.bottom + 8 + ph > window.innerHeight && r.top - 8 - ph > 0) {
+        top = r.top + window.scrollY - ph - 8;
+        pop.classList.add("is-above");
+      } else {
+        pop.classList.remove("is-above");
+      }
+      pop.style.left = `${Math.round(left)}px`;
+      pop.style.top  = `${Math.round(top)}px`;
+      chip.setAttribute("aria-expanded", "true");
+      current = chip;
+    }
+
+    chips.forEach((chip) => {
+      chip.setAttribute("aria-haspopup", "dialog");
+      chip.setAttribute("aria-expanded", "false");
+      chip.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (current === chip) { close(); return; }
+        close();
+        open(chip);
+      });
+    });
+
+    document.addEventListener("click", (e) => { if (current && !pop.contains(e.target)) close(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+    window.addEventListener("resize", close);
+    window.addEventListener("scroll", close, true);
   }
 
   /* ----------------------------------------------------
