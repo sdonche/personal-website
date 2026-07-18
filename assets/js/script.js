@@ -547,7 +547,7 @@
     linux:    { x: 255, y: 349, label: "Linux",         kind: "platform", skills: ["linux"], w: 58 },
     docker:   { x: 365, y: 349, label: "Docker",        kind: "platform", skills: ["docker"] },
     k8s:      { x: 475, y: 349, label: "Kubernetes",    kind: "platform", skills: ["kubernetes"] },
-    cloud:    { x: 590, y: 349, label: "Cloud",         kind: "platform", skills: ["azure"], w: 60 },
+    cloud:    { x: 590, y: 349, label: "Cloud",         kind: "platform", skills: ["azure", "gcp"], w: 60 },
   };
 
   /* Skills routed to the "provisioned & shipped via GitOps" tag rather than to
@@ -618,7 +618,6 @@
      (edge → consumers), plus a "provisioned & shipped via GitOps" tag. Kept as
      constants so the build and the highlight share them. */
   const PLATFORM_SLAB = { x1: 150, y1: 326, x2: 705, y2: 374 };
-  const SOFTWARE_SPAN = { x1: 170, x2: 700 };   // the flow region that sits on the slab
 
   function buildStackDiagram() {
     const svg = document.getElementById("stack-svg");
@@ -657,15 +656,17 @@
       x: b.x1, y: b.y1, width: b.x2 - b.x1, height: b.y2 - b.y1, rx: 10,
     });
     const platLabel = append(svgNS, stagesG, "text", {
-      class: "stack-svg__tier-label", x: b.x1, y: b.y1 - 8,
+      class: "stack-svg__tier-label", x: b.x1, y: b.y1 - 12,
     });
-    platLabel.textContent = "// platform · the software above runs on this";
+    platLabel.textContent = "// platform · runs on";
 
-    // "runs on" bracket — the whole software span rests on the slab
-    const sp = SOFTWARE_SPAN, midX = (sp.x1 + sp.x2) / 2;
-    append(svgNS, stagesG, "path", {
-      class: "stack-svg__runson",
-      d: `M ${sp.x1} 306 L ${sp.x1} 312 L ${sp.x2} 312 L ${sp.x2} 306 M ${midX} 312 L ${midX} ${b.y1}`,
+    // "runs on" — short dashed drops from the software tier onto the slab,
+    // placed to the right of the label so nothing crosses the title
+    [400, 500, 600].forEach((x) => {
+      append(svgNS, stagesG, "line", {
+        class: "stack-svg__runson",
+        x1: x, y1: 298, x2: x, y2: b.y1,
+      });
     });
 
     // "provisioned & shipped via GitOps" — a tag that taps up into the slab.
@@ -814,6 +815,7 @@
       if (!m) return;
       pop.innerHTML =
         `<div class="skill-popover__head">${iconSVG(m)}<span class="skill-popover__name">${m.name}</span></div>` +
+        (m.full ? `<p class="skill-popover__full">${m.full}</p>` : "") +
         `<p class="skill-popover__desc">${m.desc}</p>`;
       pop.hidden = false;
 
