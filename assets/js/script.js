@@ -25,29 +25,16 @@
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isMac = /Mac|iPhone|iPad/i.test(navigator.platform);
 
-  /* Dynamic strings, keyed by the page's <html lang> (en on /, nl on /nl/).
-     Static copy lives in the HTML pages themselves. */
-  const I18N = {
-    en: {
-      pending: "Transmitting…",
-      mailto:  "Opened your mail client — finish & send to deliver.",
-      ok:      "Message delivered. I&rsquo;ll reply soon.",
-      err:     "Transmission failed. Please try again.",
-      net:     "Network error. Please try again or use email.",
-      subject: "Hello from your website",
-      qv: { stale: "Not yet viewed", good: "Visited", live: "On screen now" },
-    },
-    nl: {
-      pending: "Verzenden…",
-      mailto:  "Je e-mailprogramma is geopend — verstuur het bericht om het te bezorgen.",
-      ok:      "Bericht ontvangen. Ik antwoord snel.",
-      err:     "Verzenden mislukt. Probeer het opnieuw.",
-      net:     "Netwerkfout. Probeer opnieuw of gebruik e-mail.",
-      subject: "Hallo via je website",
-      qv: { stale: "Nog niet bekeken", good: "Bezocht", live: "Nu in beeld" },
-    },
+  /* Dynamic strings for JS-generated UI (static copy lives in the HTML). */
+  const T = {
+    pending: "Transmitting…",
+    mailto:  "Opened your mail client — finish & send to deliver.",
+    ok:      "Message delivered. I&rsquo;ll reply soon.",
+    err:     "Transmission failed. Please try again.",
+    net:     "Network error. Please try again or use email.",
+    subject: "Hello from your website",
+    qv: { stale: "Not yet viewed", good: "Visited", live: "On screen now" },
   };
-  const T = I18N[document.documentElement.lang] || I18N.en;
 
   /* ----------------------------------------------------
      Section registry — single source of truth.
@@ -69,13 +56,14 @@
     { id: "role-uz-gent",         label: "uz_gent",         group: "experience", desc: "PhD / Imaging Research" },
     { id: "edu-ugent",            label: "ugent",           group: "experience", desc: "Bio-Science Engineering" },
     { id: "skills",               label: "skills" },
+    { id: "work",                 label: "work" },
     { id: "contact",              label: "contact" },
   ];
 
   /* Top-level sections that scroll-snap the page (used by the active-section
      observer to highlight the right parent in the sidebar). */
   const TOP_LEVEL_IDS = new Set([
-    "hero", "about", "experience", "skills", "contact",
+    "hero", "about", "experience", "skills", "work", "contact",
   ]);
 
   /* Visited tracker — drives QV badges. */

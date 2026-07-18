@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>document.documentElement.classList.add('js');</script>
+  <meta name="theme-color" content="#020617" />
+  <meta name="description" content="Case study: building a unified data backbone across five production sites for a large European food producer — Ignition, MQTT, Sparkplug B, a historian and a data lake." />
+  <meta name="author" content="Sam Donche" />
+  <title>From data islands to a factory-wide backbone — Sam Donche</title>
+
+  <link rel="canonical" href="https://samdonche.com/case-studies/factory-data-backbone/" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Sam Donche" />
+  <meta property="og:title" content="From data islands to a factory-wide backbone" />
+  <meta property="og:description" content="How a large European food producer went from scattered spreadsheets to a unified data backbone across five production sites." />
+  <meta property="og:url" content="https://samdonche.com/case-studies/factory-data-backbone/" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://samdonche.com/assets/img/og-card.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Ccircle cx='16' cy='16' r='5' fill='none' stroke='%2322d3ee' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%2322d3ee'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png" />
+
+  <link rel="preload" href="/assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="/assets/css/fonts.css?v=2026-07-13" />
+  <link rel="stylesheet" href="/assets/css/tailwind.css?v=2026-07-18.1" />
+  <link rel="stylesheet" href="/assets/css/styles.css?v=2026-07-15.15" />
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
+
+  <div aria-hidden="true" class="fixed inset-0 -z-10 bg-slate-950">
+    <div class="absolute inset-0 grid-bg opacity-[0.35]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(52,211,153,0.05),_transparent_50%)]"></div>
+  </div>
+
+  <!-- Top bar -->
+  <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2 group" aria-label="Home">
+        <span class="relative inline-flex h-2.5 w-2.5">
+          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+        </span>
+        <span class="font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
+          sam.donche<span class="text-brand-400">@</span>edge
+        </span>
+      </a>
+      <a href="/" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors">← back</a>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-24">
+
+    <article>
+      <div class="reveal">
+        <p class="section-eyebrow">// Case Study</p>
+        <h1 class="section-title">From data islands to a factory-wide backbone.</h1>
+        <p class="mt-4 font-mono text-xs tracking-wider text-slate-500">
+          A large European food producer <span class="text-slate-700">·</span> Data engineering <span class="text-slate-700">·</span> Industry 4.0
+        </p>
+      </div>
+
+      <div class="mt-10 space-y-5 text-slate-300 leading-relaxed reveal">
+        <p>
+          When I joined, there was no shared data infrastructure to speak of. Machine data, quality records and production numbers lived in scattered spreadsheets and a patchwork of small databases — one per team, per line, per problem. People worked hard, but everyone ran their own projects and the systems didn&rsquo;t talk to each other. Anyone who wanted to build something on top of that data — a report, an analysis, an AI model — first had to go hunting for it, then hope that what they found was right.
+        </p>
+        <p>
+          That was the real blocker. An external AI partner was building applications for the business, but scattered, unstructured data made every one of them slower and shakier than it should have been.
+        </p>
+        <p>
+          So a team was formed to fix the foundation, and I had a strong hand in shaping how it came together. We started by experimenting — and a fair amount of what we tried turned out to be the wrong road. Those wrong turns taught us more than the wins did, and they&rsquo;re the reason the architecture we settled on held up.
+        </p>
+        <p>
+          The shape we landed on split cleanly by where the work lived. <span class="text-slate-100">Ignition</span> ran on the factory floor: pulling data off the machines, storing it in a historian, organising it into a unified namespace, and publishing everything to an <span class="text-slate-100">MQTT</span> broker — and <span class="text-slate-100">Sparkplug B</span> let devices that couldn&rsquo;t be wired straight into Ignition join over MQTT instead. A company data lake ingested from that MQTT stream, and another team connected it to the rest of the business&rsquo;s data sources. <span class="text-slate-100">OutSystems</span> handled the office side and anything living outside the plant network — reporting, analysis, document processing, and client-facing portals. We also built applications to talk directly to the equipment that runs a food plant: weighbridges, checkweighers, and the like.
+        </p>
+        <p>
+          One lesson worth passing on: Ignition is open enough that you can build almost anything inside it — so we did, at first, and it bit us. As the logic grew, we moved the heavier pieces out into microservices and it got far more maintainable. Same story with reporting: we tried it in Ignition, decided it belonged elsewhere, and moved it. Pick the right layer for each job rather than making one platform do everything.
+        </p>
+        <p>
+          By the time I left, Ignition was running on all five production sites, with roughly half a million tags flowing across the gateways. One site had a full visualisation of every line — SCADA-like, without the control — so people could finally <em class="text-slate-200 not-italic font-medium">see</em> production as it happened.
+        </p>
+        <p>
+          The tags and the sites are the easy things to count. What actually changed is quieter: data stopped being something you had to hunt for. Reporting got easier, insight got easier, and any new project that needed data could plug into a foundation that was already there instead of starting from a scavenger hunt. And a plant that can see its own lines is a plant that can start chipping away at downtime and lost efficiency.
+        </p>
+      </div>
+
+      <blockquote class="mt-8 border-l-2 border-brand-400/60 pl-5 py-1 text-lg text-slate-200 reveal">
+        The win isn&rsquo;t a dashboard or a clever app. It&rsquo;s the structured backbone underneath — get that right and everything you build on top is easier.
+      </blockquote>
+
+      <div class="mt-10 flex flex-wrap gap-2 font-mono text-[10px] reveal">
+        <span class="tag">Ignition</span><span class="tag">Unified Namespace</span><span class="tag">MQTT</span><span class="tag">Sparkplug B</span><span class="tag">Historian</span><span class="tag">Data Lake</span><span class="tag">OutSystems</span><span class="tag">Microservices</span>
+      </div>
+    </article>
+
+    <p class="mt-14 reveal">
+      <a href="/#contact" class="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-slate-400 hover:text-brand-300 transition-colors">
+        <span class="text-accent" aria-hidden="true">&#9679;</span>
+        Got a project like this? Open a channel
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+    </p>
+  </main>
+
+  <footer class="border-t border-slate-800/60">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-500">
+      <p class="font-mono text-xs">&copy; <span id="year"></span> Sam Donche</p>
+    </div>
+  </footer>
+
+  <script src="/assets/js/script.js?v=2026-07-18" defer></script>
+  <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="/assets/js/goatcounter.js"></script>
+</body>
+</html>

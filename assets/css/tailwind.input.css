@@ -12,13 +12,15 @@
    in index.html.
    ============================================================= */
 
-/* Only scan the files that actually use Tailwind classes.
-   (script.js builds a few classes at runtime as string literals —
-   e.g. text-rose-400 for the form error state — so it must be
-   scanned too.) */
+/* Scan every page that uses Tailwind classes (each language + subpage —
+   otherwise a class used only on a subpage never gets compiled).
+   script.js builds a few classes at runtime as string literals too
+   (e.g. text-rose-400 for the form error state), so it's scanned. */
 @import "tailwindcss" source(none);
 @source "../../index.html";
 @source "../../404.html";
+@source "../../publications/index.html";
+@source "../../case-studies/**/*.html";
 @source "../js/script.js";
 
 /* Design tokens — previously inline in index.html's <head>.

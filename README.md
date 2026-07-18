@@ -65,8 +65,6 @@ Then bump the `?v=` cache-buster on the `tailwind.css` `<link>` in `index.html`.
 
 ## Editing your content
 
-> **⚠ Mirror rule:** every content change to `index.html` must also be made in **every other language version** — currently [nl/index.html](nl/index.html). See "Dutch version" below.
-
 All content lives inline in [index.html](index.html) (the shipped HTML intentionally carries no editing-guide comments — this table is the map):
 
 | Section       | Where to edit                                                                       |
@@ -116,11 +114,14 @@ printf '%s' 'you@example.com' | base64
 
 ---
 
-## Dutch version — /nl/
+## Pages
 
-[nl/index.html](nl/index.html) is a full Dutch (Flemish) translation of the single page, served at **samdonche.com/nl/**. Both pages carry `hreflang` alternates (also in the sitemap) so search engines serve the right language; the top bar and footer have EN/NL switchers.
+The site is **English-only**. Beyond the single-page [index.html](index.html) there are standalone subpages that reuse the same CSS/JS and design language:
 
-**Maintenance rule: every content edit to `index.html` must be mirrored in `nl/index.html`.** The two pages share `script.js` (dynamic strings like form statuses come from the `I18N` map keyed by `<html lang>`), all CSS and all assets — only the HTML differs. Chrome stays English on both (tag browser labels, `SYSTEM: ONLINE`, diagram labels, ⌘K palette): industrial-system language is part of the aesthetic. Publication titles stay English — that's how they were published.
+- [publications/](publications/index.html) — research output (relocated off the main page, linked from the About sentence + the UZ Gent timeline card).
+- [case-studies/](case-studies/) — one directory per case study (e.g. `case-studies/factory-data-backbone/`); surfaced in the "Selected work" section of the main page. Add a new one by copying an existing case-study `index.html`, then adding a card to the Selected-work section and a `<loc>` to the sitemap.
+
+(A Dutch `/nl/` mirror existed briefly and was removed on 2026-07-18 — it's recoverable from git history if ever wanted.)
 
 ---
 

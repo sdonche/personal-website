@@ -1,40 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://samdonche.com/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://samdonche.com/" />
-    <xhtml:link rel="alternate" hreflang="nl-BE" href="https://samdonche.com/nl/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://samdonche.com/" />
-    <lastmod>2026-07-16</lastmod>
+    <lastmod>2026-07-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://samdonche.com/nl/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://samdonche.com/" />
-    <xhtml:link rel="alternate" hreflang="nl-BE" href="https://samdonche.com/nl/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://samdonche.com/" />
-    <lastmod>2026-07-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://samdonche.com/case-studies/factory-data-backbone/</loc>
+    <lastmod>2026-07-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://samdonche.com/publications/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://samdonche.com/publications/" />
-    <xhtml:link rel="alternate" hreflang="nl-BE" href="https://samdonche.com/nl/publications/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://samdonche.com/publications/" />
     <lastmod>2026-07-16</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://samdonche.com/nl/publications/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://samdonche.com/publications/" />
-    <xhtml:link rel="alternate" hreflang="nl-BE" href="https://samdonche.com/nl/publications/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://samdonche.com/publications/" />
-    <lastmod>2026-07-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.4</priority>
   </url>
 </urlset>
