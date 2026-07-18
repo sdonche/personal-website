@@ -185,12 +185,21 @@ html { color-scheme: dark; }
   border: 1px solid rgb(30 41 59);
 }
 .skill-group__title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.2em;
   color: rgb(148 163 184);
   margin-bottom: 1rem;
+}
+.skill-group__icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  color: var(--color-brand-400);
+  flex-shrink: 0;
 }
 
 /* Skill chips — plain tools, no self-rated bars (see GitHub for the live stack) */
@@ -206,6 +215,11 @@ html { color-scheme: dark; }
   transition: border-color .15s ease, color .15s ease;
 }
 .skill-group:hover .skill-chip { border-color: rgba(34, 211, 238, 0.22); }
+.skill-chip:hover {
+  border-color: rgba(34, 211, 238, 0.55);
+  color: rgb(241 245 249);
+  background: rgba(34, 211, 238, 0.06);
+}
 
 /* Spoken languages — proficiency words, not chips */
 .lang-list {

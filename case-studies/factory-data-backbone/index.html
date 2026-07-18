@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script>document.documentElement.classList.add('js');</script>
   <meta name="theme-color" content="#020617" />
-  <meta name="description" content="Case study: building a unified data backbone across five production sites for a large European food producer — Ignition, MQTT, Sparkplug B, a historian and a data lake." />
+  <meta name="description" content="Case study: building a unified data backbone across five production sites for a large European food producer, on Ignition, MQTT, Sparkplug B, a historian and a data lake." />
   <meta name="author" content="Sam Donche" />
   <title>From data islands to a factory-wide backbone — Sam Donche</title>
 
@@ -28,8 +28,8 @@
   <link rel="preload" href="../../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="../../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="../../assets/css/fonts.css?v=2026-07-13" />
-  <link rel="stylesheet" href="../../assets/css/tailwind.css?v=2026-07-18.1" />
-  <link rel="stylesheet" href="../../assets/css/styles.css?v=2026-07-18" />
+  <link rel="stylesheet" href="../../assets/css/tailwind.css?v=2026-07-18.2" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=2026-07-18.1" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -69,22 +69,22 @@
 
       <div class="mt-10 space-y-5 text-slate-300 leading-relaxed reveal">
         <p>
-          When I joined, there was no shared data infrastructure to speak of. Machine data, quality records and production numbers lived in scattered spreadsheets and a patchwork of small databases — one per team, per line, per problem. People worked hard, but everyone ran their own projects and the systems didn&rsquo;t talk to each other. Anyone who wanted to build something on top of that data — a report, an analysis, an AI model — first had to go hunting for it, then hope that what they found was right.
+          When I joined, there was no shared data infrastructure to speak of. Machine data, quality records and production numbers lived in scattered spreadsheets and a patchwork of small databases, one per team, per line, per problem. People worked hard, but everyone ran their own projects and the systems didn&rsquo;t talk to each other. Anyone who wanted to build something on top of that data, whether a report, an analysis or an AI model, first had to go hunting for it, then hope that what they found was right.
         </p>
         <p>
           That was the real blocker. An external AI partner was building applications for the business, but scattered, unstructured data made every one of them slower and shakier than it should have been.
         </p>
         <p>
-          So a team was formed to fix the foundation, and I had a strong hand in shaping how it came together. We started by experimenting — and a fair amount of what we tried turned out to be the wrong road. Those wrong turns taught us more than the wins did, and they&rsquo;re the reason the architecture we settled on held up.
+          So a team was formed to fix the foundation, and I had a strong hand in shaping how it came together. We started by experimenting, and a fair amount of what we tried turned out to be the wrong road. Those wrong turns taught us more than the wins did, and they&rsquo;re the reason the architecture we settled on held up.
         </p>
         <p>
-          The shape we landed on split cleanly by where the work lived. <span class="text-slate-100">Ignition</span> ran on the factory floor: pulling data off the machines, storing it in a historian, organising it into a unified namespace, and publishing everything to an <span class="text-slate-100">MQTT</span> broker — and <span class="text-slate-100">Sparkplug B</span> let devices that couldn&rsquo;t be wired straight into Ignition join over MQTT instead. A company data lake ingested from that MQTT stream, and another team connected it to the rest of the business&rsquo;s data sources. <span class="text-slate-100">OutSystems</span> handled the office side and anything living outside the plant network — reporting, analysis, document processing, and client-facing portals. We also built applications to talk directly to the equipment that runs a food plant: weighbridges, checkweighers, and the like.
+          The shape we landed on split cleanly by where the work lived. <span class="text-slate-100">Ignition</span> ran on the factory floor: pulling data off the machines, storing it in a historian, organising it into a unified namespace, and publishing everything to an <span class="text-slate-100">MQTT</span> broker. <span class="text-slate-100">Sparkplug B</span> let devices that couldn&rsquo;t be wired straight into Ignition join over MQTT instead. A company data lake ingested from that MQTT stream, and another team connected it to the rest of the business&rsquo;s data sources. <span class="text-slate-100">OutSystems</span> handled the office side and anything living outside the plant network: reporting, analysis, document processing, and client-facing portals. We also built applications to talk directly to the equipment that runs a food plant: weighbridges, checkweighers, and the like.
         </p>
         <p>
-          One lesson worth passing on: Ignition is open enough that you can build almost anything inside it — so we did, at first, and it bit us. As the logic grew, we moved the heavier pieces out into microservices, running on Kubernetes, and it got far more maintainable. Same story with reporting: we tried it in Ignition, decided it belonged elsewhere, and moved it. Pick the right layer for each job rather than making one platform do everything.
+          One lesson worth passing on: Ignition is open enough that you can build almost anything inside it, so we did, at first, and it bit us. As the logic grew, we moved the heavier pieces out into microservices, running on Kubernetes, and it got far more maintainable. Same story with reporting: we tried it in Ignition, decided it belonged elsewhere, and moved it. Pick the right layer for each job rather than making one platform do everything.
         </p>
         <p>
-          By the time I left, Ignition was running on all five production sites, with roughly half a million tags flowing across the gateways. One site had a full visualisation of every line — SCADA-like, without the control — so people could finally <em class="text-slate-200 not-italic font-medium">see</em> production as it happened.
+          By the time I left, Ignition was running on all five production sites, with roughly half a million tags flowing across the gateways. One site had a full visualisation of every line, SCADA-like but without the control, so people could finally <em class="text-slate-200 not-italic font-medium">see</em> production as it happened.
         </p>
         <p>
           The tags and the sites are the easy things to count. What actually changed is quieter: data stopped being something you had to hunt for. Reporting got easier, insight got easier, and any new project that needed data could plug into a foundation that was already there instead of starting from a scavenger hunt. And a plant that can see its own lines is a plant that can start chipping away at downtime and lost efficiency.
@@ -92,7 +92,7 @@
       </div>
 
       <blockquote class="mt-8 border-l-2 border-brand-400/60 pl-5 py-1 text-lg text-slate-200 reveal">
-        The win isn&rsquo;t a dashboard or a clever app. It&rsquo;s the structured backbone underneath — get that right and everything you build on top is easier.
+        The win isn&rsquo;t a dashboard or a clever app. It&rsquo;s the structured backbone underneath. Get that right and everything you build on top is easier.
       </blockquote>
 
       <div class="mt-10 flex flex-wrap gap-2 font-mono text-[10px] reveal">
