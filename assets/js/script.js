@@ -526,21 +526,19 @@
     plc:      { x:  64, y:  92, label: "PLC / RTU",     kind: "field"    },
     sensor:   { x:  64, y: 150, label: "Sensor",        kind: "field"    },
     opcua:    { x:  64, y: 208, label: "OPC UA",        kind: "field",    skills: ["opc-ua"] },
+    spdev:    { x:  64, y: 266, label: "Smart sensor",  kind: "field",    skills: ["sparkplug-b"] },
     edge:     { x: 178, y: 150, label: "Ignition Edge", kind: "edge",     skills: ["ignition", "ot-it", "kepware"] },
     nodered:  { x: 178, y: 208, label: "Node-RED",      kind: "edge",     skills: ["node-red"] },
-    spdev:    { x: 178, y: 266, label: "Device",        kind: "field",    skills: ["sparkplug-b"] },
     mqtt:     { x: 312, y: 172, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "ot-it", "kafka"] },
-    lake:     { x: 250, y: 266, label: "Data Lake",     kind: "storage" },
+    lake:     { x: 312, y: 266, label: "Data Lake",     kind: "storage" },
     backend:  { x: 452, y: 150, label: "Ignition",      kind: "server",   skills: ["ignition", "traefik"] },
     svc:      { x: 452, y: 208, label: "Services",      kind: "server",   skills: ["python", "fastapi", "pydantic", "sqlalchemy", "data-pipelines"] },
     sql:      { x: 400, y: 266, label: "PostgreSQL",    kind: "storage",  skills: ["postgresql", "sql-server"] },
     redis:    { x: 470, y: 266, label: "Redis",         kind: "storage",  skills: ["redis"], w: 56 },
     tsdb:     { x: 536, y: 266, label: "Historian",     kind: "storage",  skills: ["influxdb", "timescaledb", "data-pipelines"] },
-    prom:     { x: 566, y: 208, label: "Prometheus",    kind: "server",   skills: ["prometheus"] },
-    hmi:      { x: 650, y:  84, label: "HMI",           kind: "consumer", w: 64, skills: ["hmi"] },
-    scada:    { x: 650, y: 124, label: "SCADA",         kind: "consumer", w: 64, skills: ["scada"] },
-    graf:     { x: 650, y: 208, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana"] },
-    apps:     { x: 650, y: 250, label: "Apps",          kind: "consumer", w: 64 },
+    hmi:      { x: 650, y:  92, label: "HMI",           kind: "consumer", w: 64, skills: ["hmi"] },
+    scada:    { x: 650, y: 150, label: "SCADA",         kind: "consumer", w: 64, skills: ["scada"] },
+    graf:     { x: 650, y: 208, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana", "prometheus"] },
     mes:      { x: 650, y: 292, label: "MES",           kind: "consumer", w: 64, skills: ["mes"] },
 
     /* --- platform tier: a single foundation slab the whole software stack
@@ -570,7 +568,7 @@
     ["opcua",    "nodered",  { route: "elbow" }],
     ["edge",     "mqtt",     { spine: true }],
     ["nodered",  "mqtt",     { route: "elbow" }],
-    ["spdev",    "mqtt",     { route: "elbow" }],           // device straight to MQTT (Sparkplug B)
+    ["spdev",    "mqtt",     { route: "spk" }],             // smart sensor straight to MQTT (Sparkplug B)
     // Ignition Gateway Network — edge talks to the gateway directly, over the top
     ["edge",     "backend",  { route: "over" }],
     // the gateway publishes AND subscribes on MQTT; the data lake ingests from it
@@ -585,9 +583,7 @@
     // consumers, each from its real source
     ["backend",  "hmi",      { route: "comb", out: true }],
     ["backend",  "scada",    { route: "comb", out: true, spine: true }],
-    ["svc",      "prom",     { out: true }],                // services expose metrics
-    ["prom",     "graf",     { out: true }],                // Grafana reads Prometheus
-    ["svc",      "apps",     { route: "comb", out: true }],
+    ["tsdb",     "graf",     { route: "elbow", out: true }],   // Grafana reads the historian
   ];
 
   /* Block geometry helpers */
@@ -624,6 +620,12 @@
       // leave source left, run left along its own row, then up into the target's right side
       const xj = b.x2 + 15;
       return [[a.x1, from.y], [xj, from.y], [xj, to.y], [b.x2, to.y]];
+    }
+    if (route === "spk") {
+      // sparkplug device in the field column: run right under the edge tier,
+      // then up into the broker's bottom-left corner (bypasses the edge)
+      const turnX = to.x - 58;
+      return [[a.x2, from.y], [turnX, from.y], [turnX, b.y2], [b.x1, b.y2]];
     }
     if (route === "comb") {
       // shared vertical trunk just right of the source, teeth into each target
@@ -680,12 +682,12 @@
     });
     platLabel.textContent = "// platform · runs on";
 
-    // "runs on" accolade — a dashed bracket spanning the software span with a
-    // centre stem into the slab. Sits above the (short, left) title so nothing
-    // crosses the text.
+    // "runs on" accolade — a dashed bracket that embraces the software span
+    // (end-caps point up towards it) with a centre stem pointing down to the
+    // slab. Sits above the (short, left) title so nothing crosses the text.
     append(svgNS, stagesG, "path", {
       class: "stack-svg__runson",
-      d: `M 170 332 L 170 326 L 700 326 L 700 332 M 435 326 L 435 ${b.y1}`,
+      d: `M 170 320 L 170 326 L 700 326 L 700 320 M 435 326 L 435 ${b.y1}`,
     });
 
     // "provisioned & shipped via GitOps" — a tag that taps up into the slab.
@@ -715,29 +717,43 @@
       });
     });
 
-    /* ---- Particles flowing source→target (bidir edges get a return dot too) ---- */
+    /* ---- Particles: constant speed on every edge (duration ∝ path length),
+           with more dots on longer paths so spacing stays even. Bidir edges
+           get a return stream too. ---- */
     if (!prefersReducedMotion) {
-      const addParticle = (pts, opts, i) => {
-        const dot = append(svgNS, particlesG, "circle", {
-          r: 2.4,
-          cx: pts[0][0],
-          cy: pts[0][1],
-          class: opts && opts.out ? "is-out" : "",
-        });
-        append(svgNS, dot, "animateMotion", {
-          dur:        `${2.4 + (i * 0.27) % 1.6}s`,
-          repeatCount: "indefinite",
-          begin:      `${(i * 0.35) % 2}s`,
-          path:       pathRel(pts),
-        });
+      const SPEED = 46;    // px/sec, shared by every edge so dots move in step
+      const GAP   = 130;   // target spacing between dots along a path
+      const pathLen = (pts) => {
+        let L = 0;
+        for (let k = 1; k < pts.length; k++) L += Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]);
+        return L;
+      };
+      const addStream = (pts, opts, i) => {
+        const len   = pathLen(pts);
+        const dur   = Math.max(1.6, len / SPEED);
+        const count = Math.min(4, Math.max(1, Math.round(len / GAP)));
+        const rel   = pathRel(pts);
+        for (let k = 0; k < count; k++) {
+          const dot = append(svgNS, particlesG, "circle", {
+            r: 2.4, cx: pts[0][0], cy: pts[0][1],
+            class: opts && opts.out ? "is-out" : "",
+          });
+          // negative begin spreads the dots evenly along the path; the per-edge
+          // term keeps different edges from pulsing in lockstep
+          const begin = -(dur * (k / count)) - ((i * 0.37) % 1);
+          append(svgNS, dot, "animateMotion", {
+            dur: `${dur.toFixed(2)}s`, repeatCount: "indefinite",
+            begin: `${begin.toFixed(2)}s`, path: rel,
+          });
+        }
       };
       STACK_EDGES.forEach(([fromId, toId, opts], i) => {
         const from = STACK_NODES[fromId];
         const to   = STACK_NODES[toId];
         if (!from || !to) return;
         const pts = edgePoints(from, to, opts);
-        addParticle(pts, opts, i);
-        if (opts && opts.bidir) addParticle([...pts].reverse(), opts, i + 0.5);
+        addStream(pts, opts, i);
+        if (opts && opts.bidir) addStream([...pts].reverse(), opts, i + 0.5);
       });
     }
 
