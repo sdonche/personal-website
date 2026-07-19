@@ -529,19 +529,19 @@
     spdev:    { x:  72, y: 266, label: "Smart sensor",  kind: "field",    skills: ["sparkplug-b"] },
     edge:     { x: 210, y: 150, label: "Ignition Edge", kind: "edge",     skills: ["ignition", "ot-it", "kepware"] },
     nodered:  { x: 210, y: 208, label: "Node-RED",      kind: "edge",     skills: ["node-red"] },
-    mqtt:     { x: 350, y: 172, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "ot-it", "kafka"] },
+    mqtt:     { x: 350, y: 172, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "ot-it", "kafka", "mosquitto", "emqx", "rabbitmq"] },
     backend:  { x: 520, y: 158, label: "Ignition",      kind: "server",   skills: ["ignition", "traefik"] },
     svc:      { x: 520, y: 216, label: "Services",      kind: "server",   skills: ["python", "fastapi", "pydantic", "sqlalchemy", "data-pipelines"] },
     /* storage / data tier, spread along the bottom */
     lake:     { x: 355, y: 292, label: "Data Lake",     kind: "storage" },
     sql:      { x: 468, y: 292, label: "SQL database",  kind: "storage",  skills: ["postgresql", "sql-server"] },
     redis:    { x: 562, y: 292, label: "Redis",         kind: "storage",  skills: ["redis"], w: 56 },
-    tsdb:     { x: 650, y: 292, label: "Historian",     kind: "storage",  skills: ["influxdb", "timescaledb", "data-pipelines"] },
+    tsdb:     { x: 650, y: 292, label: "Historian",     kind: "storage",  skills: ["influxdb", "timescaledb", "factry", "data-pipelines"] },
     /* consumers column, MES on top */
     mes:      { x: 780, y:  92, label: "MES",           kind: "consumer", w: 64, skills: ["mes"] },
     hmi:      { x: 780, y: 150, label: "HMI",           kind: "consumer", w: 64, skills: ["hmi"] },
     scada:    { x: 780, y: 208, label: "SCADA",         kind: "consumer", w: 64, skills: ["scada"] },
-    graf:     { x: 780, y: 266, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana", "prometheus"] },
+    graf:     { x: 780, y: 266, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana", "prometheus", "loki"] },
 
     /* --- platform tier: a single foundation slab the whole software stack
            runs on (field devices excepted). "Cloud" stays generic — multiple
@@ -659,6 +659,26 @@
     const particlesG = svg.querySelector(".stack-svg__particles");
     const nodesG     = svg.querySelector(".stack-svg__nodes");
 
+    /* ---- Arrowhead marker for the bidirectional (publish + subscribe) links ---- */
+    const defs   = append(svgNS, svg, "defs", {});
+    const marker = append(svgNS, defs, "marker", {
+      id: "stack-arrow", markerWidth: 7, markerHeight: 7,
+      refX: 5.5, refY: 3, orient: "auto", markerUnits: "userSpaceOnUse",
+    });
+    append(svgNS, marker, "path", { class: "stack-svg__arrowhead", d: "M0 0 L6 3 L0 6 Z" });
+
+    /* ---- OT ↔ IT boundary: field devices are physical OT, the rest is software IT ---- */
+    append(svgNS, stagesG, "line", {
+      class: "stack-svg__otit", x1: 145, y1: 40, x2: 145, y2: 310,
+    });
+    ["OT", "IT"].forEach((t, i) => {
+      const lbl = append(svgNS, stagesG, "text", {
+        class: "stack-svg__otit-label", x: i === 0 ? 137 : 153,
+        y: 38, "text-anchor": i === 0 ? "end" : "start",
+      });
+      lbl.textContent = t;
+    });
+
     /* ---- Stage labels at top + faint column dividers (data-flow tier only) ---- */
     STACK_STAGES.forEach((stage, i) => {
       const t = append(svgNS, stagesG, "text", {
@@ -679,14 +699,14 @@
       }
     });
 
-    /* ---- Data-stores grouping (behind the blocks) — makes the bottom row
-           read as "this is where data lands" ---- */
+    /* ---- Data-stores slab (behind the blocks) — mirrors the platform slab
+           so the bottom two tiers read as matching foundations ---- */
     append(svgNS, stagesG, "rect", {
-      class: "stack-svg__databand",
-      x: 306, y: 278, width: 394, height: 30, rx: 8,
+      class: "stack-svg__slab",
+      x: PLATFORM_SLAB.x1, y: 276, width: PLATFORM_SLAB.x2 - PLATFORM_SLAB.x1, height: 34, rx: 10,
     });
     const dataLabel = append(svgNS, stagesG, "text", {
-      class: "stack-svg__tier-label", x: 306, y: 272,
+      class: "stack-svg__tier-label", x: PLATFORM_SLAB.x1, y: 270,
     });
     dataLabel.textContent = "// data stores";
 
@@ -730,10 +750,16 @@
       const from = STACK_NODES[fromId];
       const to   = STACK_NODES[toId];
       if (!from || !to) return;
-      append(svgNS, edgesG, "path", {
+      const attrs = {
         d: pathAbs(edgePoints(from, to, opts)),
         class: opts && opts.spine ? "is-spine" : "",
-      });
+      };
+      // bidirectional links get an arrowhead at each end (publish + subscribe)
+      if (opts && opts.bidir) {
+        attrs["marker-start"] = "url(#stack-arrow)";
+        attrs["marker-end"]   = "url(#stack-arrow)";
+      }
+      append(svgNS, edgesG, "path", attrs);
     });
 
     /* ---- Particles: constant speed on every edge (duration ∝ path length),

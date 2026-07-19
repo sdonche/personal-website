@@ -82,7 +82,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
   <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-18.5" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-18.6" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -415,7 +415,7 @@
               <p class="text-sm text-slate-400 mt-1"><a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="hover:text-brand-300 transition-colors">Mustry Solutions</a> · Flanders, Belgium</p>
               <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
                 <li>Design and implement scalable industrial digital architectures that connect production assets and turn operational data into business insight.</li>
-                <li>Work across manufacturing, aerospace, textiles and energy clients using Ignition, TimescaleDB, Canary Labs, Factry and Grafana.</li>
+                <li>Work across manufacturing, aerospace, textiles and energy clients using Ignition, TimescaleDB, Factry and Grafana.</li>
               </ul>
               <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
                 <span class="tag">Industry 4.0</span><span class="tag">Ignition</span><span class="tag">TimescaleDB</span><span class="tag">Grafana</span>
@@ -541,6 +541,7 @@
           </div>
           <!-- On narrow screens the diagram keeps a legible minimum width and scrolls horizontally -->
           <div class="stack-diagram__scroll">
+            <span class="stack-diagram__swipe" aria-hidden="true">swipe to explore &rarr;</span>
             <svg
               id="stack-svg"
               viewBox="0 0 860 430"
@@ -553,6 +554,12 @@
               <g class="stack-svg__nodes"></g>
             </svg>
           </div>
+          <ul class="stack-legend" aria-label="Legend">
+            <li><span class="stack-legend__dot stack-legend__dot--data"></span> data flow</li>
+            <li><span class="stack-legend__dot stack-legend__dot--out"></span> to people &amp; decisions</li>
+            <li><span class="stack-legend__dot stack-legend__dot--plat"></span> platform</li>
+            <li><span class="stack-legend__arrows" aria-hidden="true">&#8646;</span> publish / subscribe</li>
+          </ul>
           <figcaption class="stack-diagram__cap">
             The backbone I build, from factory floor to dashboards.
             <span class="stack-diagram__hint">Hover a skill to see where it lives. Click for what it is.</span>
@@ -571,6 +578,8 @@
               <button type="button" class="skill-chip" data-skill="scada">SCADA</button>
               <button type="button" class="skill-chip" data-skill="hmi">HMI</button>
               <button type="button" class="skill-chip" data-skill="mqtt">MQTT</button>
+              <button type="button" class="skill-chip" data-skill="mosquitto">Mosquitto</button>
+              <button type="button" class="skill-chip" data-skill="emqx">EMQX</button>
               <button type="button" class="skill-chip" data-skill="sparkplug-b">Sparkplug B</button>
               <button type="button" class="skill-chip" data-skill="unified-namespace">Unified Namespace</button>
               <button type="button" class="skill-chip" data-skill="opc-ua">OPC UA</button>
@@ -596,10 +605,13 @@
               <button type="button" class="skill-chip" data-skill="redis">Redis</button>
               <button type="button" class="skill-chip" data-skill="influxdb">InfluxDB</button>
               <button type="button" class="skill-chip" data-skill="timescaledb">TimescaleDB</button>
+              <button type="button" class="skill-chip" data-skill="factry">Factry</button>
               <button type="button" class="skill-chip" data-skill="kafka">Apache Kafka</button>
+              <button type="button" class="skill-chip" data-skill="rabbitmq">RabbitMQ</button>
               <button type="button" class="skill-chip" data-skill="data-pipelines">Data pipelines</button>
               <button type="button" class="skill-chip" data-skill="grafana">Grafana</button>
               <button type="button" class="skill-chip" data-skill="prometheus">Prometheus</button>
+              <button type="button" class="skill-chip" data-skill="loki">Loki</button>
             </div>
           </div>
 
@@ -799,7 +811,7 @@
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
   <script src="assets/js/skill-meta.js?v=2026-07-18.7" defer></script>
-  <script src="assets/js/script.js?v=2026-07-18.9" defer></script>
+  <script src="assets/js/script.js?v=2026-07-18.10" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->
