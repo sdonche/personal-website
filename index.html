@@ -74,15 +74,15 @@
        on font preloads even same-origin, or the browser fetches them twice. -->
   <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="assets/css/fonts.css?v=2026-07-13" />
+  <link rel="stylesheet" href="assets/css/fonts.css?v=0f6b5ce264" />
 
   <!-- Tailwind CSS v4, precompiled — design tokens live in assets/css/tailwind.input.css.
-       Rebuild after changing Tailwind classes (see README "Rebuilding the CSS"), then bump the ?v= below. -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=2026-07-18.2" />
+       Rebuild after changing Tailwind classes (see README "Rebuilding the CSS"). -->
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=21fadc37ee" />
 
-  <!-- Custom styles (animations, grid bg, network nav specifics) -->
-  <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-18.8" />
+  <!-- Custom styles (animations, grid bg, network nav specifics).
+       The ?v= cache-busters are content hashes stamped by `make` (scripts/stamp-assets.py) — not edited by hand. -->
+  <link rel="stylesheet" href="assets/css/styles.css?v=694481903c" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -811,8 +811,9 @@
   </div>
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
-  <script src="assets/js/skill-meta.js?v=2026-07-18.7" defer></script>
-  <script src="assets/js/script.js?v=2026-07-18.12" defer></script>
+  <script src="assets/js/skill-meta.js?v=b2638ac638" defer></script>
+  <script src="assets/js/diagram.js?v=8b76bcd33b" defer></script>
+  <script src="assets/js/script.js?v=2bba75d880" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

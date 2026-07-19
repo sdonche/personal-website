@@ -25,6 +25,18 @@ python3 -m http.server 8080
 
 There is **no build step to view or deploy the site** — the compiled Tailwind stylesheet (`assets/css/tailwind.css`) is committed, fonts are self-hosted in `assets/fonts/`, everything else is hand-rolled. Just open `index.html`. The site makes **zero third-party requests**.
 
+### Build scripts (`make`)
+
+A few small stdlib-Python helpers in `scripts/` prepare files before you commit. None are needed to *serve* the site (Hostinger serves the committed files as-is); they just save manual work. **Run `make` before committing.**
+
+| command | what it does |
+| --- | --- |
+| `make` | cache-bust the assets (`stamp`) + run the skills check (`check`) |
+| `make icons` | regenerate `assets/js/skill-meta.js` from `scripts/skill-icons.jsonl` (after editing the Toolbelt tool list); then re-run `make` |
+| `make check` | assert every skill chip has an icon/description and maps to a diagram node |
+
+`scripts/stamp-assets.py` stamps a **content hash** onto each `?v=` asset URL in the HTML, so returning visitors always fetch the current file — no more hand-bumping version strings.
+
 ### Rebuilding the CSS
 
 The Tailwind stylesheet is generated from [assets/css/tailwind.input.css](assets/css/tailwind.input.css) (which also holds the design tokens). Rerun this **only when you add or remove Tailwind utility classes** in `index.html`, `404.html` or `script.js` — pure text/content edits don't need it:
@@ -35,7 +47,7 @@ npx --yes -p tailwindcss@4 -p @tailwindcss/cli@4 tailwindcss \
   -o assets/css/tailwind.css --minify
 ```
 
-Then bump the `?v=` cache-buster on the `tailwind.css` `<link>` in `index.html`. (Requires Node; if the npx one-liner can't resolve `tailwindcss`, run `npm install --no-save --no-package-lock tailwindcss@4 @tailwindcss/cli@4` first and use `./node_modules/.bin/tailwindcss` — `node_modules/` is gitignored.)
+Then run `make` to re-stamp the cache-busters. (Requires Node; if the npx one-liner can't resolve `tailwindcss`, run `npm install --no-save --no-package-lock tailwindcss@4 @tailwindcss/cli@4` first and use `./node_modules/.bin/tailwindcss` — `node_modules/` is gitignored.)
 
 ---
 
@@ -198,7 +210,7 @@ The decorative HUD card in the hero (`<aside aria-hidden="true">`) is purely vis
 - Mobile sidebar opens via a labeled hamburger and traps body scroll while open; `Esc` and backdrop-click close it.
 - `prefers-reduced-motion` disables the LIVE pulse, reveal animations and palette enter animation.
 - **Progressive enhancement:** scroll-reveal is hidden only when JS is available (an inline script sets `html.js`; the CSS hides `.reveal` exclusively under `.js`). With JS off, all content renders fully — nothing depends on the observer firing.
-- **Cache-busting:** the `tailwind.css` / `styles.css` / `script.js` includes carry a `?v=YYYY-MM-DD` query. Bump it whenever you edit (or regenerate) those files so returning visitors get the new version despite the long asset cache in `.htaccess` (and purge the Hostinger cache after deploying).
+- **Cache-busting:** each CSS/JS include carries a `?v=<content-hash>` query, stamped automatically by `make` (`scripts/stamp-assets.py`). Editing an asset changes its hash, so returning visitors always get the new version despite the long asset cache in `.htaccess` — no manual version bumps.
 - No JS frameworks and no runtime CSS compilation — one small JS file + three static stylesheets (Tailwind is precompiled to ~25 KB minified). Lighthouse should score near-100 out of the box.
 - **Fonts are self-hosted** ([assets/css/fonts.css](assets/css/fonts.css) + `assets/fonts/`): no visitor data ever reaches Google (GDPR — German courts have ruled Google Fonts embeds unlawful), and no third-party request can block rendering. Variable woff2 files, one per family+subset; `unicode-range` means the latin-ext files are only downloaded if a page actually uses those characters. The two latin files are preloaded in `index.html` (`crossorigin` is required on font preloads even same-origin). To change fonts or add weights outside Inter 300–800 / JetBrains Mono 400–600, fetch new woff2 files from Google Fonts (curl the CSS URL with a browser User-Agent to get woff2 sources) and update `fonts.css`.
 
