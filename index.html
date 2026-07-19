@@ -543,9 +543,9 @@
           <div class="stack-diagram__scroll">
             <svg
               id="stack-svg"
-              viewBox="0 0 720 430"
+              viewBox="0 0 860 430"
               role="img"
-              aria-label="Reference architecture for a factory data backbone built around a Unified Namespace. Field devices (PLCs, sensors, OPC UA) reach an MQTT broker via an Ignition Edge gateway, Node-RED and direct Sparkplug B devices. The MQTT broker is the central bus: an Ignition gateway and MES both publish and subscribe to it, and a data lake ingests from it. The Ignition gateway also links directly to the edge over an Ignition Gateway Network, and Python services persist to PostgreSQL, Redis and a historian. Consumers: the gateway serves HMI and SCADA, services feed apps and Prometheus, and Grafana reads Prometheus. The whole software stack runs on a foundation of Linux, Docker, Kubernetes and cloud, provisioned and shipped via GitOps. Hover a skill below to see where it sits, or click it for a description."
+              aria-label="Reference architecture for a factory data backbone built around a Unified Namespace. Field devices (PLCs, sensors and a Sparkplug B smart sensor) reach an MQTT broker via an Ignition Edge gateway and Node-RED. The MQTT broker is the central bus: an Ignition gateway and MES both publish and subscribe to it, and a data lake ingests from it. The Ignition gateway also links directly to the edge over an Ignition Gateway Network, persists to a historian, and its services write to a SQL database and Redis. Consumers: the gateway serves HMI and SCADA, and Grafana reads the historian. The whole software stack runs on a foundation of Linux, Docker, Kubernetes and cloud, provisioned and shipped via GitOps. Hover a skill below to see where it sits, or click it for a description."
             >
               <g class="stack-svg__stages"></g>
               <g class="stack-svg__edges"></g>
@@ -592,7 +592,7 @@
               <button type="button" class="skill-chip" data-skill="pydantic">Pydantic</button>
               <button type="button" class="skill-chip" data-skill="sqlalchemy">SQLAlchemy</button>
               <button type="button" class="skill-chip" data-skill="postgresql">PostgreSQL</button>
-              <button type="button" class="skill-chip" data-skill="sql-server">SQL Server</button>
+              <button type="button" class="skill-chip" data-skill="sql-server">MS SQL Server</button>
               <button type="button" class="skill-chip" data-skill="redis">Redis</button>
               <button type="button" class="skill-chip" data-skill="influxdb">InfluxDB</button>
               <button type="button" class="skill-chip" data-skill="timescaledb">TimescaleDB</button>
@@ -799,7 +799,7 @@
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
   <script src="assets/js/skill-meta.js?v=2026-07-18.7" defer></script>
-  <script src="assets/js/script.js?v=2026-07-18.7" defer></script>
+  <script src="assets/js/script.js?v=2026-07-18.8" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->
