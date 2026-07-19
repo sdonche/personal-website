@@ -659,14 +659,6 @@
     const particlesG = svg.querySelector(".stack-svg__particles");
     const nodesG     = svg.querySelector(".stack-svg__nodes");
 
-    /* ---- Arrowhead marker for the bidirectional (publish + subscribe) links ---- */
-    const defs   = append(svgNS, svg, "defs", {});
-    const marker = append(svgNS, defs, "marker", {
-      id: "stack-arrow", markerWidth: 7, markerHeight: 7,
-      refX: 5.5, refY: 3, orient: "auto", markerUnits: "userSpaceOnUse",
-    });
-    append(svgNS, marker, "path", { class: "stack-svg__arrowhead", d: "M0 0 L6 3 L0 6 Z" });
-
     /* ---- OT ↔ IT boundary: field devices are physical OT, the rest is software IT ---- */
     append(svgNS, stagesG, "line", {
       class: "stack-svg__otit", x1: 145, y1: 40, x2: 145, y2: 310,
@@ -699,14 +691,15 @@
       }
     });
 
-    /* ---- Data-stores slab (behind the blocks) — mirrors the platform slab
-           so the bottom two tiers read as matching foundations ---- */
+    /* ---- Data-stores slab (behind the blocks) — same slab style as the
+           platform tier, but sized snug around the four stores so it doesn't
+           collide with the feed lines routing past it ---- */
     append(svgNS, stagesG, "rect", {
       class: "stack-svg__slab",
-      x: PLATFORM_SLAB.x1, y: 276, width: PLATFORM_SLAB.x2 - PLATFORM_SLAB.x1, height: 34, rx: 10,
+      x: 304, y: 276, width: 400, height: 33, rx: 10,
     });
     const dataLabel = append(svgNS, stagesG, "text", {
-      class: "stack-svg__tier-label", x: PLATFORM_SLAB.x1, y: 270,
+      class: "stack-svg__tier-label", x: 304, y: 270,
     });
     dataLabel.textContent = "// data stores";
 
@@ -750,16 +743,10 @@
       const from = STACK_NODES[fromId];
       const to   = STACK_NODES[toId];
       if (!from || !to) return;
-      const attrs = {
+      append(svgNS, edgesG, "path", {
         d: pathAbs(edgePoints(from, to, opts)),
         class: opts && opts.spine ? "is-spine" : "",
-      };
-      // bidirectional links get an arrowhead at each end (publish + subscribe)
-      if (opts && opts.bidir) {
-        attrs["marker-start"] = "url(#stack-arrow)";
-        attrs["marker-end"]   = "url(#stack-arrow)";
-      }
-      append(svgNS, edgesG, "path", attrs);
+      });
     });
 
     /* ---- Particles: constant speed on every edge (duration ∝ path length),

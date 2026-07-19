@@ -884,8 +884,6 @@ html { color-scheme: dark; }
   letter-spacing: 0.12em;
   fill: rgb(100 116 139);
 }
-/* Arrowheads on the bidirectional publish/subscribe links */
-.stack-svg__arrowhead { fill: rgba(34, 211, 238, 0.75); }
 
 /* Edges — dashed to feel "signal-y"; the spine (main data path) is heavier */
 .stack-svg__edges path {
@@ -1241,28 +1239,6 @@ html { color-scheme: dark; }
   letter-spacing: 0.04em;
   color: rgba(34, 211, 238, 0.7);
 }
-
-/* Legend / key for the diagram's colour + arrow semantics */
-.stack-legend {
-  list-style: none;
-  margin: 1.1rem 0 0;
-  padding: 0.9rem 0 0;
-  border-top: 1px solid rgba(148, 163, 184, 0.1);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.4rem 1.4rem;
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.03em;
-  color: rgb(100 116 139);
-}
-.stack-legend li { display: inline-flex; align-items: center; gap: 0.45rem; }
-.stack-legend__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.stack-legend__dot--data { background: var(--color-brand-400); box-shadow: 0 0 5px rgba(34, 211, 238, 0.7); }
-.stack-legend__dot--out  { background: var(--color-accent);   box-shadow: 0 0 5px rgba(52, 211, 153, 0.7); }
-.stack-legend__dot--plat { border-radius: 2px; background: rgb(148 163 184); }
-.stack-legend__arrows { color: var(--color-brand-300); font-size: 0.85rem; line-height: 1; }
 
 /* Mobile-only "swipe" affordance for the horizontally-scrolling diagram */
 .stack-diagram__swipe {
