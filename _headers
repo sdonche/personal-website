@@ -1,0 +1,6 @@
+# Cloudflare Pages headers file. Keeps the preview + *.pages.dev copies out of
+# search engines so they never compete with the real site (samdonche.com) for
+# ranking. Hostinger ignores this file (it uses .htaccess), so production is
+# unaffected — this only applies to the Cloudflare Pages preview mirror.
+/*
+  X-Robots-Tag: noindex
