@@ -576,8 +576,9 @@
     // the gateway publishes AND subscribes on MQTT; the data lake ingests from it
     ["mqtt",     "backend",  { spine: true, bidir: true }],
     ["mqtt",     "lake",     { route: "tbranch" }],
-    // MES is a bus participant too — reads and writes over MQTT
-    ["mes",      "mqtt",     { route: "busmes", bidir: true, out: true }],
+    // MES is a bus participant — reads and writes over MQTT (big L) and the gateway
+    ["mes",      "mqtt",     { route: "bigL",  bidir: true, out: true }],
+    ["mes",      "backend",  { route: "bigLr", bidir: true, out: true }],
     // Ignition persists to the historian directly; services handle the rest
     ["backend",  "tsdb",     { route: "tbranch" }],
     ["svc",      "sql",      { route: "tbranch" }],
@@ -614,16 +615,19 @@
       return [[from.x, a.y2], [from.x, ym], [to.x, ym], [to.x, b.y1]];
     }
     if (route === "over") {
-      // arc up and over the broker: leave source top, run across, drop into target top
-      const yTop = Math.min(a.y1, b.y1) - 40;
+      // arc just over the broker: leave source top, run across, drop into target top
+      const yTop = Math.min(a.y1, b.y1) - 20;
       return [[from.x, a.y1], [from.x, yTop], [to.x, yTop], [to.x, b.y1]];
     }
-    if (route === "busmes") {
-      // MES (top of consumers) to the broker: run left above the gateway, drop
-      // into the gap between the gateway rows, then into the broker's right side.
-      // Turning down right of the gateway keeps it clear of the over-the-top arc.
-      const xd = 575, ym = 186;
-      return [[a.x1, from.y], [xd, from.y], [xd, ym], [b.x2, ym]];
+    if (route === "bigL") {
+      // one clean L: run left along the source's own row, then straight down
+      // into the target's top edge
+      return [[a.x1, from.y], [to.x, from.y], [to.x, b.y1]];
+    }
+    if (route === "bigLr") {
+      // like bigL, but enter the target's right side (target sits higher up)
+      const xt = b.x2 + 18;
+      return [[a.x1, from.y], [xt, from.y], [xt, to.y], [b.x2, to.y]];
     }
     if (route === "spk") {
       // sparkplug device in the field column: run right under the edge tier,
@@ -674,6 +678,17 @@
         });
       }
     });
+
+    /* ---- Data-stores grouping (behind the blocks) — makes the bottom row
+           read as "this is where data lands" ---- */
+    append(svgNS, stagesG, "rect", {
+      class: "stack-svg__databand",
+      x: 306, y: 278, width: 394, height: 30, rx: 8,
+    });
+    const dataLabel = append(svgNS, stagesG, "text", {
+      class: "stack-svg__tier-label", x: 306, y: 272,
+    });
+    dataLabel.textContent = "// data stores";
 
     /* ---- Platform slab scaffolding (behind the blocks) ---- */
     const b = PLATFORM_SLAB;
