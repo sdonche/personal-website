@@ -82,7 +82,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics) -->
   <!-- ?v= cache-buster: bump this date whenever styles.css changes so returning visitors get the new file -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-18.7" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=2026-07-18.8" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -432,11 +432,12 @@
               </div>
               <p class="text-sm text-slate-400 mt-1">Vandemoortele · Izegem, Belgium</p>
               <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
-                <li>Delivered Manufacturing Execution System projects for a leading European food group (oils, fats &amp; bakery products).</li>
-                <li>Bridged production-floor operations and IT systems to give planners and operators a shared, real-time view of plant performance.</li>
+                <li>Operated and extended a GE Vernova Proficy MES estate (Plant Applications, iFIX, Cimplicity, Proficy Historian and Operations Hub), rolling established workflows out to new sites and connecting new floor equipment like checkweighers and scales.</li>
+                <li>Built and extended the logic behind those workflows in MS SQL Server, and kept it all running for the plants that rely on it through a steady stream of support tickets.</li>
+                <li>Started bringing more structure to the work, introducing project management and application monitoring.</li>
               </ul>
               <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
-                <span class="tag">MES</span><span class="tag">Food &amp; Beverage</span><span class="tag">OT/IT</span>
+                <span class="tag">MES</span><span class="tag">GE Proficy</span><span class="tag">iFIX</span><span class="tag">Cimplicity</span><span class="tag">MS SQL Server</span><span class="tag">TrendMiner</span>
               </div>
             </div>
           </li>
@@ -470,10 +471,10 @@
               <p class="text-sm text-slate-400 mt-1">United Experts · Ieper, Belgium</p>
               <ul class="mt-4 space-y-2 text-sm text-slate-300 list-disc pl-5 marker:text-brand-400/60">
                 <li>Consulted on environmental compliance across Flanders.</li>
-                <li>Translated regulatory frameworks into measurement plans, reports and remediation advice.</li>
+                <li>Translated regulatory frameworks into permit files and advice.</li>
               </ul>
               <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
-                <span class="tag">Environment</span><span class="tag">Compliance</span>
+                <span class="tag">Environment</span><span class="tag">Permits</span><span class="tag">Compliance</span>
               </div>
             </div>
           </li>
@@ -718,7 +719,13 @@
             <textarea name="message" rows="5" required class="field__input resize-y"></textarea>
           </label>
 
-          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true" />
+          <!-- Honeypots: off-screen fields a human never sees or fills. Bots that
+               fill them are dropped client-side (wireContactForm), plus a too-fast
+               submit is treated as a bot. Formspree also drops _gotcha server-side. -->
+          <div class="hp-field" aria-hidden="true">
+            <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+            <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+          </div>
 
           <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
             <p id="form-status" class="font-mono text-xs text-slate-500" role="status" aria-live="polite">
@@ -805,7 +812,7 @@
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
   <script src="assets/js/skill-meta.js?v=2026-07-18.7" defer></script>
-  <script src="assets/js/script.js?v=2026-07-18.11" defer></script>
+  <script src="assets/js/script.js?v=2026-07-18.12" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

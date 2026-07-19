@@ -1174,11 +1174,18 @@
     if (!form) return;
 
     const FALLBACK_EMAIL = decodeEmail();
+    const readyAt = Date.now();   // for the too-fast-submit bot check
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      if (form.querySelector('[name="_gotcha"]')?.value) return;
+      // Bot filters: honeypot fields a human can't see, and a submit that lands
+      // suspiciously fast. Pretend success so the bot moves on without retrying.
+      const trapped = form.querySelector('[name="_gotcha"]')?.value ||
+                      form.querySelector('[name="website"]')?.value ||
+                      (Date.now() - readyAt < 3000);
+      if (trapped) { form.reset(); setStatus(T.ok, "ok"); return; }
+
       if (!form.checkValidity()) { form.reportValidity(); return; }
 
       const action = form.getAttribute("action") || "";

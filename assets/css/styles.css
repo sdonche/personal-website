@@ -253,6 +253,16 @@ html { color-scheme: dark; }
    6. Form fields
    ---------------------------------------------------- */
 .field { display: grid; gap: 0.4rem; }
+
+/* Honeypot wrapper — off-screen (not display:none, which bots skip) so naive
+   bots still fill it while humans and assistive tech never reach it. */
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
 .field__label {
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
   font-size: 0.7rem;
