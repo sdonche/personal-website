@@ -13,7 +13,7 @@ window.EGGS = (function () {
      redacted teaser shown while it's still locked. */
   const REGISTRY = [
     { id: "console",   name: "Console operator", how: "Open DevTools — the console greets you, then try samdonche.help().", hint: "the tools of the trade greet those who open them" },
-    { id: "commands",  name: "Command line",     how: "⌘K / Ctrl+K, then type a verb: sudo, whoami, 42, coffee, uptime…",  hint: "the palette answers to more than tags" },
+    { id: "commands",  name: "Command line",     how: "⌘K / Ctrl+K, then type a verb: sudo, whoami, 42, ping, deploy, frituur…",  hint: "the palette answers to more than tags" },
     { id: "konami",    name: "Night shift",      how: "↑ ↑ ↓ ↓ ← → ← → B A — flips the plant to amber HMI mode.",           hint: "an old code from an older console" },
     { id: "boot",      name: "Cold start",       how: "Visit ?boot, run samdonche.boot(), or ⌘K → boot.",                   hint: "every gateway begins somewhere" },
     { id: "estop",     name: "Emergency stop",   how: "Find and press the big red button (bottom-left corner).",            hint: "when in doubt, hit the big red one" },

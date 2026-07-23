@@ -364,7 +364,9 @@
       { id: "cmd-sudo",   path: "sudo",        desc: "make me a sandwich",            run: () => eggToast("Okay. &nbsp;🥪") },
       { id: "cmd-whoami", path: "whoami",      desc: "sam.donche@edge",               run: () => eggToast("sam.donche@edge &middot; Industry 4.0") },
       { id: "cmd-42",     path: "42",          desc: "life, the universe & everything", run: () => eggToast("42.") },
-      { id: "cmd-coffee", path: "coffee",      desc: "brew a cup",                    run: () => eggToast("☕ brewing…") },
+      { id: "cmd-ship",    path: "deploy",      desc: "ship it",                       run: () => eggToast("🚀 shipped · GitOps did the rest") },
+      { id: "cmd-ping",    path: "ping",        desc: "are you there?",                run: () => eggToast("pong") },
+      { id: "cmd-frituur", path: "frituur",     desc: "Ieper's finest",                run: () => eggToast("🍟 order up") },
       { id: "cmd-uptime", path: "uptime",      desc: "years on the plant floor",      run: () => eggToast(industryYears() + "+ yrs on the floor") },
       { id: "cmd-konami", path: "konami",      desc: "↑↑↓↓←→←→ B A", run: () => eggToast("↑ ↑ ↓ ↓ ← → ← → B A") },
       { id: "cmd-night",  path: "night shift", desc: "toggle amber HMI mode",         run: () => toggleNightShift() },
@@ -893,6 +895,12 @@
   function toggleEStop() {
     const on = document.documentElement.classList.toggle("line-stopped");
     motionHalted = on;
+    // CSS animation-play-state (via .line-stopped) can't touch SMIL, so pause
+    // the SVG timelines too — that's what freezes the diagram's flow particles.
+    document.querySelectorAll("svg").forEach((s) => {
+      if (typeof s.pauseAnimations !== "function") return;
+      try { on ? s.pauseAnimations() : s.unpauseAnimations(); } catch (e) {}
+    });
     document.getElementById("estop")?.classList.toggle("is-active", on);
     let bar = document.getElementById("line-banner");
     if (on) {
@@ -973,7 +981,9 @@
 
   /* ---- MQTT publish: click the broker node → it "publishes" a burst ---- */
   const MQTT_PAYLOADS = [
-    "samdonche/coffee ▸ brewing",
+    "samdonche/deploy ▸ shipped",
+    "samdonche/ping ▸ pong",
+    "samdonche/frituur ▸ order up",
     "samdonche/status ▸ shipping",
     "samdonche/hire ▸ available",
     "samdonche/uptime ▸ nominal",
@@ -1137,7 +1147,9 @@
         console.log("  hire()    — route to the contact channel");
         console.log("  stack()   — print the toolbelt");
         console.log("  uptime()  — years on the plant floor");
-        console.log("  coffee()  — ☕");
+        console.log("  ship()    — 🚀 ship it");
+        console.log("  ping()    — pong");
+        console.log("  frituur() — 🍟 Ieper's finest");
         console.log("  boot()    — replay the cold-start sequence");
         console.log("  secrets() — open the operator log (found so far)");
         return "↑ pick one";
@@ -1155,9 +1167,17 @@
       uptime() {
         return industryYears() + "+ years on the plant floor (and counting).";
       },
-      coffee() {
-        console.log("%c    ( (\n     ) )\n   ........\n   |      |]\n   \\      /\n    `----'", "color:#f5a623");
-        return "☕ brewed. back to the backbone.";
+      ship() {
+        console.log("%c   ┌─────┐\n   │ ▸▸▸ │  shipped\n   └─────┘", "color:#34d399;font-weight:bold");
+        return "🚀 shipped. GitOps did the rest.";
+      },
+      ping() {
+        console.log("%cpong", "color:#22d3ee;font-weight:bold");
+        return "pong · round-trip < 1ms (probably).";
+      },
+      frituur() {
+        console.log("%c   🍟  order up", "font-size:1.1em");
+        return "🍟 Ieper's finest. back to the backbone.";
       },
       boot() {
         runBootSequence();
