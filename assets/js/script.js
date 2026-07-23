@@ -862,7 +862,7 @@
         '<div class="capstone-fx__seal" aria-hidden="true">◆</div>' +
         '<p class="capstone-fx__kicker">all systems discovered</p>' +
         '<p class="capstone-fx__rank">Plant Architect</p>' +
-        '<p class="capstone-fx__sub">You found every last one — 9 / 9.</p>' +
+        '<p class="capstone-fx__sub">You found every last one. 9 / 9.</p>' +
         '<a class="capstone-fx__cta" href="log/">open the operator log &rsaquo;</a>' +
       "</div>";
     document.body.appendChild(fx);
