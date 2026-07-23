@@ -81,6 +81,7 @@
     observeReveals();
     wireContactForm();
     wireEmailLinks();
+    wireEasterEggs();
   }
 
   /* ----------------------------------------------------
@@ -341,6 +342,20 @@
               : `samdonche/${s.label}`,
     }));
 
+    // Secret commands — hidden until you type a matching verb. `run` marks a
+    // row as a command (vs a tag), handled in choose().
+    const commands = [
+      { id: "cmd-hire",   path: "hire",        desc: "route to the contact channel", run: () => scrollToSection("contact") },
+      { id: "cmd-sudo",   path: "sudo",        desc: "make me a sandwich",            run: () => eggToast("Okay. &nbsp;🥪") },
+      { id: "cmd-whoami", path: "whoami",      desc: "sam.donche@edge",               run: () => eggToast("sam.donche@edge &middot; Industry 4.0") },
+      { id: "cmd-42",     path: "42",          desc: "life, the universe & everything", run: () => eggToast("42.") },
+      { id: "cmd-coffee", path: "coffee",      desc: "brew a cup",                    run: () => eggToast("☕ brewing…") },
+      { id: "cmd-uptime", path: "uptime",      desc: "years on the plant floor",      run: () => eggToast(industryYears() + "+ yrs on the floor") },
+      { id: "cmd-konami", path: "konami",      desc: "↑↑↓↓←→←→ B A", run: () => eggToast("↑ ↑ ↓ ↓ ← → ← → B A") },
+      { id: "cmd-night",  path: "night shift", desc: "toggle amber HMI mode",         run: () => toggleNightShift() },
+      { id: "cmd-boot",   path: "boot",        desc: "replay the cold-start sequence", run: () => runBootSequence() },
+    ];
+
     let selected = 0;
     let filtered = items.slice();
 
@@ -372,7 +387,7 @@
       const query = input.value.trim().toLowerCase();
       filtered.forEach((item, idx) => {
         const li = document.createElement("li");
-        li.className = "cmdk__item" + (idx === selected ? " is-selected" : "");
+        li.className = "cmdk__item" + (item.run ? " cmdk__item--cmd" : "") + (idx === selected ? " is-selected" : "");
         li.setAttribute("role", "option");
         li.setAttribute("aria-selected", idx === selected ? "true" : "false");
         li.dataset.id = item.id;
@@ -401,6 +416,8 @@
 
     function choose(id) {
       close();
+      const cmd = commands.find(c => c.id === id);
+      if (cmd) { cmd.run(); return; }
       scrollToSection(id);
     }
 
@@ -416,12 +433,13 @@
       );
     }
 
-    // Filter on input — simple case-insensitive substring on the path
+    // Filter on input — case-insensitive substring on the path/desc. Secret
+    // commands only surface once something is typed (never on an empty palette).
     input.addEventListener("input", () => {
       const q = input.value.trim().toLowerCase();
-      filtered = q
-        ? items.filter(i => i.path.toLowerCase().includes(q) || i.desc.toLowerCase().includes(q))
-        : items.slice();
+      const match = list => list.filter(i =>
+        i.path.toLowerCase().includes(q) || i.desc.toLowerCase().includes(q));
+      filtered = q ? match(items).concat(match(commands)) : items.slice();
       selected = 0;
       render();
     });
@@ -784,5 +802,187 @@
       status.className = `font-mono text-xs ${colors[kind] || "text-slate-500"}`;
       status.innerHTML = msg;
     }
+  }
+
+  /* ----------------------------------------------------
+     10. Easter eggs — for the curious. All optional, on-theme.
+         · dev-console greeting + window.samdonche API
+         · Konami (↑↑↓↓←→←→BA) → amber "night shift" HMI mode
+         · ?boot / samdonche.boot() → edge-gateway cold-start
+         (⌘K secret commands are wired in wireCommandPalette.)
+     ---------------------------------------------------- */
+  function wireEasterEggs() {
+    consoleGreeting();
+    wireKonami();
+    if (/[?&]boot\b/.test(location.search)) runBootSequence();
+  }
+
+  // Years since entering industry (Jan 2022 — data engineer @ Clarebout).
+  function industryYears() {
+    const start = Date.UTC(2022, 0, 1);
+    return Math.max(1, Math.floor((Date.now() - start) / (365.25 * 24 * 3600 * 1000)));
+  }
+
+  // Small ephemeral HMI-style status readout (⌘K command feedback).
+  let eggToastTimer = null;
+  function eggToast(msg) {
+    let el = document.getElementById("egg-toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "egg-toast";
+      el.className = "egg-toast";
+      el.setAttribute("role", "status");
+      el.setAttribute("aria-live", "polite");
+      document.body.appendChild(el);
+    }
+    el.innerHTML = msg;
+    void el.offsetWidth;           // restart the transition
+    el.classList.add("is-visible");
+    clearTimeout(eggToastTimer);
+    eggToastTimer = setTimeout(() => el.classList.remove("is-visible"), 2600);
+  }
+
+  // Konami code toggles night-shift HMI mode.
+  function wireKonami() {
+    const SEQ = ["arrowup","arrowup","arrowdown","arrowdown",
+                 "arrowleft","arrowright","arrowleft","arrowright","b","a"];
+    let pos = 0;
+    document.addEventListener("keydown", (e) => {
+      if (isEditableTarget(e.target)) return;
+      const key = e.key.toLowerCase();
+      pos = key === SEQ[pos] ? pos + 1 : (key === SEQ[0] ? 1 : 0);
+      if (pos === SEQ.length) { pos = 0; toggleNightShift(); }
+    });
+  }
+
+  function toggleNightShift() {
+    const on = document.documentElement.classList.toggle("hmi-night");
+    showScadaAlarm(on);
+    return on;
+  }
+
+  let scadaTimer = null;
+  function showScadaAlarm(on) {
+    let bar = document.getElementById("scada-alarm");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "scada-alarm";
+      bar.setAttribute("role", "status");
+      document.body.appendChild(bar);
+    }
+    bar.className = "scada-alarm" + (on ? "" : " scada-alarm--ok");
+    bar.innerHTML = on
+      ? '<span class="scada-alarm__dot"></span> ⚠ Alarm &middot; unauthorized access on <b>samdonche/edge</b> &mdash; night shift engaged'
+      : '<span class="scada-alarm__dot scada-alarm__dot--ok"></span> System nominal &middot; alarm cleared';
+    void bar.offsetWidth;
+    bar.classList.add("is-visible");
+    clearTimeout(scadaTimer);
+    scadaTimer = setTimeout(() => bar.classList.remove("is-visible"), 4200);
+  }
+
+  // Edge-gateway cold-start: types out a boot log, then reveals the site.
+  function runBootSequence() {
+    if (document.getElementById("boot-seq")) return;    // already running
+    const lines = [
+      "sam.donche@edge : cold start",
+      "[ ok ] linux kernel",
+      "[ ok ] docker runtime",
+      "[ ok ] mqtt broker (mosquitto) :: online",
+      "[ ok ] sparkplug b :: devices self-describing",
+      "[ ok ] unified namespace :: synced",
+      "[ ok ] historian :: 500,000 tags streaming",
+      "[ ok ] scada :: production lines visible",
+      "",
+      "system ready.",
+    ];
+    const overlay = document.createElement("div");
+    overlay.id = "boot-seq";
+    overlay.className = "boot-seq";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-label", "System boot sequence");
+    overlay.innerHTML =
+      '<pre class="boot-seq__log"></pre>' +
+      '<p class="boot-seq__hint">press any key to enter &rsaquo;</p>';
+    document.body.appendChild(overlay);
+    document.body.style.overflow = "hidden";
+    const log  = overlay.querySelector(".boot-seq__log");
+    const hint = overlay.querySelector(".boot-seq__hint");
+
+    let done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      overlay.classList.add("is-leaving");
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", finish);
+      setTimeout(() => overlay.remove(), 600);
+    }
+
+    if (prefersReducedMotion) {
+      log.textContent = lines.join("\n");
+      hint.classList.add("is-ready");
+    } else {
+      let i = 0;
+      (function type() {
+        if (i < lines.length) {
+          log.textContent += (i ? "\n" : "") + lines[i];
+          i++;
+          setTimeout(type, 240);
+        } else {
+          hint.classList.add("is-ready");
+        }
+      })();
+    }
+    requestAnimationFrame(() => overlay.classList.add("is-visible"));
+    document.addEventListener("keydown", finish);
+    overlay.addEventListener("click", finish);
+  }
+
+  // Greet developers who open the console, and expose a tiny playful API.
+  function consoleGreeting() {
+    const cyan = "color:#22d3ee;font-weight:bold";
+    const dim  = "color:#64748b";
+    const art =
+      "\n" +
+      "   ┌───────────────────────────┐\n" +
+      "   │   sam.donche @ edge        │\n" +
+      "   │   >_  systems online       │\n" +
+      "   └───────────────────────────┘\n";
+    console.log("%c" + art, cyan);
+    console.log("%cYou found the console. This site keeps a few secrets.", dim);
+    console.log("%cTry %csamdonche.help()%c — or the Konami code on the page.", dim, cyan, dim);
+
+    window.samdonche = {
+      help() {
+        console.log("%csamdonche.*", cyan);
+        console.log("  hire()    — route to the contact channel");
+        console.log("  stack()   — print the toolbelt");
+        console.log("  uptime()  — years on the plant floor");
+        console.log("  coffee()  — ☕");
+        console.log("  boot()    — replay the cold-start sequence");
+        return "↑ pick one";
+      },
+      hire() {
+        scrollToSection("contact");
+        return "Routing to sam.donche@edge — let's build something.";
+      },
+      stack() {
+        const chips = [...document.querySelectorAll(".skill-chip")].map(c => c.textContent.trim());
+        console.log("%ctoolbelt (" + chips.length + ")", cyan);
+        console.log(chips.join(" · "));
+        return chips;
+      },
+      uptime() {
+        return industryYears() + "+ years on the plant floor (and counting).";
+      },
+      coffee() {
+        console.log("%c    ( (\n     ) )\n   ........\n   |      |]\n   \\      /\n    `----'", "color:#f5a623");
+        return "☕ brewed. back to the backbone.";
+      },
+      boot() {
+        runBootSequence();
+        return "cold start…";
+      },
+    };
   }
 })();
