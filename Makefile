@@ -8,7 +8,7 @@
 #
 # (Tailwind is still its own step — see README "Rebuilding the CSS".)
 
-.PHONY: all build stamp check icons
+.PHONY: all build stamp check icons favicon
 
 # Default: refresh the cache-busters, then verify the skills are consistent.
 all: stamp check
@@ -27,3 +27,8 @@ check:
 # Run after editing the tool list, then re-run `make` to re-stamp.
 icons:
 	python3 scripts/gen-skill-meta.py
+
+# Regenerate the Safari/iOS PNG fallbacks from the "Terminal" favicon mark.
+# Run whenever the inline SVG favicon in the page <head>s changes. Needs Pillow.
+favicon:
+	python3 scripts/gen-favicon.py
