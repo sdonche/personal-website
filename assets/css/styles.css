@@ -1736,7 +1736,8 @@ html.line-stopped *::after {
 }
 .oplog-capstone__kicker { margin: 0; font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent); }
 .oplog-capstone__title { margin: 0.25rem 0 0.5rem; font-size: 1.4rem; font-weight: 700; color: #e2e8f0; }
-.oplog-capstone__note { margin: 0 0 1rem; font-size: 0.88rem; line-height: 1.6; color: #cbd5e1; max-width: 46ch; }
+.oplog-capstone__note { margin: 0 0 0.5rem; font-size: 0.88rem; line-height: 1.6; color: #cbd5e1; max-width: 46ch; }
+.oplog-capstone__sign { margin: 0 0 1.15rem; font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 0.82rem; color: #94a3b8; }
 .oplog-capstone__cta {
   display: inline-block;
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
