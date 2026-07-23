@@ -17,7 +17,7 @@
   <link rel="preload" href="../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="../assets/css/fonts.css?v=0f6b5ce264" />
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=24f3f3ff7e" />
-  <link rel="stylesheet" href="../assets/css/styles.css?v=713a861ebd" />
+  <link rel="stylesheet" href="../assets/css/styles.css?v=9d10a3ea2f" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased">
@@ -52,6 +52,9 @@
       A running log of the secrets built into this site. Redacted entries stay
       hidden until you trip them — hints only. Progress is kept on this device.
     </p>
+
+    <!-- Capstone: revealed at 9/9 -->
+    <div id="capstone" class="oplog-capstone" hidden></div>
 
     <!-- Rank + progress -->
     <div class="oplog-meta">
@@ -89,6 +92,23 @@
         document.getElementById("rank").textContent = E.rankFor(n);
         document.getElementById("count").textContent = n + " / " + total;
         document.getElementById("bar").style.setProperty("--pct", Math.round((n / total) * 100) + "%");
+
+        var cap = document.getElementById("capstone");
+        if (n >= total) {
+          cap.hidden = false;
+          cap.innerHTML =
+            '<div class="oplog-capstone__seal" aria-hidden="true">◆</div>' +
+            '<div class="oplog-capstone__body">' +
+              '<p class="oplog-capstone__kicker">◆ all systems discovered · certified</p>' +
+              '<h2 class="oplog-capstone__title">Plant Architect</h2>' +
+              '<p class="oplog-capstone__note">You went looking, and you found every last one. That’s exactly the instinct I want in the people I build with — curious enough to poke at the edges, stubborn enough to reach the bottom of it. If you’re wiring up a factory floor and want a hand, let’s talk. — Sam</p>' +
+              '<a class="oplog-capstone__cta" href="../#contact">Get in touch &rarr;</a>' +
+            '</div>';
+        } else {
+          cap.hidden = true;
+          cap.innerHTML = "";
+        }
+
         document.getElementById("list").innerHTML = E.REGISTRY.map(function (e) {
           var got = found.has(e.id);
           return '<li class="oplog-item ' + (got ? "is-found" : "is-locked") + '">' +

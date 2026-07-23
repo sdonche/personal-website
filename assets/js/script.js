@@ -844,10 +844,33 @@
      shows a star toast — kept separate from eggToast so they never collide. */
   function discoverEgg(id) {
     if (!window.EGGS || !window.EGGS.unlock(id)) return;
-    const e = window.EGGS.REGISTRY.find(x => x.id === id);
     const found = window.EGGS.discovered().size;
     const total = window.EGGS.REGISTRY.length;
+    if (found >= total) { celebrateComplete(); return; }   // the capstone wins over the ★ toast
+    const e = window.EGGS.REGISTRY.find(x => x.id === id);
     discoverToast((e ? e.name : id), found, total);
+  }
+
+  /* Capstone: fires once, when the final egg is discovered on the site. */
+  function celebrateComplete() {
+    if (document.getElementById("capstone-fx")) return;
+    const fx = document.createElement("div");
+    fx.id = "capstone-fx";
+    fx.className = "capstone-fx";
+    fx.innerHTML =
+      '<div class="capstone-fx__card">' +
+        '<div class="capstone-fx__seal" aria-hidden="true">◆</div>' +
+        '<p class="capstone-fx__kicker">all systems discovered</p>' +
+        '<p class="capstone-fx__rank">Plant Architect</p>' +
+        '<p class="capstone-fx__sub">You found every last one — 9 / 9.</p>' +
+        '<a class="capstone-fx__cta" href="log/">open the operator log &rsaquo;</a>' +
+      "</div>";
+    document.body.appendChild(fx);
+    void fx.offsetWidth;
+    fx.classList.add("is-visible");
+    const done = () => { fx.classList.remove("is-visible"); setTimeout(() => fx.remove(), 500); };
+    fx.addEventListener("click", (e) => { if (e.target === fx) done(); });   // backdrop closes
+    setTimeout(done, 6500);
   }
 
   let discoverTimer = null;

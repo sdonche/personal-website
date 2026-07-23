@@ -1665,3 +1665,85 @@ html.line-stopped *::after {
   padding: 0.4rem 0.7rem; cursor: pointer; transition: color 0.15s ease, border-color 0.15s ease;
 }
 .oplog-reset:hover { color: #94a3b8; border-color: rgba(148, 163, 184, 0.3); }
+
+/* ============================================================
+   EASTER EGGS — capstone (9/9 completion reward)
+   ============================================================ */
+
+/* Site celebration overlay — fires when the final egg is found */
+.capstone-fx {
+  position: fixed; inset: 0; z-index: 95;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem;
+  background: radial-gradient(ellipse at center, rgba(2, 6, 23, 0.78), rgba(2, 6, 23, 0.93));
+  opacity: 0; transition: opacity 0.4s ease;
+}
+.capstone-fx.is-visible { opacity: 1; }
+.capstone-fx__card {
+  text-align: center;
+  max-width: 26rem;
+  padding: 2rem 2rem 1.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--color-accent);
+  background: rgba(2, 6, 23, 0.96);
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.25), 0 20px 70px -20px rgba(52, 211, 153, 0.5);
+  transform: translateY(10px) scale(0.98);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.capstone-fx.is-visible .capstone-fx__card { transform: none; }
+.capstone-fx__seal {
+  width: 3.6rem; height: 3.6rem; margin: 0 auto 1rem;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  color: var(--color-accent);
+  border: 2px solid var(--color-accent);
+  font-size: 1.4rem;
+  box-shadow: 0 0 24px rgba(52, 211, 153, 0.5);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .capstone-fx.is-visible .capstone-fx__seal { animation: capstone-seal 2.4s ease-in-out infinite; }
+}
+@keyframes capstone-seal { 50% { box-shadow: 0 0 36px rgba(52, 211, 153, 0.9); } }
+.capstone-fx__kicker { margin: 0; font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-accent); }
+.capstone-fx__rank { margin: 0.4rem 0 0; font-size: 1.6rem; font-weight: 700; color: #e2e8f0; letter-spacing: -0.01em; }
+.capstone-fx__sub { margin: 0.4rem 0 1.25rem; font-size: 0.85rem; color: #94a3b8; }
+.capstone-fx__cta {
+  display: inline-block;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+  background: var(--color-accent); color: #04121a;
+  padding: 0.55rem 1rem; border-radius: 0.5rem; text-decoration: none;
+  transition: filter 0.15s ease;
+}
+.capstone-fx__cta:hover { filter: brightness(1.08); }
+
+/* /log/ completion panel — shown at 9/9 */
+.oplog-capstone {
+  margin-top: 2rem;
+  display: flex; gap: 1.25rem; align-items: flex-start;
+  padding: 1.5rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--color-accent);
+  background: linear-gradient(180deg, rgba(52, 211, 153, 0.08), rgba(15, 23, 42, 0.4));
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.2), 0 18px 50px -22px rgba(52, 211, 153, 0.4);
+}
+.oplog-capstone__seal {
+  flex-shrink: 0; width: 3rem; height: 3rem;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 2px solid var(--color-accent);
+  color: var(--color-accent); font-size: 1.2rem;
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.4);
+}
+.oplog-capstone__kicker { margin: 0; font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent); }
+.oplog-capstone__title { margin: 0.25rem 0 0.5rem; font-size: 1.4rem; font-weight: 700; color: #e2e8f0; }
+.oplog-capstone__note { margin: 0 0 1rem; font-size: 0.88rem; line-height: 1.6; color: #cbd5e1; max-width: 46ch; }
+.oplog-capstone__cta {
+  display: inline-block;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+  background: var(--color-accent); color: #04121a;
+  padding: 0.5rem 0.9rem; border-radius: 0.45rem; text-decoration: none;
+  transition: filter 0.15s ease;
+}
+.oplog-capstone__cta:hover { filter: brightness(1.08); }
+@media (max-width: 34rem) { .oplog-capstone { flex-direction: column; } }
