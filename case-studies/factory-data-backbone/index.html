@@ -21,6 +21,36 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
 
+  <!-- Structured data: Article (authorship, rich-result eligibility) + breadcrumb -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "From data islands to a factory-wide backbone",
+        "description": "How a large European food producer went from scattered spreadsheets to a unified data backbone across five production sites, built on Ignition, MQTT, Sparkplug B, a historian and a data lake.",
+        "image": "https://samdonche.com/assets/img/og-card.jpg",
+        "datePublished": "2026-07-18",
+        "dateModified": "2026-07-23",
+        "inLanguage": "en",
+        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "publisher": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "mainEntityOfPage": "https://samdonche.com/case-studies/factory-data-backbone/",
+        "keywords": "Industry 4.0, Ignition, MQTT, Sparkplug B, Unified Namespace, MES, data engineering, IIoT, historian, data lake"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Selected Work", "item": "https://samdonche.com/#work" },
+          { "@type": "ListItem", "position": 3, "name": "From data islands to a factory-wide backbone", "item": "https://samdonche.com/case-studies/factory-data-backbone/" }
+        ]
+      }
+    ]
+  }
+  </script>
+
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Cpath d='M9 11 L14 16 L9 21' fill='none' stroke='%2322d3ee' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='16' y='18.7' width='7.5' height='2.6' rx='1.3' fill='%2322d3ee'/%3E%3C/svg%3E" />
   <link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/favicon-32.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/apple-touch-icon.png" />
