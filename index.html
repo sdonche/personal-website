@@ -82,7 +82,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics).
        The ?v= cache-busters are content hashes stamped by `make` (scripts/stamp-assets.py) — not edited by hand. -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=c6f1fab522" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=713a861ebd" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -119,7 +119,7 @@
       </a>
 
       <div class="hidden sm:flex items-center gap-4 font-mono text-[11px] uppercase tracking-widest text-slate-500">
-        <span class="flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-accent"></span>System: Online</span>
+        <span id="sys-status" class="flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-accent"></span>System: Online</span>
         <span aria-hidden="true" class="text-slate-700">|</span>
         <span id="local-time" aria-live="off">--:--:--</span>
       </div>
@@ -800,8 +800,9 @@
 
   <!-- ?v= cache-buster: bump this date whenever script.js changes -->
   <script src="assets/js/skill-meta.js?v=ae64c7ead7" defer></script>
-  <script src="assets/js/diagram.js?v=8b76bcd33b" defer></script>
-  <script src="assets/js/script.js?v=1639c10e61" defer></script>
+  <script src="assets/js/eggs.js?v=add0efd907" defer></script>
+  <script src="assets/js/diagram.js?v=ee4b3ce4a1" defer></script>
+  <script src="assets/js/script.js?v=883be87342" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

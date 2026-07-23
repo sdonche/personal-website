@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>document.documentElement.classList.add('js');</script>
+  <meta name="theme-color" content="#020617" />
+  <!-- Hidden easter-egg page — keep it out of search + the sitemap. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Operator Log — Sam Donche</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Cpath d='M9 11 L14 16 L9 21' fill='none' stroke='%2322d3ee' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='16' y='18.7' width='7.5' height='2.6' rx='1.3' fill='%2322d3ee'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/apple-touch-icon.png" />
+
+  <link rel="preload" href="../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../assets/css/fonts.css?v=0f6b5ce264" />
+  <link rel="stylesheet" href="../assets/css/tailwind.css?v=24f3f3ff7e" />
+  <link rel="stylesheet" href="../assets/css/styles.css?v=713a861ebd" />
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans antialiased">
+
+  <div aria-hidden="true" class="fixed inset-0 -z-10 bg-slate-950">
+    <div class="absolute inset-0 grid-bg opacity-[0.35]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(52,211,153,0.05),_transparent_50%)]"></div>
+  </div>
+
+  <!-- Top bar -->
+  <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+      <a href="../" class="flex items-center gap-2 group" aria-label="Home">
+        <span class="relative inline-flex h-2.5 w-2.5">
+          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+        </span>
+        <span class="font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
+          sam.donche<span class="text-brand-400">@</span>edge
+        </span>
+      </a>
+      <a href="../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors">← back</a>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-24">
+
+    <p class="section-eyebrow">// Operator Log</p>
+    <h1 class="section-title">Discovery record.</h1>
+    <p class="mt-5 text-slate-400 leading-relaxed max-w-xl">
+      A running log of the secrets built into this site. Redacted entries stay
+      hidden until you trip them — hints only. Progress is kept on this device.
+    </p>
+
+    <!-- Rank + progress -->
+    <div class="oplog-meta">
+      <div class="oplog-rank">
+        <span class="oplog-rank__label">Operator rank</span>
+        <span class="oplog-rank__value" id="rank">Visitor</span>
+      </div>
+      <div class="oplog-progress">
+        <div class="oplog-progress__head">
+          <span>systems discovered</span>
+          <span id="count" class="oplog-progress__count">0 / 0</span>
+        </div>
+        <div class="oplog-progress__bar" id="bar"><span></span></div>
+      </div>
+    </div>
+
+    <!-- Egg list -->
+    <ol class="oplog-list" id="list"></ol>
+
+    <div class="oplog-foot">
+      <button type="button" id="reset" class="oplog-reset">reset log</button>
+    </div>
+  </main>
+
+  <script src="../assets/js/eggs.js?v=add0efd907"></script>
+  <script>
+    (function () {
+      var E = window.EGGS;
+      if (!E) return;
+      E.unlock("log");                       // reaching this page counts as finding it
+      function render() {
+        var found = E.discovered();
+        var total = E.REGISTRY.length;
+        var n = found.size;
+        document.getElementById("rank").textContent = E.rankFor(n);
+        document.getElementById("count").textContent = n + " / " + total;
+        document.getElementById("bar").style.setProperty("--pct", Math.round((n / total) * 100) + "%");
+        document.getElementById("list").innerHTML = E.REGISTRY.map(function (e) {
+          var got = found.has(e.id);
+          return '<li class="oplog-item ' + (got ? "is-found" : "is-locked") + '">' +
+            '<span class="oplog-item__mark">' + (got ? "✓" : "▢") + '</span>' +
+            '<div class="oplog-item__body">' +
+              '<p class="oplog-item__name">' + (got ? e.name : "██ redacted ██") + '</p>' +
+              '<p class="oplog-item__how">' + (got ? e.how : e.hint) + '</p>' +
+            '</div></li>';
+        }).join("");
+      }
+      render();
+      document.getElementById("reset").addEventListener("click", function () {
+        E.reset();
+        render();
+      });
+    })();
+  </script>
+</body>
+</html>

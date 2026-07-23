@@ -321,7 +321,7 @@
 
     /* ---- Nodes: labeled blocks wrapped in a group so the whole block
            (rect + label) highlights together and carries its skill tags ---- */
-    Object.values(STACK_NODES).forEach((n) => {
+    Object.entries(STACK_NODES).forEach(([nodeId, n]) => {
       const r = blockRect(n);
 
       if (n.kind === "broker") {
@@ -333,6 +333,7 @@
 
       const g = append(svgNS, nodesG, "g", {
         class: "stack-node",
+        "data-node": nodeId,
         ...(n.skills ? { "data-skills": n.skills.join(" ") } : {}),
       });
 

@@ -22,6 +22,7 @@
 
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isMac = /Mac|iPhone|iPad/i.test(navigator.platform);
+  let motionHalted = false;   // E-STOP freezes the clock (CSS motion via .line-stopped)
 
   /* Dynamic strings for JS-generated UI (static copy lives in the HTML). */
   const T = {
@@ -91,6 +92,7 @@
     const el = document.getElementById("local-time");
     if (!el) return;
     const tick = () => {
+      if (motionHalted) return;            // frozen while the line is stopped
       const d = new Date();
       const pad = n => String(n).padStart(2, "0");
       el.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
@@ -213,6 +215,19 @@
       const badge = el.querySelector(".qv-badge");
       if (badge) badge.textContent = qv.toUpperCase();
     });
+    checkPlantTour();
+  }
+
+  /* Easter egg: mark the "full plant tour" once every visitable tag has been
+     seen. Group-parent rows (e.g. "trajectory") aren't destinations — their
+     children are — so exclude them; that leaves the 11 real tags. */
+  const TOUR_IDS = SECTIONS.filter(s => !s.parent).map(s => s.id);
+  let tourDone = false;
+  function checkPlantTour() {
+    if (tourDone) return;
+    if (!TOUR_IDS.every(id => visited.has(id))) return;
+    tourDone = true;
+    discoverEgg("tour");
   }
 
   function escapeHtml(s) {
@@ -353,7 +368,9 @@
       { id: "cmd-uptime", path: "uptime",      desc: "years on the plant floor",      run: () => eggToast(industryYears() + "+ yrs on the floor") },
       { id: "cmd-konami", path: "konami",      desc: "↑↑↓↓←→←→ B A", run: () => eggToast("↑ ↑ ↓ ↓ ← → ← → B A") },
       { id: "cmd-night",  path: "night shift", desc: "toggle amber HMI mode",         run: () => toggleNightShift() },
+      { id: "cmd-estop",  path: "estop",       desc: "emergency stop the line",       run: () => toggleEStop() },
       { id: "cmd-boot",   path: "boot",        desc: "replay the cold-start sequence", run: () => runBootSequence() },
+      { id: "cmd-log",    path: "log",         desc: "open the operator log",         run: () => location.assign("log/") },
     ];
 
     let selected = 0;
@@ -417,7 +434,7 @@
     function choose(id) {
       close();
       const cmd = commands.find(c => c.id === id);
-      if (cmd) { cmd.run(); return; }
+      if (cmd) { discoverEgg("commands"); cmd.run(); return; }
       scrollToSection(id);
     }
 
@@ -813,8 +830,168 @@
      ---------------------------------------------------- */
   function wireEasterEggs() {
     consoleGreeting();
+    sparkplugConsole();
     wireKonami();
+    wireEStop();
+    wireTelemetry();
+    wireDiagramEgg();
     if (/[?&]boot\b/.test(location.search)) runBootSequence();
+  }
+
+  /* Records a discovery in localStorage (via eggs.js) and, the first time,
+     shows a star toast — kept separate from eggToast so they never collide. */
+  function discoverEgg(id) {
+    if (!window.EGGS || !window.EGGS.unlock(id)) return;
+    const e = window.EGGS.REGISTRY.find(x => x.id === id);
+    const found = window.EGGS.discovered().size;
+    const total = window.EGGS.REGISTRY.length;
+    discoverToast((e ? e.name : id), found, total);
+  }
+
+  let discoverTimer = null;
+  function discoverToast(name, found, total) {
+    let el = document.getElementById("egg-discover");
+    if (!el) {
+      el = document.createElement("a");
+      el.id = "egg-discover";
+      el.className = "egg-discover";
+      el.href = "log/";
+      document.body.appendChild(el);
+    }
+    el.innerHTML =
+      '<span class="egg-discover__star">★</span>' +
+      '<span class="egg-discover__body"><b>' + name + '</b> discovered' +
+      '<span class="egg-discover__meta">' + found + " / " + total + " · operator log ›</span></span>";
+    void el.offsetWidth;
+    el.classList.add("is-visible");
+    clearTimeout(discoverTimer);
+    discoverTimer = setTimeout(() => el.classList.remove("is-visible"), 4200);
+  }
+
+  // Sparkplug B birth/death certificates — an IIoT in-joke for the console.
+  function sparkplugConsole() {
+    const s = "color:#22d3ee";
+    console.log("%cNBIRTH%c samdonche/edge · node online", "color:#34d399;font-weight:bold", s);
+    window.addEventListener("beforeunload", () => {
+      console.log("%cNDEATH%c samdonche/edge · node offline", "color:#f43f5e;font-weight:bold", s);
+    });
+  }
+
+  /* ---- E-STOP: a hidden red button that halts all page motion ---- */
+  function wireEStop() {
+    const btn = document.createElement("button");
+    btn.id = "estop";
+    btn.className = "estop";
+    btn.type = "button";
+    btn.setAttribute("aria-label", "Emergency stop");
+    btn.title = "Emergency stop";
+    btn.innerHTML = '<span class="estop__label">STOP</span>';
+    btn.addEventListener("click", toggleEStop);
+    document.body.appendChild(btn);
+  }
+
+  function toggleEStop() {
+    const on = document.documentElement.classList.toggle("line-stopped");
+    motionHalted = on;
+    document.getElementById("estop")?.classList.toggle("is-active", on);
+    let bar = document.getElementById("line-banner");
+    if (on) {
+      if (!bar) {
+        bar = document.createElement("div");
+        bar.id = "line-banner";
+        bar.className = "line-banner";
+        bar.setAttribute("role", "status");
+        bar.innerHTML = '<span class="line-banner__dot"></span> ⏹ Line stopped &mdash; press the E-STOP again to resume';
+        document.body.appendChild(bar);
+      }
+      bar.classList.add("is-visible");
+      discoverEgg("estop");
+    } else if (bar) {
+      bar.classList.remove("is-visible");
+    }
+  }
+
+  /* ---- Telemetry: click "SYSTEM: ONLINE" for a live SCADA readout ---- */
+  function wireTelemetry() {
+    const status = document.getElementById("sys-status");
+    if (!status) return;
+    status.style.cursor = "pointer";
+    status.setAttribute("role", "button");
+    status.setAttribute("tabindex", "0");
+    status.title = "Telemetry";
+    const loadedAt = Date.now();
+    let panel = null, timer = null;
+
+    function rows() {
+      const h = new Date().getHours();
+      const shift = h >= 6 && h < 14 ? "morning" : h >= 14 && h < 22 ? "afternoon" : "night";
+      const sess = Math.floor((Date.now() - loadedAt) / 1000);
+      const mm = String(Math.floor(sess / 60)).padStart(2, "0");
+      const ss = String(sess % 60).padStart(2, "0");
+      const found = window.EGGS ? window.EGGS.discovered().size : 0;
+      const total = window.EGGS ? window.EGGS.REGISTRY.length : 0;
+      return [
+        ["uptime",  industryYears() + "y on the floor"],
+        ["tags",    "500,000 streaming"],
+        ["shift",   shift],
+        ["session", mm + ":" + ss],
+        ["secrets", found + " / " + total + " found"],
+      ];
+    }
+    function paint() {
+      if (!panel) return;
+      panel.innerHTML =
+        '<p class="telemetry__title">// live telemetry</p>' +
+        rows().map(([k, v]) =>
+          '<div class="telemetry__row"><span>' + k + '</span><b>' + v + "</b></div>").join("");
+    }
+    function toggle() {
+      if (panel) { close(); return; }
+      discoverEgg("telemetry");
+      panel = document.createElement("div");
+      panel.className = "telemetry";
+      document.body.appendChild(panel);
+      paint();
+      requestAnimationFrame(() => panel.classList.add("is-visible"));
+      timer = setInterval(paint, 1000);
+      setTimeout(() => document.addEventListener("click", onDoc), 0);
+    }
+    function close() {
+      clearInterval(timer);
+      document.removeEventListener("click", onDoc);
+      panel?.remove();
+      panel = null;
+    }
+    function onDoc(e) {
+      if (panel && !panel.contains(e.target) && e.target !== status && !status.contains(e.target)) close();
+    }
+    status.addEventListener("click", (e) => { e.stopPropagation(); toggle(); });
+    status.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+    });
+  }
+
+  /* ---- MQTT publish: click the broker node → it "publishes" a burst ---- */
+  const MQTT_PAYLOADS = [
+    "samdonche/coffee ▸ brewing",
+    "samdonche/status ▸ shipping",
+    "samdonche/hire ▸ available",
+    "samdonche/uptime ▸ nominal",
+    "samdonche/floor ▸ legible",
+  ];
+  let mqttIdx = 0;
+  function wireDiagramEgg() {
+    const svg = document.getElementById("stack-svg");
+    const broker = svg && svg.querySelector('.stack-node[data-node="mqtt"]');
+    if (!broker) return;
+    broker.style.cursor = "pointer";
+    broker.addEventListener("click", () => {
+      svg.classList.add("is-publishing");
+      setTimeout(() => svg.classList.remove("is-publishing"), 1400);
+      eggToast("▲ publish · " + MQTT_PAYLOADS[mqttIdx % MQTT_PAYLOADS.length]);
+      mqttIdx++;
+      discoverEgg("mqtt");
+    });
   }
 
   // Years since entering industry (Jan 2022 — data engineer @ Clarebout).
@@ -858,6 +1035,7 @@
   function toggleNightShift() {
     const on = document.documentElement.classList.toggle("hmi-night");
     showScadaAlarm(on);
+    discoverEgg("konami");
     return on;
   }
 
@@ -883,6 +1061,7 @@
   // Edge-gateway cold-start: types out a boot log, then reveals the site.
   function runBootSequence() {
     if (document.getElementById("boot-seq")) return;    // already running
+    discoverEgg("boot");
     const lines = [
       "sam.donche@edge : cold start",
       "[ ok ] linux kernel",
@@ -960,6 +1139,7 @@
         console.log("  uptime()  — years on the plant floor");
         console.log("  coffee()  — ☕");
         console.log("  boot()    — replay the cold-start sequence");
+        console.log("  secrets() — open the operator log (found so far)");
         return "↑ pick one";
       },
       hire() {
@@ -983,6 +1163,16 @@
         runBootSequence();
         return "cold start…";
       },
+      secrets() {
+        location.assign("log/");
+        return "opening the operator log…";
+      },
     };
+
+    // Any API call counts as discovering the console egg.
+    Object.keys(window.samdonche).forEach((k) => {
+      const fn = window.samdonche[k];
+      window.samdonche[k] = function (...args) { discoverEgg("console"); return fn.apply(this, args); };
+    });
   }
 })();

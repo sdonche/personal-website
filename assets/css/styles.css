@@ -1505,3 +1505,163 @@ html.hmi-night body::after {
   .boot-seq__hint.is-ready { animation: boot-hint 1.4s ease-in-out infinite; }
 }
 @keyframes boot-hint { 50% { opacity: 0.4; } }
+
+/* ============================================================
+   EASTER EGGS — round 2: E-STOP, telemetry, MQTT publish,
+   discovery toast, and the Operator Log page (/log/).
+   ============================================================ */
+
+/* ---- Emergency Stop: hidden red mushroom button ---- */
+.estop {
+  position: fixed;
+  right: 1rem; bottom: 1rem;
+  z-index: 55;
+  width: 46px; height: 46px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  border: 3px solid #7f1d1d;
+  background: radial-gradient(circle at 50% 36%, #f05252, #b91c1c 72%);
+  color: #fff;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 8px; font-weight: 700; letter-spacing: 0.06em;
+  cursor: pointer;
+  opacity: 0.35;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5),
+              inset 0 2px 3px rgba(255, 255, 255, 0.35),
+              inset 0 -3px 6px rgba(0, 0, 0, 0.45);
+  transition: opacity 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+.estop:hover { opacity: 1; }
+.estop:active { transform: translateY(1px) scale(0.96); }
+.estop.is-active {
+  opacity: 1;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.35),
+              0 0 26px rgba(239, 68, 68, 0.7),
+              inset 0 -3px 6px rgba(0, 0, 0, 0.45);
+}
+.estop__label { pointer-events: none; }
+
+/* Line stopped: freeze every animation/transition on the page */
+html.line-stopped *,
+html.line-stopped *::before,
+html.line-stopped *::after {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+.line-banner {
+  position: fixed;
+  left: 50%; bottom: 5rem;
+  transform: translate(-50%, 1rem);
+  z-index: 56;
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: #fecaca;
+  background: rgba(30, 0, 0, 0.9);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
+  opacity: 0;
+}
+.line-banner.is-visible { opacity: 1; transform: translate(-50%, 0); }
+.line-banner__dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #ef4444; }
+
+/* ---- Telemetry panel (click SYSTEM: ONLINE) ---- */
+.telemetry {
+  position: fixed;
+  top: 3.4rem; right: 1rem;
+  z-index: 45;
+  min-width: 15rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--color-brand-400);
+  background: rgba(2, 6, 23, 0.95);
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.7);
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  opacity: 0; transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.telemetry.is-visible { opacity: 1; transform: translateY(0); }
+.telemetry__title { margin: 0 0 0.5rem; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-brand-400); }
+.telemetry__row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.2rem 0; font-size: 0.72rem; color: #94a3b8; }
+.telemetry__row b { color: #e2e8f0; font-weight: 600; }
+
+/* ---- MQTT publish flash on the diagram ---- */
+#stack-svg.is-publishing .stack-svg__particles circle {
+  fill: var(--color-brand-300);
+  filter: drop-shadow(0 0 3px var(--color-brand-400));
+}
+#stack-svg.is-publishing .stack-svg__center-halo { animation: mqtt-flash 1.4s ease-out; }
+@keyframes mqtt-flash { 0% { opacity: 0.12; } 18% { opacity: 0.85; } 100% { opacity: 0.05; } }
+
+/* ---- Discovery toast (bottom-right, links to the log) ---- */
+.egg-discover {
+  position: fixed;
+  right: 1.25rem; bottom: 5rem;
+  z-index: 72;
+  display: flex; align-items: center; gap: 0.6rem;
+  max-width: 18rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--color-brand-400);
+  background: rgba(2, 6, 23, 0.96);
+  color: #e2e8f0;
+  text-decoration: none;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.7);
+  opacity: 0; transform: translateY(12px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.egg-discover.is-visible { opacity: 1; transform: translateY(0); }
+.egg-discover:hover { border-color: var(--color-brand-300); }
+.egg-discover__star { color: var(--color-brand-400); font-size: 1.1rem; line-height: 1; }
+.egg-discover__body { font-size: 0.74rem; line-height: 1.3; }
+.egg-discover__body b { color: var(--color-brand-300); }
+.egg-discover__meta { display: block; color: #64748b; font-size: 0.66rem; margin-top: 2px; }
+
+/* ---- Operator Log page (/log/) ---- */
+.oplog-meta {
+  margin-top: 2rem;
+  display: grid; gap: 1rem;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+@media (max-width: 40rem) { .oplog-meta { grid-template-columns: 1fr; } }
+.oplog-rank {
+  border: 1px solid var(--color-brand-400);
+  border-radius: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+}
+.oplog-rank__label { display: block; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: #64748b; }
+.oplog-rank__value { color: var(--color-brand-300); font-size: 1rem; font-weight: 600; }
+.oplog-progress { font-family: var(--font-mono, "JetBrains Mono"), monospace; }
+.oplog-progress__head { display: flex; justify-content: space-between; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: #64748b; margin-bottom: 0.4rem; }
+.oplog-progress__count { color: #cbd5e1; }
+.oplog-progress__bar { height: 8px; border-radius: 99px; background: rgba(148, 163, 184, 0.15); overflow: hidden; }
+.oplog-progress__bar span { display: block; height: 100%; width: var(--pct, 0%); background: linear-gradient(90deg, var(--color-accent), var(--color-brand-400)); transition: width 0.5s ease; }
+.oplog-list { list-style: none; margin: 2rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.oplog-item {
+  display: flex; gap: 0.85rem; align-items: flex-start;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 0.55rem;
+  background: rgba(15, 23, 42, 0.35);
+}
+.oplog-item.is-found { border-color: rgba(34, 211, 238, 0.35); }
+.oplog-item__mark { font-family: var(--font-mono, "JetBrains Mono"), monospace; flex-shrink: 0; margin-top: 0.1rem; }
+.oplog-item.is-found .oplog-item__mark { color: var(--color-brand-400); }
+.oplog-item.is-locked .oplog-item__mark { color: #475569; }
+.oplog-item__name { margin: 0; font-size: 0.92rem; color: #e2e8f0; }
+.oplog-item.is-locked .oplog-item__name { color: #64748b; font-family: var(--font-mono, "JetBrains Mono"), monospace; letter-spacing: 0.05em; }
+.oplog-item__how { margin: 0.2rem 0 0; font-size: 0.78rem; color: #94a3b8; }
+.oplog-item.is-locked .oplog-item__how { color: #475569; font-style: italic; }
+.oplog-foot { margin-top: 2rem; }
+.oplog-reset {
+  font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #475569; background: none; border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 0.4rem;
+  padding: 0.4rem 0.7rem; cursor: pointer; transition: color 0.15s ease, border-color 0.15s ease;
+}
+.oplog-reset:hover { color: #94a3b8; border-color: rgba(148, 163, 184, 0.3); }
