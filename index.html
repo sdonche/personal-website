@@ -78,7 +78,7 @@
 
   <!-- Tailwind CSS v4, precompiled — design tokens live in assets/css/tailwind.input.css.
        Rebuild after changing Tailwind classes (see README "Rebuilding the CSS"). -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=21fadc37ee" />
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=24f3f3ff7e" />
 
   <!-- Custom styles (animations, grid bg, network nav specifics).
        The ?v= cache-busters are content hashes stamped by `make` (scripts/stamp-assets.py) — not edited by hand. -->
@@ -237,8 +237,9 @@
           </p>
         </div>
 
-        <!-- Profile inspector — mirrors the sidebar tag-browser language -->
-        <aside class="hidden lg:block w-80 reveal">
+        <!-- Profile inspector — mirrors the sidebar tag-browser language.
+             Full-width on mobile (stacks under the hero copy), fixed 20rem on lg. -->
+        <aside class="w-full max-w-sm lg:w-80 reveal">
           <div class="rounded-lg border border-slate-800 bg-slate-900/50 backdrop-blur-sm overflow-hidden transition-colors hover:border-brand-400/40 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.5)]">
 
             <!-- Header strip: tag path + status -->
@@ -382,7 +383,9 @@
               <span class="stack-diagram__pulse" aria-hidden="true"></span> trend: live
             </span>
           </div>
+          <!-- On narrow screens the diagram keeps a legible minimum width and scrolls horizontally -->
           <div class="stack-diagram__scroll">
+            <span class="stack-diagram__swipe" aria-hidden="true">swipe to explore &rarr;</span>
             <svg
               id="career-svg"
               viewBox="0 0 720 224"
