@@ -55,7 +55,13 @@
     { id: "role-uz-gent",         label: "uz_gent",         group: "experience", desc: "PhD / Imaging Research" },
     { id: "edu-ugent",            label: "ugent",           group: "experience", desc: "Bio-Science Engineering" },
     { id: "skills",               label: "skills" },
-    { id: "work",                 label: "work" },
+    // "work" is a home section AND a folder of case-study pages
+    { id: "work",                 label: "work", parent: "work" },
+    { id: "cs-factory",           label: "factory-data-backbone", group: "work", page: true, href: "case-studies/factory-data-backbone/", desc: "Case study" },
+    // "notes" is a page (a writing index) that also folders the articles
+    { id: "notes",                label: "notes", parent: "notes", page: true, href: "notes/" },
+    { id: "note-mes",             label: "mes-scada-vs-historian", group: "notes", page: true, href: "notes/mes-scada-vs-historian/", desc: "Article" },
+    { id: "publications",         label: "publications", page: true, href: "publications/", desc: "Research output" },
     { id: "contact",              label: "contact" },
   ];
 
@@ -65,15 +71,25 @@
     "hero", "about", "experience", "skills", "work", "contact",
   ]);
 
-  /* Visited tracker — drives QV badges. */
+  /* Visited tracker — drives QV badges. Persisted in sessionStorage so a
+     visit to a real page (notes, publications, case study) still reads GOOD
+     when you come back to the home nav. */
   const visited = new Set();
   let activeId = "hero";
+  const VISITED_KEY = "samdonche.visited";
+  function loadVisited() {
+    try { JSON.parse(sessionStorage.getItem(VISITED_KEY) || "[]").forEach(id => visited.add(id)); } catch (e) {}
+  }
+  function saveVisited() {
+    try { sessionStorage.setItem(VISITED_KEY, JSON.stringify([...visited])); } catch (e) {}
+  }
 
   document.addEventListener("DOMContentLoaded", init);
 
   function init() {
     startClock();
     setFooterYear();
+    loadVisited();
     buildTagBrowser();
     wireMobileNav();
     wireCommandPalette();
@@ -148,20 +164,22 @@
     const li = document.createElement("li");
 
     const a = document.createElement("a");
-    a.className = "tag-nav__item";
+    a.className = "tag-nav__item" + (section.page ? " tag-nav__item--page" : "");
     a.dataset.section = section.id;
     a.dataset.qv = "stale";
-    a.href = `#${section.id}`;
-    a.setAttribute("aria-label", `Go to ${section.label}`);
+    a.href = section.page ? section.href : `#${section.id}`;
+    a.setAttribute("aria-label", section.page ? `Open ${section.label}` : `Go to ${section.label}`);
     a.innerHTML = `
       <span class="qv-dot" aria-hidden="true"></span>
       <span class="tag-nav__name">${escapeHtml(section.label)}</span>
       <span class="qv-badge" aria-hidden="true">STALE</span>
     `;
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      scrollToSection(section.id);
-    });
+    if (section.page) {
+      // Real page: let the browser navigate, just record the visit first.
+      a.addEventListener("click", () => { visited.add(section.id); saveVisited(); });
+    } else {
+      a.addEventListener("click", (e) => { e.preventDefault(); scrollToSection(section.id); });
+    }
 
     li.appendChild(a);
     return li;
@@ -182,11 +200,15 @@
       <span class="tag-nav__group-count">[${children.length}]</span>
     `;
     summary.addEventListener("click", (e) => {
-      // Allow chevron toggle, but also jump on click of the label area
-      // — only if the group is currently open and the click is on the name
+      // Chevron toggles; clicking the label jumps (scroll) or navigates (page)
       if (e.target.classList.contains("tag-nav__name")) {
         e.preventDefault();
-        scrollToSection(parentSection.id);
+        if (parentSection.page) {
+          visited.add(parentSection.id); saveVisited();
+          location.assign(parentSection.href);
+        } else {
+          scrollToSection(parentSection.id);
+        }
       }
     });
     details.appendChild(summary);
@@ -221,7 +243,7 @@
   /* Easter egg: mark the "full plant tour" once every visitable tag has been
      seen. Group-parent rows (e.g. "trajectory") aren't destinations — their
      children are — so exclude them; that leaves the 11 real tags. */
-  const TOUR_IDS = SECTIONS.filter(s => !s.parent).map(s => s.id);
+  const TOUR_IDS = SECTIONS.filter(s => !s.parent && !s.page).map(s => s.id);
   let tourDone = false;
   function checkPlantTour() {
     if (tourDone) return;
@@ -258,6 +280,7 @@
     });
     // Eagerly mark visited so the QV badge updates without waiting for IO
     visited.add(id);
+    saveVisited();
     refreshQV();
   }
 
@@ -313,6 +336,7 @@
       if (id === activeId) return;
       activeId = id;
       visited.add(id);
+      saveVisited();
       refreshQV();
     };
 
@@ -351,6 +375,8 @@
       id:    s.id,
       label: s.label,
       desc:  s.desc || "",
+      page:  s.page,
+      href:  s.href,
       // Path forms a Sparkplug-ish tag string
       path:  s.group
               ? `samdonche/${s.group}/${s.label}`
@@ -437,6 +463,8 @@
       close();
       const cmd = commands.find(c => c.id === id);
       if (cmd) { discoverEgg("commands"); cmd.run(); return; }
+      const it = items.find(i => i.id === id);
+      if (it && it.page) { visited.add(id); saveVisited(); location.assign(it.href); return; }
       scrollToSection(id);
     }
 
