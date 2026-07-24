@@ -13,7 +13,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
 HTML_FILES = ["index.html", "404.html", "publications/index.html", "log/index.html"] + \
-             glob.glob("case-studies/**/index.html", recursive=True)
+             glob.glob("case-studies/**/index.html", recursive=True) + \
+             glob.glob("notes/**/index.html", recursive=True)
 
 # matches  href="....css?v=..."  and  src="....js?v=..."
 PAT = re.compile(r'((?:href|src)=")([^"]+\.(?:css|js))\?v=[^"]*(")')

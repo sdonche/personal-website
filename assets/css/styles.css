@@ -1748,3 +1748,219 @@ html.line-stopped *::after {
 }
 .oplog-capstone__cta:hover { filter: brightness(1.08); }
 @media (max-width: 34rem) { .oplog-capstone { flex-direction: column; } }
+
+/* ============================================================
+   NOTES — long-form article prose (/notes/*)
+   ============================================================ */
+.note-prose { color: #cbd5e1; }
+.note-prose > p { margin: 0 0 1.15rem; line-height: 1.75; }
+.note-prose > h2 {
+  margin: 2.1rem 0 0.7rem;
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: #e8edf5;
+}
+.note-prose > ul {
+  margin: 0 0 1.15rem;
+  padding-left: 1.2rem;
+  line-height: 1.7;
+  list-style: disc;
+}
+.note-prose > ul li { margin: 0.25rem 0; }
+.note-prose > ul li::marker { color: var(--color-brand-400); }
+.note-prose strong { color: #e8edf5; font-weight: 600; }
+.note-prose a {
+  color: var(--color-brand-300);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.note-prose a:hover { color: var(--color-brand-200); }
+/* Abbreviations: instant custom tooltip (no native ~1s delay, no dotted line).
+   Cue is a subtle solid underline in a slate tone so it never reads as a link. */
+.note-prose abbr {
+  position: relative;
+  cursor: help;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+}
+.note-prose abbr::after {
+  content: attr(aria-label);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 7px);
+  transform: translateX(-50%);
+  z-index: 5;
+  white-space: nowrap;
+  max-width: min(80vw, 22rem);
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.4rem;
+  background: #0b1220;
+  border: 1px solid var(--color-brand-400);
+  color: #e8edf5;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.3;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+.note-prose abbr:hover::after,
+.note-prose abbr:focus-visible::after { opacity: 1; }
+
+/* HMI instrument tiles — a scannable component readout at the top of each section */
+.note-prose .hmi-tile {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+  margin: 0 0 1.5rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  border-left: 3px solid var(--color-brand-400);
+  border-radius: 0.55rem;
+  background: rgba(15, 23, 42, 0.5);
+}
+.hmi-tile__icon {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-brand-400);
+  margin-top: 0.15rem;
+}
+.hmi-tile__body { flex: 1 1 auto; min-width: 0; }
+.hmi-tile__name {
+  margin: 0 0 0.15rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-brand-300);
+}
+.hmi-tile__q {
+  margin: 0 0 0.55rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #e8edf5;
+  line-height: 1.3;
+}
+.hmi-tile__row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  margin: 0.12rem 0;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+.hmi-tile__row b {
+  flex-shrink: 0;
+  width: 3.9rem;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.hmi-tile__row span { color: #cbd5e1; }
+
+/* Signal-viz — small animated "live instrument" per component (cool, not educational) */
+.note-prose .sig-viz {
+  position: relative;
+  margin: 0 0 1.5rem;
+  height: 108px;
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  border-radius: 0.55rem;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(34, 211, 238, 0.08), transparent 70%),
+    rgba(2, 6, 23, 0.65);
+  overflow: hidden;
+}
+.sig-viz__svg { display: block; width: 100%; height: 100%; }
+.sig-viz__grid line { stroke: rgba(148, 163, 184, 0.12); stroke-width: 1; }
+.sig-viz__wave {
+  fill: none;
+  stroke: var(--color-brand-400);
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.65));
+}
+.sig-viz__tag {
+  position: absolute;
+  top: 8px;
+  right: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-brand-300);
+}
+.sig-viz__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 6px var(--color-accent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sig-viz__dot { animation: sig-pulse 1.5s ease-in-out infinite; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sig-viz__svg animate,
+  .sig-viz__svg animateTransform { display: none; }
+}
+@keyframes sig-pulse { 50% { opacity: 0.3; } }
+
+/* Historian — scrolling "recorded" bars */
+.sig-viz__bars { filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.4)); }
+.sig-viz__bars rect { fill: var(--color-brand-400); opacity: 0.85; }
+/* MES — work orders flowing through stages */
+.sig-viz__track { fill: none; stroke: rgba(148, 163, 184, 0.28); stroke-width: 2; stroke-dasharray: 3 6; }
+.sig-viz__stages rect { fill: rgba(34, 211, 238, 0.06); stroke: var(--color-brand-400); stroke-width: 1.4; }
+.sig-viz__tokens circle { fill: var(--color-brand-300); filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.7)); }
+
+/* SCADA mimic — tank / pump / valve with live flow */
+.scada-eq { fill: none; stroke: var(--color-brand-400); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.scada-fluid { fill: rgba(34, 211, 238, 0.3); }
+.scada-pipe { fill: none; stroke: rgba(34, 211, 238, 0.6); stroke-width: 3; stroke-dasharray: 6 8; }
+.scada-run { fill: var(--color-accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .scada-pipe { animation: scada-flow 0.7s linear infinite; }
+  .scada-run { animation: sig-pulse 1s ease-in-out infinite; }
+}
+@keyframes scada-flow { to { stroke-dashoffset: -14; } }
+
+/* Historian — three strip-chart trends written at a fixed NOW line */
+.hist-lane { fill: none; stroke: var(--color-brand-400); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.5)); }
+.hist-now { stroke: var(--color-accent); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.hist-now-label { fill: var(--color-accent); font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 10px; letter-spacing: 1.5px; }
+
+/* MES — a work order moving through named stages */
+.mes-stage { fill: rgba(34, 211, 238, 0.05); stroke: rgba(34, 211, 238, 0.5); stroke-width: 1.6; }
+.mes-arrow { fill: none; stroke: rgba(148, 163, 184, 0.45); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.mes-label { fill: #7b8698; font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; text-anchor: middle; }
+.mes-order rect { fill: var(--color-accent); }
+.mes-order text { fill: #04121a; font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 11px; font-weight: 700; text-anchor: middle; }
+.mes-zone { fill: rgba(34, 211, 238, 0.04); stroke: rgba(148, 163, 184, 0.16); stroke-width: 1; }
+.mes-zone--run { fill: rgba(52, 211, 153, 0.06); stroke: rgba(52, 211, 153, 0.25); }
+
+/* Historian channel baselines — makes the three traces read as separate charts */
+.hist-base { stroke: rgba(148, 163, 184, 0.2); stroke-width: 1; stroke-dasharray: 2 3; }
+
+/* Automation pyramid (How they fit together) */
+.note-prose .pyr { margin: 0.5rem 0 1.75rem; }
+.pyr svg { display: block; width: 100%; height: auto; }
+.pyr-tier { fill: rgba(34, 211, 238, 0.06); stroke: rgba(148, 163, 184, 0.35); stroke-width: 1.2; stroke-linejoin: round; }
+.pyr-tier--hl { fill: rgba(34, 211, 238, 0.2); stroke: var(--color-brand-400); stroke-width: 2; filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.35)); }
+.pyr-name { fill: #94a3b8; font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 13px; font-weight: 600; }
+.pyr-name--hl { fill: var(--color-brand-300); }
+.pyr-sub { fill: #64748b; font-family: var(--font-sans, system-ui), sans-serif; font-size: 10px; }
+.pyr-lead { stroke: rgba(148, 163, 184, 0.28); stroke-width: 1; }
+.pyr-hist { fill: none; stroke: var(--color-accent); stroke-width: 1.5; stroke-linejoin: round; }
+.pyr-hist-label { fill: var(--color-accent); font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 11px; letter-spacing: 1px; }
