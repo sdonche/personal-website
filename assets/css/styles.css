@@ -1293,6 +1293,15 @@ html { color-scheme: dark; }
   transform: none;
 }
 
+/* Above-the-fold hero: a CSS-only entrance (no scroll-observer), so it never
+   paints blank waiting for deferred JS. Transform-only keeps the text visible
+   from the first frame — good for LCP and no flash of empty hero. */
+.hero-enter { animation: hero-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes hero-in { from { transform: translateY(14px); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .hero-enter { animation: none; }
+}
+
 
 /* ----------------------------------------------------
    Misc: slow bounce, animations from Tailwind extras
