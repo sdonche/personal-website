@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script>document.documentElement.classList.add('js');try{if(localStorage.getItem('samdonche.nav.rail')==='1')document.documentElement.classList.add('nav-rail')}catch(e){}</script>
   <meta name="theme-color" content="#020617" />
-  <meta name="description" content="Field notes by Sam Donche on industrial digital architecture: MES, SCADA, MQTT, historians and getting factory data to actually flow." />
+  <meta name="description" content="Case studies by Sam Donche: industrial data architecture work on the plant floor, from scattered spreadsheets to a factory-wide data backbone on Ignition, MQTT and a unified namespace." />
   <meta name="author" content="Sam Donche" />
-  <title>Notes — Sam Donche</title>
+  <title>Case studies — Sam Donche</title>
 
-  <link rel="canonical" href="https://samdonche.com/notes/" />
+  <link rel="canonical" href="https://samdonche.com/case-studies/" />
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Sam Donche" />
-  <meta property="og:title" content="Notes — Sam Donche" />
-  <meta property="og:description" content="Field notes on industrial digital architecture: MES, SCADA, MQTT, historians and getting factory data to flow." />
-  <meta property="og:url" content="https://samdonche.com/notes/" />
+  <meta property="og:title" content="Case studies — Sam Donche" />
+  <meta property="og:description" content="Industrial data architecture work on the plant floor: what the factory looked like before, what got built, and what changed once it ran." />
+  <meta property="og:url" content="https://samdonche.com/case-studies/" />
   <meta property="og:locale" content="en_US" />
   <meta property="og:image" content="https://samdonche.com/assets/img/og-card.jpg" />
   <meta property="og:image:width" content="1200" />
@@ -59,25 +59,29 @@
   <div class="lg:pl-64">
   <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-24">
 
-    <p class="section-eyebrow">// Notes</p>
-    <h1 class="section-title">Notes.</h1>
+    <p class="section-eyebrow">// Selected Work</p>
+    <h1 class="section-title">Case studies.</h1>
     <p class="mt-5 text-slate-400 leading-relaxed max-w-xl">
-      Field notes on industrial digital architecture: MES, SCADA, MQTT, historians,
-      and the unglamorous work of getting factory data to actually flow. Written from the
-      plant floor, not the brochure.
+      Longer write-ups of work on the plant floor: what the factory looked like before,
+      what got built, and what changed once it ran. Client names stay out of these.
+      The architecture doesn&rsquo;t.
+    </p>
+    <p class="mt-4 text-slate-400 leading-relaxed max-w-xl">
+      Shorter, more general pieces live in the
+      <a href="../notes/" class="text-slate-300 hover:text-brand-300 underline-offset-4 hover:underline transition-colors">notes</a>.
     </p>
 
     <ul class="mt-12 grid gap-5">
       <li>
-        <a href="mes-scada-vs-historian/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
+        <a href="factory-data-backbone/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
           <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">MES vs SCADA vs historian: what actually goes where</h2>
-            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Read ↗</span>
+            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">From data islands to a factory-wide backbone</h2>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Case study ↗</span>
           </div>
-          <p class="text-sm text-slate-400 mt-1 font-mono">2026-07-23 · 4 min read</p>
-          <p class="mt-3 text-sm text-slate-300 leading-relaxed">They're not competitors and they're not interchangeable. They're three layers of a factory's data stack, each answering a different question, and most stalled data projects got the layering wrong.</p>
+          <p class="text-sm text-slate-400 mt-1">A large European food producer · Data engineering</p>
+          <p class="mt-3 text-sm text-slate-300 leading-relaxed">From scattered spreadsheets and data islands to a unified data backbone across five production sites, built on Ignition, MQTT and a unified namespace.</p>
           <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
-            <span class="tag">MES</span><span class="tag">SCADA</span><span class="tag">Historian</span><span class="tag">Architecture</span>
+            <span class="tag">Ignition</span><span class="tag">MQTT</span><span class="tag">Unified Namespace</span><span class="tag">Data Lake</span>
           </div>
         </a>
       </li>

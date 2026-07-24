@@ -331,6 +331,151 @@ html { color-scheme: dark; }
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
 }
 
+/* --- Rail (collapsed) state -------------------------------------------
+   Desktop only: the panel shrinks to a dot strip and the page reclaims the
+   width. Hovering it expands the panel OVER the content rather than pushing
+   it, so nothing reflows while you're pointing at a tag. The nav-rail class
+   is set on <html> before paint, so there is no expanded-then-collapsed flash.
+   ---------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .tag-nav { transition: width .24s cubic-bezier(0.22, 1, 0.36, 1); }
+  .nav-rail .tag-nav { width: 3.25rem; }
+  .nav-rail .tag-nav:hover,
+  .nav-rail .tag-nav:focus-within { width: 16rem; }
+
+  /* Content offset follows the rail (beats the lg:pl-64 utility on specificity) */
+  .nav-rail .lg\:pl-64 { padding-left: 3.25rem; }
+  .lg\:pl-64 { transition: padding-left .24s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  /* Everything except the dots and the chevron folds away while railed */
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__brand,
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__caption,
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__filter,
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__legend,
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__footer,
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__name,
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .qv-badge,
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__group-count {
+    display: none;
+  }
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__panel { padding: 1rem 0.4rem; }
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__item,
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__group > summary {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 0.4rem 0;
+  }
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__group > ul {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: 0;
+  }
+  /* The chevron is the only affordance left — point it at "expand" */
+  .nav-rail .tag-nav:not(:hover):not(:focus-within) .tag-nav__header .tag-nav__chev {
+    transform: rotate(-90deg);
+  }
+}
+
+/* The brand row doubles as the collapse control */
+.tag-nav__collapse {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.tag-nav__collapse:hover .tag-nav__brand { color: var(--color-brand-300); }
+.tag-nav__header .tag-nav__chev { transition: transform .2s ease; }
+
+/* Filter field */
+.tag-nav__filter { padding: 0 0.25rem 0.25rem; }
+.tag-nav__filter input {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  font-family: inherit;
+  font-size: 0.7rem;
+  color: rgb(226 232 240);
+}
+.tag-nav__filter input::placeholder { color: rgb(100 116 139); }
+.tag-nav__filter input:focus {
+  outline: none;
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(15, 23, 42, 0.9);
+}
+.tag-nav__empty {
+  padding: 0.5rem;
+  font-size: 0.7rem;
+  color: rgb(100 116 139);
+}
+/* While filtering, the dashed child rail reads as clutter */
+.tag-nav__tree.is-filtered .tag-nav__group > ul { border-left-color: transparent; }
+
+/* Right-click context menu */
+.tag-ctx {
+  position: fixed;
+  z-index: 60;
+  min-width: 11rem;
+  padding: 0.35rem;
+  border-radius: 6px;
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  background: rgba(2, 6, 23, 0.97);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.7);
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+}
+.tag-ctx__path {
+  margin: 0 0 0.3rem;
+  padding: 0.25rem 0.45rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.03em;
+  color: rgb(100 116 139);
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.15);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tag-ctx button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  padding: 0.35rem 0.45rem;
+  font: inherit;
+  font-size: 0.7rem;
+  color: rgb(203 213 225);
+  cursor: pointer;
+}
+.tag-ctx button:hover {
+  background: rgba(34, 211, 238, 0.1);
+  color: rgb(241 245 249);
+}
+
+/* Tag-path breadcrumb in the top bar */
+.tag-path {
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  color: rgb(100 116 139);
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: none;                 /* too cramped below md */
+}
+@media (min-width: 768px) {
+  .tag-path { display: block; }
+}
+.tag-path__sep { color: rgba(148, 163, 184, 0.4); padding: 0 0.15rem; }
+.tag-path__leaf { color: rgb(148 163 184); }
+
 /* Backdrop on mobile when the nav is open */
 .tag-nav::before {
   content: "";
@@ -451,6 +596,14 @@ html { color-scheme: dark; }
   box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.35);
 }
 /* Page nodes navigate off the home page — mark them with a small ↗ */
+/* A long label (case-study / article slugs) must yield to the QV badge
+   instead of shoving it out of the panel. */
+.tag-nav__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .tag-nav__item--page .tag-nav__name::after {
   content: " \2197";
   color: rgba(148, 163, 184, 0.55);
@@ -511,6 +664,18 @@ html { color-scheme: dark; }
   color: rgb(110 231 183);
   border-color: rgba(52, 211, 153, 0.4);
   background: rgba(52, 211, 153, 0.08);
+}
+
+/* A group row can be the live one as well (its own section is in view, or it
+   is the page you're on). It has no dot/badge, so the row itself carries it. */
+.tag-nav__group > summary[data-qv="live"] {
+  background: rgba(52, 211, 153, 0.07);
+  color: rgb(241 245 249);
+  box-shadow: inset 2px 0 0 0 var(--color-accent);
+}
+.tag-nav__group > summary[data-qv="live"] .tag-nav__chev,
+.tag-nav__group > summary[data-qv="live"] .tag-nav__group-count {
+  color: rgb(110 231 183);
 }
 
 @keyframes qv-pulse {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script>document.documentElement.classList.add('js');</script>
+  <script>document.documentElement.classList.add('js');try{if(localStorage.getItem('samdonche.nav.rail')==='1')document.documentElement.classList.add('nav-rail')}catch(e){}</script>
   <meta name="theme-color" content="#020617" />
   <meta name="description" content="MES, SCADA and a historian aren't competitors. They're three layers of a factory's data stack, each answering a different question. Where each one fits, and why conflating them stalls data projects." />
   <meta name="author" content="Sam Donche" />
@@ -59,7 +59,7 @@
   <link rel="preload" href="../../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="../../assets/css/fonts.css?v=0f6b5ce264" />
   <link rel="stylesheet" href="../../assets/css/tailwind.css?v=24f3f3ff7e" />
-  <link rel="stylesheet" href="../../assets/css/styles.css?v=7a9404aafe" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=deb9431525" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased">
@@ -82,13 +82,14 @@
           sam.donche<span class="text-brand-400">@</span>edge
         </span>
       </a>
-      <a href="../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors">← notes</a>
+      <div class="flex items-center gap-3"><a href="../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors">← notes</a><button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div>
     </div>
   </header>
 
+  <div class="lg:pl-64">
   <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-24">
     <article>
-      <div class="reveal">
+      <div class="hero-enter">
         <p class="section-eyebrow">// Notes</p>
         <h1 class="section-title">MES vs SCADA vs historian: what actually goes where.</h1>
         <p class="mt-4 font-mono text-xs tracking-wider text-slate-500">
@@ -336,8 +337,10 @@
       </p>
     </article>
   </main>
+  </div>
 
-  <script src="../../assets/js/script.js?v=563e3a433b" defer></script>
+  <script src="../../assets/js/eggs.js?v=184404dc3e" defer></script>
+  <script src="../../assets/js/script.js?v=7460d8084d" defer></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../../assets/js/goatcounter.js"></script>
 </body>
 </html>

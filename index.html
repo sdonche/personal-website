@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Flag JS as available before paint, so scroll-reveal only hides content it can later reveal -->
-  <script>document.documentElement.classList.add('js');</script>
+  <script>document.documentElement.classList.add('js');try{if(localStorage.getItem('samdonche.nav.rail')==='1')document.documentElement.classList.add('nav-rail')}catch(e){}</script>
   <meta name="theme-color" content="#020617" />
   <!-- Google Search Console domain verification -->
   <meta name="google-site-verification" content="HQz-I2-Zb3xYAjzt46hbnHlORhIRZd0jGu752kM7wkk" />
@@ -84,7 +84,7 @@
 
   <!-- Custom styles (animations, grid bg, network nav specifics).
        The ?v= cache-busters are content hashes stamped by `make` (scripts/stamp-assets.py) — not edited by hand. -->
-  <link rel="stylesheet" href="assets/css/styles.css?v=7a9404aafe" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=deb9431525" />
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -646,7 +646,10 @@
       <div class="max-w-4xl mx-auto">
         <div class="reveal">
           <p class="section-eyebrow">// Selected Work</p>
-          <h2 class="section-title">Case studies</h2>
+          <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h2 class="section-title">Case studies</h2>
+            <a href="case-studies/" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors">all case studies &#8599;</a>
+          </div>
         </div>
 
         <div class="mt-10 grid gap-5 reveal">
@@ -744,7 +747,7 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <nav aria-label="More pages" class="flex flex-wrap justify-center sm:justify-start gap-5 font-mono text-xs text-slate-500 mb-5">
         <a href="notes/" class="hover:text-brand-300 transition-colors">notes</a>
-        <a href="case-studies/factory-data-backbone/" class="hover:text-brand-300 transition-colors">case studies</a>
+        <a href="case-studies/" class="hover:text-brand-300 transition-colors">case studies</a>
         <a href="publications/" class="hover:text-brand-300 transition-colors">publications</a>
       </nav>
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
@@ -803,7 +806,7 @@
   <script src="assets/js/skill-meta.js?v=ae64c7ead7" defer></script>
   <script src="assets/js/eggs.js?v=184404dc3e" defer></script>
   <script src="assets/js/diagram.js?v=ee4b3ce4a1" defer></script>
-  <script src="assets/js/script.js?v=563e3a433b" defer></script>
+  <script src="assets/js/script.js?v=7460d8084d" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->

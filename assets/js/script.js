@@ -55,8 +55,8 @@
     { id: "role-uz-gent",         label: "uz_gent",         group: "experience", desc: "PhD / Imaging Research" },
     { id: "edu-ugent",            label: "ugent",           group: "experience", desc: "Bio-Science Engineering" },
     { id: "skills",               label: "skills" },
-    // "work" is a home section AND a folder of case-study pages
-    { id: "work",                 label: "work", parent: "work" },
+    // "work" is a home section AND the case-studies index AND their folder
+    { id: "work",                 label: "work", parent: "work", page: true, href: "case-studies/" },
     { id: "cs-factory",           label: "factory-data-backbone", group: "work", page: true, href: "case-studies/factory-data-backbone/", desc: "Case study" },
     // "notes" is a page (a writing index) that also folders the articles
     { id: "notes",                label: "notes", parent: "notes", page: true, href: "notes/" },
@@ -90,7 +90,12 @@
     startClock();
     setFooterYear();
     loadVisited();
+    ensureSidebar();
+    // On a sub-page, that page's node is the LIVE one (no in-view sections here)
+    const pid = currentPageId();
+    if (pid) { activeId = pid; visited.add(pid); saveVisited(); }
     buildTagBrowser();
+    enhanceSidebar();
     wireMobileNav();
     wireCommandPalette();
     buildCareerTrend();
@@ -99,6 +104,7 @@
     wireContactForm();
     wireEmailLinks();
     wireEasterEggs();
+    scrollToHashOnLoad();
   }
 
   /* ----------------------------------------------------
@@ -130,6 +136,53 @@
         Builds the tree, then exposes refreshQV() to update
         per-item status based on visited + activeId.
      ---------------------------------------------------- */
+  /* Sub-pages don't ship the sidebar markup. Inject it so the tag browser is
+     identical on every page (the home page already has it in static HTML). */
+  function ensureSidebar() {
+    if (document.getElementById("tag-nav")) return;
+    const aside = document.createElement("aside");
+    aside.id = "tag-nav";
+    aside.className = "tag-nav";
+    aside.setAttribute("aria-label", "Site tag browser");
+    aside.innerHTML = `
+      <div class="tag-nav__panel">
+        <header class="tag-nav__header">
+          <div class="tag-nav__title">
+            <span class="tag-nav__chev" aria-hidden="true">&#9660;</span>
+            <span class="tag-nav__brand">samdonche</span>
+          </div>
+          <button id="nav-close" type="button" class="tag-nav__close lg:hidden" aria-label="Close navigation">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 mx-auto"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </header>
+        <p class="tag-nav__caption">[ TAG BROWSER ]</p>
+        <ul id="tag-nav-tree" class="tag-nav__tree"></ul>
+        <div class="tag-nav__legend font-mono">
+          <p><span class="legend-dot legend-dot--stale" aria-hidden="true"></span> stale &middot; not yet viewed</p>
+          <p><span class="legend-dot legend-dot--good" aria-hidden="true"></span> good &middot; visited</p>
+          <p><span class="legend-dot legend-dot--live" aria-hidden="true"></span> live &middot; on screen now</p>
+        </div>
+      </div>`;
+    document.body.appendChild(aside);
+  }
+
+  /* Registry hrefs are stored site-relative; the sidebar renders on pages at any
+     depth, so every link has to be resolved from the site root. */
+  function abs(href) {
+    return "/" + String(href).replace(/^\//, "");
+  }
+
+  /* Which registry node is the page we're currently on (null on the home page) */
+  function currentPageId() {
+    const path = location.pathname.replace(/index\.html$/, "");
+    for (const s of SECTIONS) {
+      if (!s.page) continue;
+      const href = abs(s.href);
+      if (path === href || path === href.replace(/\/$/, "")) return s.id;
+    }
+    return null;
+  }
+
   function buildTagBrowser() {
     const tree = document.getElementById("tag-nav-tree");
     if (!tree) return;
@@ -157,7 +210,23 @@
       }
     }
 
+    openActiveBranch();
     refreshQV();
+  }
+
+  /* Folders render closed, so open the one holding the current page or section
+     — otherwise you can land on /notes/ with your own node folded out of sight.
+     Build-time only: reopening on every refresh would fight the visitor. */
+  function openActiveBranch() {
+    const s = SECTIONS.find(x => x.id === activeId);
+    if (!s) return;
+    const key = s.group || s.parent;
+    if (!key) return;
+    const owner = SECTIONS.find(x => x.parent === key);
+    if (!owner) return;
+    const summary = document.querySelector(
+      '.tag-nav__group > summary[data-section="' + owner.id + '"]');
+    if (summary) summary.parentElement.open = true;
   }
 
   function renderLeaf(section) {
@@ -167,7 +236,7 @@
     a.className = "tag-nav__item" + (section.page ? " tag-nav__item--page" : "");
     a.dataset.section = section.id;
     a.dataset.qv = "stale";
-    a.href = section.page ? section.href : `#${section.id}`;
+    a.href = section.page ? abs(section.href) : `#${section.id}`;
     a.setAttribute("aria-label", section.page ? `Open ${section.label}` : `Go to ${section.label}`);
     a.innerHTML = `
       <span class="qv-dot" aria-hidden="true"></span>
@@ -177,8 +246,13 @@
     if (section.page) {
       // Real page: let the browser navigate, just record the visit first.
       a.addEventListener("click", () => { visited.add(section.id); saveVisited(); });
-    } else {
+    } else if (document.getElementById(section.id)) {
+      // Section on this page — smooth-scroll to it.
       a.addEventListener("click", (e) => { e.preventDefault(); scrollToSection(section.id); });
+    } else {
+      // Home-page section, viewed from a sub-page — navigate home + anchor.
+      a.href = `/#${section.id}`;
+      a.addEventListener("click", () => { visited.add(section.id); saveVisited(); });
     }
 
     li.appendChild(a);
@@ -191,9 +265,14 @@
     // <details>/<summary> natively conveys expanded/collapsed state
     const details = document.createElement("details");
     details.className = "tag-nav__group";
-    details.open = true;
+    // Folders start closed — the tree reads as a tree, not a wall of tags.
+    // openActiveBranch() reopens the one you're actually in.
+    details.open = false;
 
     const summary = document.createElement("summary");
+    // Groups carry QV state too: a group row can itself be the active section
+    // (trajectory, work) or the current page (notes).
+    summary.dataset.section = parentSection.id;
     summary.innerHTML = `
       <span class="tag-nav__chev" aria-hidden="true">▼</span>
       <span class="tag-nav__name">${escapeHtml(parentSection.label)}</span>
@@ -205,9 +284,12 @@
         e.preventDefault();
         if (parentSection.page) {
           visited.add(parentSection.id); saveVisited();
-          location.assign(parentSection.href);
-        } else {
+          location.assign(abs(parentSection.href));
+        } else if (document.getElementById(parentSection.id)) {
           scrollToSection(parentSection.id);
+        } else {
+          visited.add(parentSection.id); saveVisited();
+          location.assign(`/#${parentSection.id}`);
         }
       }
     });
@@ -223,7 +305,7 @@
 
   /* Refresh QV badges on every sidebar item based on visited + activeId */
   function refreshQV() {
-    const items = document.querySelectorAll(".tag-nav__item");
+    const items = document.querySelectorAll(".tag-nav__item, .tag-nav__group > summary[data-section]");
     items.forEach((el) => {
       const id = el.dataset.section;
       let qv = "stale";
@@ -237,7 +319,247 @@
       const badge = el.querySelector(".qv-badge");
       if (badge) badge.textContent = qv.toUpperCase();
     });
+    updateTagPath();
     checkPlantTour();
+  }
+
+  /* ----------------------------------------------------
+     3b. Tag-browser extras — rail collapse, filter, context
+         menu, tag-path breadcrumb.
+
+         These attach to whichever panel is on the page (the
+         home page ships the sidebar as static markup, every
+         other page gets it from ensureSidebar), so the markup
+         only has to exist in one of those two places.
+     ---------------------------------------------------- */
+  const RAIL_KEY = "samdonche.nav.rail";
+
+  function enhanceSidebar() {
+    const panel = document.querySelector(".tag-nav__panel");
+    if (!panel) return;
+
+    // The "▼ samdonche" brand row becomes the collapse control
+    const title = panel.querySelector(".tag-nav__title");
+    if (title && !document.getElementById("nav-collapse")) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "nav-collapse";
+      btn.className = "tag-nav__collapse";
+      title.parentNode.insertBefore(btn, title);
+      btn.appendChild(title);
+      btn.addEventListener("click", () => setRail(!isRail()));
+      syncRailUI();
+    }
+
+    // Filter field — a real tag browser has one
+    const caption = panel.querySelector(".tag-nav__caption");
+    if (caption && !document.getElementById("tag-filter")) {
+      const wrap = document.createElement("div");
+      wrap.className = "tag-nav__filter";
+      wrap.innerHTML =
+        '<input id="tag-filter" type="search" autocomplete="off" spellcheck="false" ' +
+        'placeholder="filter tags…" aria-label="Filter tags" />';
+      caption.parentNode.insertBefore(wrap, caption.nextSibling);
+      const input = wrap.querySelector("input");
+      input.addEventListener("input", () => filterTree(input.value));
+      input.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        if (input.value) { input.value = ""; filterTree(""); }
+        else input.blur();
+      });
+    }
+
+    // Railed, the filter field is hidden — a filter left applied would just
+    // look like a mysteriously short strip of dots, so drop it on the way out.
+    const nav = document.getElementById("tag-nav");
+    if (nav && !nav.dataset.railWired) {
+      nav.dataset.railWired = "1";
+      nav.addEventListener("mouseleave", () => {
+        const input = document.getElementById("tag-filter");
+        if (isRail() && input && input.value) { input.value = ""; filterTree(""); }
+      });
+    }
+
+    wireTagContextMenu();
+  }
+
+  function isRail() {
+    return document.documentElement.classList.contains("nav-rail");
+  }
+
+  function setRail(on) {
+    document.documentElement.classList.toggle("nav-rail", on);
+    try { localStorage.setItem(RAIL_KEY, on ? "1" : "0"); } catch (e) {}
+    syncRailUI();
+  }
+
+  function syncRailUI() {
+    const btn = document.getElementById("nav-collapse");
+    if (!btn) return;
+    const rail = isRail();
+    btn.setAttribute("aria-expanded", String(!rail));
+    btn.setAttribute("aria-label", rail ? "Expand tag browser" : "Collapse tag browser");
+    btn.title = rail ? "Expand tag browser" : "Collapse tag browser";
+    // Collapsed, the tree is unreadable — don't leave a stale filter applied
+    const input = document.getElementById("tag-filter");
+    if (rail && input && input.value) { input.value = ""; filterTree(""); }
+  }
+
+  /* Live-filter the tree. A group survives if its own label matches or any of
+     its children do, and it force-opens while a filter is active. */
+  function filterTree(query) {
+    const q = query.trim().toLowerCase();
+    const tree = document.getElementById("tag-nav-tree");
+    if (!tree) return;
+    tree.classList.toggle("is-filtered", !!q);
+
+    let hits = 0;
+    tree.querySelectorAll(":scope > li").forEach((li) => {
+      const details = li.querySelector(":scope > details");
+      if (!details) {
+        const item = li.querySelector(".tag-nav__item");
+        const on = !q || matchesTag(item, q);
+        li.hidden = !on;
+        if (on && q) hits++;
+        return;
+      }
+      const summary = details.querySelector(":scope > summary");
+      const selfHit = !q || matchesTag(summary, q);
+      let childHits = 0;
+      details.querySelectorAll(":scope > ul > li").forEach((child) => {
+        const on = !q || selfHit || matchesTag(child.querySelector(".tag-nav__item"), q);
+        child.hidden = !on;
+        if (on && q) childHits++;
+      });
+      const on = selfHit || childHits > 0;
+      li.hidden = !on;
+      if (on && q) hits += childHits || 1;
+      if (q) {
+        if (!details.dataset.wasOpen) details.dataset.wasOpen = details.open ? "1" : "0";
+        details.open = true;
+      } else if (details.dataset.wasOpen) {
+        details.open = details.dataset.wasOpen === "1";
+        delete details.dataset.wasOpen;
+      }
+    });
+
+    let empty = document.getElementById("tag-filter-empty");
+    if (q && !hits) {
+      if (!empty) {
+        empty = document.createElement("li");
+        empty.id = "tag-filter-empty";
+        empty.className = "tag-nav__empty";
+        empty.textContent = "no tags match";
+        tree.appendChild(empty);
+      }
+      empty.hidden = false;
+    } else if (empty) {
+      empty.hidden = true;
+    }
+  }
+
+  function matchesTag(el, q) {
+    if (!el) return false;
+    const s = SECTIONS.find(x => x.id === el.dataset.section);
+    return (el.dataset.section || "").toLowerCase().includes(q) ||
+           (s ? (s.label + " " + (s.desc || "")).toLowerCase().includes(q) : false);
+  }
+
+  /* The Ignition-style path for a node: samdonche/work/factory-data-backbone */
+  function tagPath(id) {
+    const s = SECTIONS.find(x => x.id === id);
+    if (!s) return "samdonche";
+    const parent = s.group ? SECTIONS.find(x => x.parent === s.group) : null;
+    return ["samdonche", parent && parent.id !== s.id ? parent.label : null, s.label]
+      .filter(Boolean).join("/");
+  }
+
+  /* Where the node actually goes, resolved from the site root */
+  function tagUrl(id) {
+    const s = SECTIONS.find(x => x.id === id);
+    if (!s) return "/";
+    return s.page ? abs(s.href) : "/#" + s.id;
+  }
+
+  /* Right-click a tag → copy its path / open it in a new tab. */
+  function wireTagContextMenu() {
+    const nav = document.getElementById("tag-nav");
+    if (!nav || nav.dataset.ctxWired) return;
+    nav.dataset.ctxWired = "1";
+
+    let menu = null;
+    const close = () => { if (menu) { menu.remove(); menu = null; } };
+
+    nav.addEventListener("contextmenu", (e) => {
+      const row = e.target.closest(".tag-nav__item, .tag-nav__group > summary[data-section]");
+      if (!row) return;
+      e.preventDefault();
+      close();
+
+      const id = row.dataset.section;
+      const path = tagPath(id);
+      menu = document.createElement("div");
+      menu.className = "tag-ctx";
+      menu.setAttribute("role", "menu");
+      menu.innerHTML =
+        '<p class="tag-ctx__path">' + escapeHtml(path) + "</p>" +
+        '<button type="button" role="menuitem" data-act="copy">copy tag path</button>' +
+        '<button type="button" role="menuitem" data-act="open">open in new tab</button>';
+      document.body.appendChild(menu);
+
+      // Keep it on screen near the cursor
+      const r = menu.getBoundingClientRect();
+      menu.style.left = Math.min(e.clientX, window.innerWidth - r.width - 8) + "px";
+      menu.style.top  = Math.min(e.clientY, window.innerHeight - r.height - 8) + "px";
+
+      menu.addEventListener("click", (ev) => {
+        const act = ev.target.dataset && ev.target.dataset.act;
+        if (act === "copy") { copyText(path); eggToast("copied &middot; " + escapeHtml(path)); }
+        if (act === "open") window.open(tagUrl(id), "_blank", "noopener");
+        close();
+      });
+    });
+
+    document.addEventListener("click", close);
+    document.addEventListener("scroll", close, true);
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => {});
+      return;
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    ta.remove();
+  }
+
+  /* Tag-path breadcrumb in the top bar — orients you on sub-pages, where the
+     header would otherwise just say "← back". */
+  function updateTagPath() {
+    let el = document.getElementById("tag-path");
+    if (!el) {
+      const bar = document.querySelector("header .flex.items-center.justify-between");
+      if (!bar) return;
+      el = document.createElement("p");
+      el.id = "tag-path";
+      el.className = "tag-path font-mono";
+      el.setAttribute("aria-hidden", "true");
+      bar.insertBefore(el, bar.lastElementChild);
+    }
+    const parts = tagPath(activeId).split("/");
+    el.innerHTML = parts
+      .map((p, i) => i === parts.length - 1
+        ? '<span class="tag-path__leaf">' + escapeHtml(p) + "</span>"
+        : escapeHtml(p))
+      .join('<span class="tag-path__sep">/</span>');
   }
 
   /* Easter egg: mark the "full plant tour" once every visitable tag has been
@@ -261,6 +583,25 @@
   /* ----------------------------------------------------
      scrollToSection — shared by nav, palette, links
      ---------------------------------------------------- */
+  /* Section links in the sidebar of a sub-page land here as /#about. The
+     browser's own hash jump doesn't survive first paint, so re-apply it: once
+     on the next frame, and again after load in case fonts shifted the target. */
+  function scrollToHashOnLoad() {
+    const id = location.hash.slice(1);
+    if (!id || !document.getElementById(id)) return;
+    scrollToSection(id);                     // layout is ready at DOMContentLoaded
+
+    // Fonts and images can still shift the target, so correct once after load —
+    // but never yank the page if the visitor has already taken over scrolling.
+    let touched = false;
+    const mark = () => { touched = true; };
+    ["wheel", "touchstart", "keydown"].forEach(ev =>
+      window.addEventListener(ev, mark, { once: true, passive: true }));
+    window.addEventListener("load", () => {
+      if (!touched) scrollToSection(id);
+    }, { once: true });
+  }
+
   function scrollToSection(id) {
     let target = document.getElementById(id);
     if (!target) return;
@@ -464,7 +805,7 @@
       const cmd = commands.find(c => c.id === id);
       if (cmd) { discoverEgg("commands"); cmd.run(); return; }
       const it = items.find(i => i.id === id);
-      if (it && it.page) { visited.add(id); saveVisited(); location.assign(it.href); return; }
+      if (it && it.page) { visited.add(id); saveVisited(); location.assign(abs(it.href)); return; }
       scrollToSection(id);
     }
 
@@ -740,7 +1081,8 @@
           io.unobserve(e.target);
         }
       });
-    }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+      // threshold 0 as well: a block taller than ~8 viewports never reaches 12%
+    }, { threshold: [0, 0.12], rootMargin: "0px 0px -8% 0px" });
 
     els.forEach(el => io.observe(el));
   }
@@ -891,7 +1233,7 @@
         '<p class="capstone-fx__kicker">all systems discovered</p>' +
         '<p class="capstone-fx__rank">Plant Architect</p>' +
         '<p class="capstone-fx__sub">You found every last one. 9 / 9.</p>' +
-        '<a class="capstone-fx__cta" href="log/">open the operator log &rsaquo;</a>' +
+        '<a class="capstone-fx__cta" href="/log/">open the operator log &rsaquo;</a>' +
       "</div>";
     document.body.appendChild(fx);
     void fx.offsetWidth;
@@ -908,7 +1250,7 @@
       el = document.createElement("a");
       el.id = "egg-discover";
       el.className = "egg-discover";
-      el.href = "log/";
+      el.href = "/log/";
       document.body.appendChild(el);
     }
     el.innerHTML =
