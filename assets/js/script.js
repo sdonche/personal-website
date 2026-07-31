@@ -60,6 +60,7 @@
     { id: "cs-factory",           label: "factory-data-backbone", group: "work", page: true, href: "case-studies/factory-data-backbone/", desc: "Case study" },
     // "notes" is a page (a writing index) that also folders the articles
     { id: "notes",                label: "notes", parent: "notes", page: true, href: "notes/" },
+    { id: "note-mqtt",            label: "mqtt-sparkplug-b", group: "notes", page: true, href: "notes/mqtt-sparkplug-b/", desc: "Article" },
     { id: "note-mes",             label: "mes-scada-vs-historian", group: "notes", page: true, href: "notes/mes-scada-vs-historian/", desc: "Article" },
     { id: "publications",         label: "publications", page: true, href: "publications/", desc: "Research output" },
     { id: "contact",              label: "contact" },

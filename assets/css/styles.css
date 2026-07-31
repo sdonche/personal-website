@@ -2144,3 +2144,105 @@ html.line-stopped *::after {
 .pyr-lead { stroke: rgba(148, 163, 184, 0.28); stroke-width: 1; }
 .pyr-hist { fill: none; stroke: var(--color-accent); stroke-width: 1.5; stroke-linejoin: round; }
 .pyr-hist-label { fill: var(--color-accent); font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 11px; letter-spacing: 1px; }
+
+/* Inline code — mono chips inside note prose (topics, message types, tag paths) */
+.note-prose code {
+  padding: 0.08em 0.35em;
+  border-radius: 0.3rem;
+  background: rgba(34, 211, 238, 0.08);
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  color: #a5f3fc;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+
+/* Sparkplug topic breakdown — a parsed topic string with a caption per segment */
+.note-prose .sp-topic {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.15rem 0.1rem;
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  border-left: 3px solid var(--color-brand-400);
+  border-radius: 0.55rem;
+  background: rgba(2, 6, 23, 0.55);
+  overflow-x: auto;
+}
+.sp-seg { display: flex; flex-direction: column; align-items: center; padding: 0 0.15rem; }
+.sp-seg code {
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.3rem;
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  color: var(--color-brand-300);
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.sp-seg--var code { background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.3); color: var(--color-accent); }
+.sp-seg--opt code { background: rgba(148, 163, 184, 0.07); border-color: rgba(148, 163, 184, 0.25); color: #94a3b8; }
+.sp-seg span {
+  margin-top: 0.4rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+  white-space: nowrap;
+}
+.sp-sep {
+  padding: 0.1rem 0.1rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.82rem;
+  font-style: normal;
+  color: #475569;
+}
+
+/* Polling viz — a scan cursor walking a tag list, almost all reads unchanged */
+.poll-box { fill: rgba(34, 211, 238, 0.05); stroke: rgba(34, 211, 238, 0.45); stroke-width: 1.4; }
+.poll-cell { fill: rgba(148, 163, 184, 0.07); stroke: rgba(148, 163, 184, 0.22); stroke-width: 1; }
+.poll-cell--chg { fill: rgba(52, 211, 153, 0.16); stroke: rgba(52, 211, 153, 0.55); stroke-width: 1.4; }
+.poll-scan { fill: rgba(34, 211, 238, 0.16); stroke: var(--color-brand-400); stroke-width: 1.4; }
+.poll-text {
+  fill: #7b8698;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-anchor: middle;
+}
+.poll-text--hl { fill: var(--color-accent); }
+.poll-link { fill: none; stroke: rgba(34, 211, 238, 0.35); stroke-width: 1.4; stroke-dasharray: 3 5; }
+
+/* Report-by-exception viz — quiet cells, one event finding its way to the broker */
+.rbe-cell { fill: rgba(148, 163, 184, 0.05); stroke: rgba(148, 163, 184, 0.16); stroke-width: 1; }
+.rbe-broker { fill: rgba(34, 211, 238, 0.08); stroke: var(--color-brand-400); stroke-width: 1.6; }
+.rbe-route { fill: none; stroke: rgba(148, 163, 184, 0.16); stroke-width: 1.2; }
+.rbe-pulse { fill: var(--color-accent); filter: drop-shadow(0 0 5px rgba(52, 211, 153, 0.8)); }
+.rbe-sub { fill: none; stroke: rgba(34, 211, 238, 0.5); stroke-width: 1.4; }
+
+/* Sparkplug session viz — birth, a stream of data, then the broker's death certificate */
+.sp-axis { stroke: rgba(148, 163, 184, 0.2); stroke-width: 1; stroke-dasharray: 2 4; }
+.sp-birth { fill: rgba(34, 211, 238, 0.18); stroke: var(--color-brand-400); stroke-width: 1.5; }
+.sp-data { fill: rgba(52, 211, 153, 0.22); stroke: rgba(52, 211, 153, 0.6); stroke-width: 1.2; }
+.sp-death { fill: rgba(248, 113, 113, 0.16); stroke: rgba(248, 113, 113, 0.65); stroke-width: 1.5; }
+.sp-cut { stroke: rgba(248, 113, 113, 0.6); stroke-width: 1.4; stroke-dasharray: 3 3; }
+.sp-cap {
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-anchor: middle;
+  fill: #7b8698;
+}
+.sp-cap--birth { fill: var(--color-brand-300); }
+.sp-cap--death { fill: #f87171; }
+
+/* Reduced motion: the path-following pulses have no meaningful resting position, so drop them.
+   (The other visuals fall back to their static attribute values, which read fine.) */
+@media (prefers-reduced-motion: reduce) {
+  .sig-viz__svg animateMotion { display: none; }
+  .rbe-pulse { display: none; }
+}
