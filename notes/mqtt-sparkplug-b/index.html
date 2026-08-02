@@ -209,7 +209,7 @@
           exception.
         </p>
         <p>
-          MQTT is the transport that makes it practical. Every participant connects
+          <a href="https://mqtt.org/" target="_blank" rel="noopener">MQTT</a> is the transport that makes it practical. Every participant connects
           <strong>outbound</strong> to a broker and either publishes to topics or subscribes to them.
           Publishers do not know who is listening. Subscribers do not know who is publishing. Nobody
           polls anybody. What falls out of that is the part people underestimate:
@@ -240,7 +240,7 @@
 
         <h2>Sparkplug B: the contract on top</h2>
         <p>
-          Sparkplug is an open specification that adds the missing agreements to MQTT: how topics are
+          <a href="https://sparkplug.eclipse.org/" target="_blank" rel="noopener">Sparkplug</a> is an open specification that adds the missing agreements to MQTT: how topics are
           named, how payloads are encoded, and how session state is handled. It came out of Cirrus
           Link and now lives at the Eclipse Foundation as Eclipse Sparkplug. The version you meet in
           the wild is Sparkplug&nbsp;B, which is why every topic starts with <code>spBv1.0</code>.
@@ -346,7 +346,7 @@
 
         <h2>The details that make it survive a plant</h2>
         <ul>
-          <li><strong>Typed, compact payloads.</strong> Sparkplug encodes with Google Protocol Buffers: small on the wire, explicitly typed, with a timestamp per metric. You are not reverse-engineering somebody&rsquo;s JSON dialect two years later.</li>
+          <li><strong>Typed, compact payloads.</strong> Sparkplug encodes with <a href="https://protobuf.dev/" target="_blank" rel="noopener">Google Protocol Buffers</a>: small on the wire, explicitly typed, with a timestamp per metric. You are not reverse-engineering somebody&rsquo;s JSON dialect two years later.</li>
           <li><strong>Sequence numbers.</strong> Every message in a session carries a rolling sequence number. A consumer that sees a gap knows it missed something and can ask for a rebirth, rather than quietly running on an incomplete picture.</li>
           <li><strong>Host state.</strong> The primary consuming application publishes its own <code>STATE</code> message, so edge nodes can tell whether anyone is actually listening. Implementations use that to buffer locally and forward when the host comes back, which is how a site survives a <abbr tabindex="0" aria-label="Wide Area Network">WAN</abbr> outage without a hole in its history.</li>
         </ul>
