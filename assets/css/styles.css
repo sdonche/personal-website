@@ -236,15 +236,16 @@ html { color-scheme: dark; }
   box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.25);
 }
 
-/* Spoken languages — proficiency words, not chips */
+/* Spoken languages — lives in About aside, stacked like other bio facts */
 .lang-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1.5rem;
-  font-size: 0.875rem;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
   color: rgb(226 232 240);
 }
 
