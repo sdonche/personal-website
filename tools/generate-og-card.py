@@ -1,102 +1,239 @@
 #!/usr/bin/env python3
-"""Generate assets/img/og-card.jpg — the 1200x630 social share card.
+"""Generate Open Graph share cards (1200×630 JPEG).
 
-Rerun after changing the name/title/tagline below (e.g. a role change),
-then commit the regenerated JPEG. Rendered at 2x and downscaled for
-crisp text. Requires Pillow (pip install Pillow) and the TTF fonts:
+Default (no args): regenerate the homepage card at assets/img/og-card.jpg
+(portrait + name/title), then every article/index card listed in CARDS.
 
-    curl -s -A "Mozilla/5.0" "https://fonts.googleapis.com/css2?family=Inter:wght@600;800&family=JetBrains+Mono:wght@400;500" \
-      | grep -o 'https://[^)]*\\.ttf'
-    # download into tools/fonts/: inter-600.ttf inter-800.ttf jbm-400.ttf jbm-500.ttf
-    # (order in the CSS matches the weight order requested above)
+Article cards: dark IIoT grid, section eyebrow, wrapped headline, domain.
+Requires Pillow + TTFs in tools/fonts/ (see README / original script header).
 
-Run from the repo root:  python3 tools/generate-og-card.py
+    python3 tools/generate-og-card.py          # all cards
+    python3 tools/generate-og-card.py --home   # homepage only
+    make og-cards
 """
+from __future__ import annotations
+
+import argparse
+import os
+from pathlib import Path
+
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-# ---- content -----------------------------------------------------------
-NAME     = "Sam Donche"
-TITLE    = "Industry 4.0 Consultant"
-EYEBROW  = "DIGITAL BACKBONE FOR FACTORIES"
-CTA      = "Get in touch →"
-DOMAIN   = "samdonche.com"
-PORTRAIT = "assets/img/portrait.jpg"
-OUT      = "assets/img/og-card.jpg"
-FONT_DIR = "tools/fonts"
+ROOT = Path(__file__).resolve().parent.parent
+os.chdir(ROOT)
 
-# ---- palette (matches the site tokens) ---------------------------------
-S = 2  # supersampling factor
+FONT_DIR = Path("tools/fonts")
+PORTRAIT = Path("assets/img/portrait.jpg")
+OUT_DIR = Path("assets/img/og")
+
+# Homepage identity
+NAME = "Sam Donche"
+HOME_TITLE = "Industry 4.0 Consultant"
+HOME_EYEBROW = "DIGITAL BACKBONE FOR FACTORIES"
+HOME_CTA = "Get in touch →"
+DOMAIN = "samdonche.com"
+HOME_OUT = Path("assets/img/og-card.jpg")
+
+# Per-page cards (slug → eyebrow, title). Output: assets/img/og/<slug>.jpg
+CARDS = [
+    {"slug": "notes", "eyebrow": "NOTES", "title": "Field notes on industrial digital architecture"},
+    {"slug": "case-studies", "eyebrow": "CASE STUDIES", "title": "Selected work on the plant floor"},
+    {"slug": "publications", "eyebrow": "PUBLICATIONS", "title": "Research output from UZ Gent"},
+    {
+        "slug": "mqtt-sparkplug-b",
+        "eyebrow": "NOTE",
+        "title": "MQTT and Sparkplug B: why factories stopped polling",
+    },
+    {
+        "slug": "mes-scada-vs-historian",
+        "eyebrow": "NOTE",
+        "title": "MES vs SCADA vs historian: what actually goes where",
+    },
+    {
+        "slug": "factory-data-backbone",
+        "eyebrow": "CASE STUDY",
+        "title": "From data islands to a factory-wide backbone",
+    },
+]
+
+# Palette (site tokens)
+S = 2
 W, H = 1200 * S, 630 * S
-BG = (2, 6, 23); GRID = (12, 17, 34); CYAN = (34, 211, 238); CYAN_L = (103, 232, 249)
-WHITE = (241, 245, 249); SLATE3 = (203, 213, 225); SLATE4 = (148, 163, 184)
-SLATE5 = (100, 116, 139); BORDER = (30, 41, 59); CARD_BG = (10, 16, 34)
+BG = (2, 6, 23)
+GRID = (12, 17, 34)
+CYAN = (34, 211, 238)
+CYAN_L = (103, 232, 249)
+WHITE = (241, 245, 249)
+SLATE3 = (203, 213, 225)
+SLATE4 = (148, 163, 184)
+BORDER = (30, 41, 59)
+CARD_BG = (10, 16, 34)
 ACCENT = (52, 211, 153)
 
-img = Image.new("RGB", (W, H), BG)
-d = ImageDraw.Draw(img)
 
-# background grid + soft cyan glow
-for x in range(0, W, 48 * S):
-    d.line([(x, 0), (x, H)], fill=GRID, width=S)
-for y in range(0, H, 48 * S):
-    d.line([(0, y), (W, y)], fill=GRID, width=S)
-glow = Image.new("L", (W, H), 0)
-ImageDraw.Draw(glow).ellipse([-300 * S, -350 * S, 900 * S, 450 * S], fill=26)
-glow = glow.filter(ImageFilter.GaussianBlur(160 * S))
-img = Image.composite(Image.new("RGB", (W, H), CYAN), img, glow)
-d = ImageDraw.Draw(img)
+def font(name: str, size: int) -> ImageFont.FreeTypeFont:
+    return ImageFont.truetype(str(FONT_DIR / name), size * S)
 
-F = lambda f, s: ImageFont.truetype(f"{FONT_DIR}/{f}", s * S)
-eyebrow_f = F("jbm-500.ttf", 26); name_f = F("inter-800.ttf", 98)
-title_f = F("inter-600.ttf", 44); mono_f = F("jbm-400.ttf", 28)
-tiny_f = F("jbm-500.ttf", 18)
 
-def tracked(draw, xy, text, font, fill, tracking=0):
+def tracked(draw: ImageDraw.ImageDraw, xy, text, fnt, fill, tracking=0):
     x, y = xy
     for ch in text:
-        draw.text((x, y), ch, font=font, fill=fill)
-        x += draw.textlength(ch, font=font) + tracking * S
+        draw.text((x, y), ch, font=fnt, fill=fill)
+        x += draw.textlength(ch, font=fnt) + tracking * S
     return x
 
-# left column
-LX = 90 * S
-ey_y = 160 * S
-d.line([(LX, ey_y + 16 * S), (LX + 56 * S, ey_y + 16 * S)], fill=CYAN, width=2 * S)
-tracked(d, (LX + 76 * S, ey_y), EYEBROW, eyebrow_f, CYAN, tracking=3)
-d.text((LX, 215 * S), NAME, font=name_f, fill=WHITE)
-d.text((LX, 345 * S), TITLE, font=title_f, fill=SLATE3)
 
-# CTA styled like the site's primary button (cyan fill, dark text)
-cta_f = F("inter-600.ttf", 30)
-cta_y = 440 * S
-pad_x, pad_y = 30 * S, 18 * S
-cta_w = int(d.textlength(CTA, font=cta_f)) + 2 * pad_x
-cta_h = 30 * S + 2 * pad_y
-d.rounded_rectangle([LX, cta_y, LX + cta_w, cta_y + cta_h], radius=10 * S, fill=CYAN)
-d.text((LX + pad_x, cta_y + pad_y - 2 * S), CTA, font=cta_f, fill=BG)
+def base_canvas() -> tuple[Image.Image, ImageDraw.ImageDraw]:
+    img = Image.new("RGB", (W, H), BG)
+    d = ImageDraw.Draw(img)
+    for x in range(0, W, 48 * S):
+        d.line([(x, 0), (x, H)], fill=GRID, width=S)
+    for y in range(0, H, 48 * S):
+        d.line([(0, y), (W, y)], fill=GRID, width=S)
+    glow = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(glow).ellipse([-300 * S, -350 * S, 900 * S, 450 * S], fill=26)
+    glow = glow.filter(ImageFilter.GaussianBlur(160 * S))
+    img = Image.composite(Image.new("RGB", (W, H), CYAN), img, glow)
+    return img, ImageDraw.Draw(img)
 
-dot_y = 545 * S
-dx = LX + cta_w + 40 * S
-d.ellipse([dx, cta_y + cta_h // 2 - 7 * S, dx + 14 * S, cta_y + cta_h // 2 + 7 * S], fill=ACCENT)
-d.text((dx + 28 * S, cta_y + cta_h // 2 - 17 * S), DOMAIN, font=mono_f, fill=SLATE4)
 
-# right: portrait in the profile-inspector card treatment
-card_w = 340 * S
-photo = Image.open(PORTRAIT)
-ph_h = int(card_w * photo.height / photo.width)
-head_h = 48 * S
-card_h = head_h + ph_h
-cx1 = W - card_w - 80 * S
-cy1 = (H - card_h) // 2
-cx2, cy2 = cx1 + card_w, cy1 + card_h
-d.rounded_rectangle([cx1, cy1, cx2, cy2], radius=14 * S, fill=CARD_BG, outline=BORDER, width=2 * S)
-tracked(d, (cx1 + 20 * S, cy1 + 15 * S), "◇ samdonche/profile", tiny_f, CYAN_L, tracking=2)
-d.line([(cx1, cy1 + head_h), (cx2, cy1 + head_h)], fill=BORDER, width=2 * S)
-photo = photo.resize((card_w, ph_h), Image.LANCZOS)
-mask = Image.new("L", (card_w, ph_h), 0)
-ImageDraw.Draw(mask).rounded_rectangle([0, -20 * S, card_w, ph_h], radius=13 * S, fill=255)
-img.paste(photo, (cx1, cy1 + head_h), mask)
-d.rounded_rectangle([cx1, cy1, cx2, cy2], radius=14 * S, outline=BORDER, width=2 * S)
+def wrap_title(draw: ImageDraw.ImageDraw, text: str, fnt, max_width: int) -> list[str]:
+    """Greedy word wrap to fit max_width pixels."""
+    words = text.split()
+    lines: list[str] = []
+    cur = ""
+    for w in words:
+        trial = w if not cur else f"{cur} {w}"
+        if draw.textlength(trial, font=fnt) <= max_width:
+            cur = trial
+        else:
+            if cur:
+                lines.append(cur)
+            cur = w
+    if cur:
+        lines.append(cur)
+    return lines
 
-img.resize((1200, 630), Image.LANCZOS).save(OUT, "JPEG", quality=90, optimize=True, progressive=True)
-print(f"wrote {OUT}")
+
+def save(img: Image.Image, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    img.resize((1200, 630), Image.LANCZOS).save(
+        path, "JPEG", quality=90, optimize=True, progressive=True
+    )
+    print(f"wrote {path}")
+
+
+def generate_home() -> None:
+    img, d = base_canvas()
+    eyebrow_f = font("jbm-500.ttf", 26)
+    name_f = font("inter-800.ttf", 98)
+    title_f = font("inter-600.ttf", 44)
+    mono_f = font("jbm-400.ttf", 28)
+    tiny_f = font("jbm-500.ttf", 18)
+    cta_f = font("inter-600.ttf", 30)
+
+    LX = 90 * S
+    ey_y = 160 * S
+    d.line([(LX, ey_y + 16 * S), (LX + 56 * S, ey_y + 16 * S)], fill=CYAN, width=2 * S)
+    tracked(d, (LX + 76 * S, ey_y), HOME_EYEBROW, eyebrow_f, CYAN, tracking=3)
+    d.text((LX, 215 * S), NAME, font=name_f, fill=WHITE)
+    d.text((LX, 345 * S), HOME_TITLE, font=title_f, fill=SLATE3)
+
+    cta_y = 440 * S
+    pad_x, pad_y = 30 * S, 18 * S
+    cta_w = int(d.textlength(HOME_CTA, font=cta_f)) + 2 * pad_x
+    cta_h = 30 * S + 2 * pad_y
+    d.rounded_rectangle([LX, cta_y, LX + cta_w, cta_y + cta_h], radius=10 * S, fill=CYAN)
+    d.text((LX + pad_x, cta_y + pad_y - 2 * S), HOME_CTA, font=cta_f, fill=BG)
+
+    dx = LX + cta_w + 40 * S
+    d.ellipse(
+        [dx, cta_y + cta_h // 2 - 7 * S, dx + 14 * S, cta_y + cta_h // 2 + 7 * S],
+        fill=ACCENT,
+    )
+    d.text((dx + 28 * S, cta_y + cta_h // 2 - 17 * S), DOMAIN, font=mono_f, fill=SLATE4)
+
+    card_w = 340 * S
+    photo = Image.open(PORTRAIT)
+    ph_h = int(card_w * photo.height / photo.width)
+    head_h = 48 * S
+    card_h = head_h + ph_h
+    cx1 = W - card_w - 80 * S
+    cy1 = (H - card_h) // 2
+    cx2, cy2 = cx1 + card_w, cy1 + card_h
+    d.rounded_rectangle(
+        [cx1, cy1, cx2, cy2], radius=14 * S, fill=CARD_BG, outline=BORDER, width=2 * S
+    )
+    tracked(d, (cx1 + 20 * S, cy1 + 15 * S), "◇ samdonche/profile", tiny_f, CYAN_L, tracking=2)
+    d.line([(cx1, cy1 + head_h), (cx2, cy1 + head_h)], fill=BORDER, width=2 * S)
+    photo = photo.resize((card_w, ph_h), Image.LANCZOS)
+    mask = Image.new("L", (card_w, ph_h), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, -20 * S, card_w, ph_h], radius=13 * S, fill=255)
+    img.paste(photo, (cx1, cy1 + head_h), mask)
+    d.rounded_rectangle([cx1, cy1, cx2, cy2], radius=14 * S, outline=BORDER, width=2 * S)
+
+    save(img, HOME_OUT)
+
+
+def generate_article(slug: str, eyebrow: str, title: str) -> None:
+    img, d = base_canvas()
+    eyebrow_f = font("jbm-500.ttf", 26)
+    title_f = font("inter-800.ttf", 64)
+    mono_f = font("jbm-400.ttf", 28)
+    name_f = font("inter-600.ttf", 32)
+
+    LX = 90 * S
+    max_w = W - 2 * LX
+
+    ey_y = 120 * S
+    d.line([(LX, ey_y + 16 * S), (LX + 56 * S, ey_y + 16 * S)], fill=CYAN, width=2 * S)
+    tracked(d, (LX + 76 * S, ey_y), eyebrow.upper(), eyebrow_f, CYAN, tracking=3)
+
+    lines = wrap_title(d, title, title_f, max_w)
+    # Cap at 3 lines; shrink font if still overflowing
+    while len(lines) > 3:
+        title_f = font("inter-800.ttf", max(40, title_f.size // S - 4))
+        lines = wrap_title(d, title, title_f, max_w)
+
+    line_h = int(title_f.size * 1.15)
+    y = 200 * S
+    for line in lines:
+        d.text((LX, y), line, font=title_f, fill=WHITE)
+        y += line_h
+
+    # Footer brand strip
+    foot_y = H - 100 * S
+    d.line([(LX, foot_y), (W - LX, foot_y)], fill=BORDER, width=S)
+    d.text((LX, foot_y + 28 * S), NAME, font=name_f, fill=SLATE3)
+    d.ellipse(
+        [W - LX - 14 * S, foot_y + 40 * S, W - LX, foot_y + 54 * S],
+        fill=ACCENT,
+    )
+    dom_w = d.textlength(DOMAIN, font=mono_f)
+    d.text((W - LX - 28 * S - dom_w, foot_y + 28 * S), DOMAIN, font=mono_f, fill=SLATE4)
+
+    save(img, OUT_DIR / f"{slug}.jpg")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--home", action="store_true", help="homepage card only")
+    ap.add_argument("--articles", action="store_true", help="article/index cards only")
+    args = ap.parse_args()
+    do_home = args.home or not args.articles
+    do_articles = args.articles or not args.home
+    if args.home and args.articles:
+        do_home = do_articles = True
+    if not args.home and not args.articles:
+        do_home = do_articles = True
+
+    if do_home:
+        generate_home()
+    if do_articles:
+        for card in CARDS:
+            generate_article(card["slug"], card["eyebrow"], card["title"])
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

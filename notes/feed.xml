@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Sam Donche — Notes</title>
+  <subtitle>Field notes on industrial digital architecture</subtitle>
+  <link href="https://samdonche.com/notes/feed.xml" rel="self" type="application/atom+xml"/>
+  <link href="https://samdonche.com/notes/" rel="alternate" type="text/html"/>
+  <id>https://samdonche.com/notes/</id>
+  <updated>2026-07-25T12:00:00Z</updated>
+  <author><name>Sam Donche</name></author>
+  <entry>
+    <title>MQTT and Sparkplug B: why factories stopped polling</title>
+    <link href="https://samdonche.com/notes/mqtt-sparkplug-b/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/mqtt-sparkplug-b/</id>
+    <published>2026-07-25T12:00:00Z</published>
+    <updated>2026-07-25T12:00:00Z</updated>
+    <summary>Polling sets a ceiling on every factory data project. MQTT flips the direction; Sparkplug B adds the contract that makes it an architecture instead of topic soup.</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
+  <entry>
+    <title>MES vs SCADA vs historian: what actually goes where</title>
+    <link href="https://samdonche.com/notes/mes-scada-vs-historian/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/mes-scada-vs-historian/</id>
+    <published>2026-07-23T12:00:00Z</published>
+    <updated>2026-07-23T12:00:00Z</updated>
+    <summary>Three layers of a factory's data stack, each answering a different question, and most stalled data projects got the layering wrong.</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
+</feed>

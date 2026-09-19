@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so `make sitemap` lastmod (git log) stays stable in CI.
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
