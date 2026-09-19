@@ -63,15 +63,41 @@ VAR_RE = re.compile(r"\{\{([A-Z0-9_]+)\}\}")
 
 
 def context_for(rel: str) -> dict[str, str]:
-    """Derive path prefixes for a page relative to the site root."""
+    """Derive path prefixes and section back-link for a page."""
     if rel == "404.html":
-        return {"ASSET": "/assets", "HOME": "/"}
+        return {
+            "ASSET": "/assets",
+            "HOME": "/",
+            "BACK_HREF": "/",
+            "BACK_LABEL": "← back",
+        }
     # Depth = number of directories under the site root.
     depth = rel.count("/")
     if depth == 0:
-        return {"ASSET": "assets", "HOME": "./"}
+        return {
+            "ASSET": "assets",
+            "HOME": "./",
+            "BACK_HREF": "./",
+            "BACK_LABEL": "← back",
+        }
     prefix = "../" * depth
-    return {"ASSET": f"{prefix}assets", "HOME": prefix}
+    ctx = {
+        "ASSET": f"{prefix}assets",
+        "HOME": prefix,
+        "BACK_HREF": prefix,
+        "BACK_LABEL": "← back",
+    }
+    # Article under notes/ or case-studies/: back goes to that section's index.
+    parts = rel.split("/")
+    if (
+        len(parts) == 3
+        and parts[0] in ("notes", "case-studies")
+        and parts[2] == "index.html"
+    ):
+        section = parts[0]
+        ctx["BACK_HREF"] = "../"
+        ctx["BACK_LABEL"] = "← notes" if section == "notes" else "← case studies"
+    return ctx
 
 
 def load_partials() -> dict[str, str]:
