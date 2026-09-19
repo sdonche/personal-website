@@ -34,6 +34,7 @@ A few small stdlib-Python helpers in `scripts/` prepare files before you commit.
 | `make` | sync shared chrome (`sync`) + cache-bust assets (`stamp`) + run checks (`check`) |
 | `make sync` | expand `<!-- partial:… -->` blocks from [`partials/`](partials/) into every HTML page |
 | `make icons` | regenerate `assets/js/skill-meta.js` from `scripts/skill-icons.jsonl` (after editing the Toolbelt tool list); then re-run `make` |
+| `make portraits` | rebuild AVIF/WebP about-photo variants from `portrait.jpg` (needs `ffmpeg`); then update hashes in `index.html` |
 | `make check` | assert partial markers are present + in sync, and every skill chip has an icon/description mapped to a diagram node |
 
 `scripts/stamp-assets.py` stamps a **content hash** onto each `?v=` asset URL in the HTML, so returning visitors always fetch the current file — no more hand-bumping version strings.
@@ -199,8 +200,10 @@ Hostinger's Git integration (**hPanel → Advanced → GIT**) is connected to th
 
 ### Supporting config
 
-- **[.htaccess](.htaccess)** — forces HTTPS, wires up the custom `404.html`, and sets gzip + cache headers. HTML is cached only briefly so content edits appear quickly.
+- **[.htaccess](.htaccess)** — forces HTTPS, redirects `www` → apex (`samdonche.com`), wires up the custom `404.html`, sets gzip + cache headers, and ships security headers (CSP, HSTS, Permissions-Policy, …). HTML is cached only briefly so content edits appear quickly.
+- **[_headers](_headers)** — same security headers for the Cloudflare Pages preview mirror (plus `noindex` so previews don't rank). Hostinger ignores this file.
 - **Free SSL** — issued by Hostinger for samdonche.com (**hPanel → Security → SSL**); HTTPS is enforced via `.htaccess`.
+- **CSP allowlist** — `'self'` plus Formspree (`formspree.io`) for the contact form and GoatCounter (`samdonche.goatcounter.com`) for the analytics ping. Inline script/style remain allowed for the head-boot snippet and JSON-LD.
 
 ### Caching gotcha
 
@@ -243,6 +246,7 @@ The decorative HUD card in the hero (`<aside aria-hidden="true">`) is purely vis
 - **Progressive enhancement:** scroll-reveal is hidden only when JS is available (an inline script sets `html.js`; the CSS hides `.reveal` exclusively under `.js`). With JS off, all content renders fully — nothing depends on the observer firing.
 - **Cache-busting:** each CSS/JS include carries a `?v=<content-hash>` query, stamped automatically by `make` (`scripts/stamp-assets.py`). Editing an asset changes its hash, so returning visitors always get the new version despite the long asset cache in `.htaccess` — no manual version bumps.
 - No JS frameworks and no runtime CSS compilation — one small JS file + three static stylesheets (Tailwind is precompiled to ~25 KB minified). Lighthouse should score near-100 out of the box.
+- **About photo** ships as AVIF/WebP with a JPEG fallback (`<picture>` + `srcset` in `index.html`). Full-size JPEG is ~70 KB; AVIF is ~15 KB. Regenerate after replacing `assets/img/portrait.jpg` with `make portraits` (needs `ffmpeg` with libaom).
 - **Fonts are self-hosted** ([assets/css/fonts.css](assets/css/fonts.css) + `assets/fonts/`): no visitor data ever reaches Google (GDPR — German courts have ruled Google Fonts embeds unlawful), and no third-party request can block rendering. Variable woff2 files, one per family+subset; `unicode-range` means the latin-ext files are only downloaded if a page actually uses those characters. The two latin files are preloaded in `index.html` (`crossorigin` is required on font preloads even same-origin). To change fonts or add weights outside Inter 300–800 / JetBrains Mono 400–600, fetch new woff2 files from Google Fonts (curl the CSS URL with a browser User-Agent to get woff2 sources) and update `fonts.css`.
 
 ---

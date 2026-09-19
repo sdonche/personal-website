@@ -2,5 +2,13 @@
 # search engines so they never compete with the real site (samdonche.com) for
 # ranking. Hostinger ignores this file (it uses .htaccess), so production is
 # unaffected — this only applies to the Cloudflare Pages preview mirror.
+#
+# Security headers mirror .htaccess so preview behaviour matches production
+# (minus HSTS — previews are on *.pages.dev, not the real cert).
 /*
   X-Robots-Tag: noindex
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://formspree.io; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://samdonche.goatcounter.com; font-src 'self'; connect-src 'self' https://formspree.io https://samdonche.goatcounter.com
