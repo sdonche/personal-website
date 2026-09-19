@@ -28,3 +28,7 @@ tmp/
 
 # Dependency dirs (in case tooling is ever added)
 node_modules/
+
+# Python
+__pycache__/
+*.py[cod]

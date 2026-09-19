@@ -3,16 +3,19 @@
 # to *serve* the site (Hostinger serves the committed files as-is); they only
 # prepare the files before you commit.
 #
-# Everyday flow:   make            # sync chrome + cache-bust + run checks
+# Everyday flow:   make            # sync chrome + cache-bust + sitemap/feed + checks
 # After editing partials/:         make
 # After adding a tool to the Toolbelt:   make icons && make
+# After adding a note/case study:  update CARDS / NOTES / PAGES lists, then
+#                                  make og-cards && make
 #
 # (Tailwind is still its own step — see README "Rebuilding the CSS".)
 
-.PHONY: all build sync stamp check icons favicon portraits
+.PHONY: all build sync stamp check icons favicon portraits og-cards sitemap feed discover
 
-# Default: expand shared chrome, refresh cache-busters, then verify consistency.
-all: sync stamp check
+# Default: expand shared chrome, refresh cache-busters, refresh discoverability
+# artifacts, then verify consistency.
+all: sync stamp discover check
 
 # Expand <!-- partial:NAME --> blocks from partials/ into every HTML page.
 # Edit the partial once; this rewrites the marked regions on every page.
@@ -24,6 +27,13 @@ sync:
 stamp:
 	python3 scripts/stamp-assets.py
 build: sync stamp
+
+# Sitemap lastmod + notes Atom feed (committed XML; no runtime build).
+sitemap:
+	python3 scripts/gen-sitemap.py
+feed:
+	python3 scripts/gen-notes-feed.py
+discover: sitemap feed
 
 # Verify skills + that every page's partial markers are present and in sync.
 check:
@@ -45,3 +55,8 @@ favicon:
 # Updates the ?v= hashes inside index.html's <picture> block.
 portraits:
 	python3 scripts/gen-portrait-modern.py
+
+# Regenerate homepage + per-page Open Graph JPEGs (needs Pillow + tools/fonts).
+# Then update og:image / twitter:image paths in the HTML if you added a new slug.
+og-cards:
+	python3 tools/generate-og-card.py
