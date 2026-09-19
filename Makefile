@@ -9,7 +9,7 @@
 #
 # (Tailwind is still its own step — see README "Rebuilding the CSS".)
 
-.PHONY: all build sync stamp check icons favicon
+.PHONY: all build sync stamp check icons favicon portraits
 
 # Default: expand shared chrome, refresh cache-busters, then verify consistency.
 all: sync stamp check
@@ -40,3 +40,8 @@ icons:
 # Source of truth is partials/favicon.html. Needs Pillow.
 favicon:
 	python3 scripts/gen-favicon.py
+
+# Rebuild AVIF/WebP portrait variants from assets/img/portrait.jpg (needs ffmpeg).
+# Updates the ?v= hashes inside index.html's <picture> block.
+portraits:
+	python3 scripts/gen-portrait-modern.py
