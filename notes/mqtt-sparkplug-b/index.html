@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- partial:head-boot -->
   <script>document.documentElement.classList.add('js');try{if(localStorage.getItem('samdonche.nav.rail')==='1')document.documentElement.classList.add('nav-rail')}catch(e){}</script>
+<!-- /partial:head-boot -->
   <meta name="theme-color" content="#020617" />
   <meta name="description" content="Polling sets a ceiling on every factory data project. MQTT flips the direction and Sparkplug B adds the missing contract: structured topics, birth and death certificates, typed payloads. What it does, and where it stops." />
   <meta name="author" content="Sam Donche" />
@@ -51,25 +53,32 @@
   }
   </script>
 
+  <!-- partial:favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Cpath d='M9 11 L14 16 L9 21' fill='none' stroke='%2322d3ee' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='16' y='18.7' width='7.5' height='2.6' rx='1.3' fill='%2322d3ee'/%3E%3C/svg%3E" />
   <link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/favicon-32.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/apple-touch-icon.png" />
+<!-- /partial:favicon -->
 
+<!-- partial:head-assets -->
   <link rel="preload" href="../../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="../../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="../../assets/css/fonts.css?v=0f6b5ce264" />
   <link rel="stylesheet" href="../../assets/css/tailwind.css?v=24f3f3ff7e" />
   <link rel="stylesheet" href="../../assets/css/styles.css?v=8dca4fb6a6" />
+<!-- /partial:head-assets -->
 </head>
 
 <body class="bg-slate-950 text-slate-100 font-sans antialiased">
 
+<!-- partial:site-bg -->
   <div aria-hidden="true" class="fixed inset-0 -z-10 bg-slate-950">
     <div class="absolute inset-0 grid-bg opacity-[0.35]"></div>
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)]"></div>
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(52,211,153,0.05),_transparent_50%)]"></div>
   </div>
+<!-- /partial:site-bg -->
 
+<!-- partial:subpage-topbar -->
   <!-- Top bar -->
   <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -82,9 +91,10 @@
           sam.donche<span class="text-brand-400">@</span>edge
         </span>
       </a>
-      <div class="flex items-center gap-3"><a href="../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors">← notes</a><button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div>
+      <div class="flex items-center gap-3"><a href="../../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors">← back</a><button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div>
     </div>
   </header>
+<!-- /partial:subpage-topbar -->
 
   <div class="lg:pl-64">
   <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-24">
@@ -429,8 +439,18 @@
   </main>
   </div>
 
+<!-- partial:subpage-footer -->
+  <footer class="border-t border-slate-800/60 lg:pl-64">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-500">
+      <p class="font-mono text-xs">&copy; <span id="year"></span> Sam Donche</p>
+    </div>
+  </footer>
+<!-- /partial:subpage-footer -->
+
+<!-- partial:site-scripts -->
   <script src="../../assets/js/eggs.js?v=184404dc3e" defer></script>
   <script src="../../assets/js/script.js?v=307bdd9539" defer></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../../assets/js/goatcounter.js"></script>
+<!-- /partial:site-scripts -->
 </body>
 </html>
