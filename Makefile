@@ -3,24 +3,32 @@
 # to *serve* the site (Hostinger serves the committed files as-is); they only
 # prepare the files before you commit.
 #
-# Everyday flow:   make            # cache-bust assets + run the skills check
+# Everyday flow:   make            # sync chrome + cache-bust + run checks
+# After editing partials/:         make
 # After adding a tool to the Toolbelt:   make icons && make
 #
 # (Tailwind is still its own step — see README "Rebuilding the CSS".)
 
-.PHONY: all build stamp check icons favicon
+.PHONY: all build sync stamp check icons favicon
 
-# Default: refresh the cache-busters, then verify the skills are consistent.
-all: stamp check
+# Default: expand shared chrome, refresh cache-busters, then verify consistency.
+all: sync stamp check
+
+# Expand <!-- partial:NAME --> blocks from partials/ into every HTML page.
+# Edit the partial once; this rewrites the marked regions on every page.
+sync:
+	python3 scripts/sync-partials.py
 
 # Content-hash the ?v= asset URLs in the HTML so returning visitors never get a
 # stale file. Run this whenever you change a JS/CSS asset.
 stamp:
 	python3 scripts/stamp-assets.py
-build: stamp
+build: sync stamp
 
-# Verify every skill chip has an icon/description and maps to a diagram node.
+# Verify skills + that every page's partial markers are present and in sync.
 check:
+	python3 scripts/sync-partials.py --verify-markers
+	python3 scripts/sync-partials.py --check
 	python3 scripts/check-skills.py
 
 # Regenerate assets/js/skill-meta.js from scripts/skill-icons.jsonl.
@@ -29,6 +37,6 @@ icons:
 	python3 scripts/gen-skill-meta.py
 
 # Regenerate the Safari/iOS PNG fallbacks from the "Terminal" favicon mark.
-# Run whenever the inline SVG favicon in the page <head>s changes. Needs Pillow.
+# Source of truth is partials/favicon.html. Needs Pillow.
 favicon:
 	python3 scripts/gen-favicon.py

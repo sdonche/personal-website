@@ -1,0 +1,32 @@
+name: Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    name: make check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Expand partials, stamp asset hashes, verify skills + chrome sync.
+      - name: Run make
+        run: make
+
+      # Hostinger serves the committed HTML. If `make` rewrote anything, the
+      # working tree is dirty — the rendered chrome wasn't committed.
+      - name: Ensure generated HTML is committed
+        run: |
+          if ! git diff --quiet; then
+            echo "::error::Working tree dirty after \`make\`. Run \`make\` locally and commit the result."
+            git --no-pager diff --stat
+            git --no-pager diff
+            exit 1
+          fi
+          echo "OK: committed HTML matches partials + asset hashes."

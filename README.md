@@ -27,13 +27,14 @@ There is **no build step to view or deploy the site** — the compiled Tailwind 
 
 ### Build scripts (`make`)
 
-A few small stdlib-Python helpers in `scripts/` prepare files before you commit. None are needed to *serve* the site (Hostinger serves the committed files as-is); they just save manual work. **Run `make` before committing.**
+A few small stdlib-Python helpers in `scripts/` prepare files before you commit. None are needed to *serve* the site (Hostinger serves the committed files as-is); they just save manual work. **Run `make` before committing.** CI runs the same `make` on every push/PR and fails if the committed HTML is out of sync with the partials.
 
 | command | what it does |
 | --- | --- |
-| `make` | cache-bust the assets (`stamp`) + run the skills check (`check`) |
+| `make` | sync shared chrome (`sync`) + cache-bust assets (`stamp`) + run checks (`check`) |
+| `make sync` | expand `<!-- partial:… -->` blocks from [`partials/`](partials/) into every HTML page |
 | `make icons` | regenerate `assets/js/skill-meta.js` from `scripts/skill-icons.jsonl` (after editing the Toolbelt tool list); then re-run `make` |
-| `make check` | assert every skill chip has an icon/description and maps to a diagram node |
+| `make check` | assert partial markers are present + in sync, and every skill chip has an icon/description mapped to a diagram node |
 
 `scripts/stamp-assets.py` stamps a **content hash** onto each `?v=` asset URL in the HTML, so returning visitors always fetch the current file — no more hand-bumping version strings.
 
@@ -56,6 +57,8 @@ Then run `make` to re-stamp the cache-busters. (Requires Node; if the npx one-li
 ```
 .
 ├── index.html                # Single-page site, all sections inlined
+├── partials/                 # Shared chrome (favicon, CSS/JS links, topbars, scripts)
+│                             # Expanded into pages by `make sync` — edit here, not in each HTML file
 ├── assets/
 │   ├── css/tailwind.input.css # Tailwind source: design tokens + @source globs (not served)
 │   ├── css/tailwind.css      # Compiled Tailwind output — committed, regenerate via npx (see above)
@@ -65,10 +68,12 @@ Then run `make` to re-stamp the cache-busters. (Requires Node; if the npx one-li
 │   ├── js/script.js          # Network nav builder, scroll behavior, contact form
 │   └── img/                  # og-card.jpg (1200×630 social card, generated), portrait.jpg
 │                             # (About photo + schema.org), og.jpg (source photo), favicons
+├── scripts/                  # stdlib-Python helpers: sync-partials, stamp-assets, check-skills, …
+├── .github/workflows/check.yml  # CI: `make` + dirty-tree guard
 ├── .htaccess                 # Apache config: HTTPS, custom 404, caching (Hostinger)
 ├── 404.html                  # Custom 404 (wired up via .htaccess)
 ├── robots.txt                # Crawler rules + sitemap pointer
-├── sitemap.xml               # Single-URL sitemap
+├── sitemap.xml               # Page sitemap
 ├── .gitignore                # Keeps secrets / OS cruft out of the repo
 └── README.md
 ```
@@ -131,9 +136,35 @@ printf '%s' 'you@example.com' | base64
 The site is **English-only**. Beyond the single-page [index.html](index.html) there are standalone subpages that reuse the same CSS/JS and design language:
 
 - [publications/](publications/index.html) — research output (relocated off the main page, linked from the About sentence + the UZ Gent timeline card).
-- [case-studies/](case-studies/) — one directory per case study (e.g. `case-studies/factory-data-backbone/`); surfaced in the "Selected work" section of the main page. Add a new one by copying an existing case-study `index.html`, then adding a card to the Selected-work section and a `<loc>` to the sitemap.
+- [case-studies/](case-studies/) — one directory per case study (e.g. `case-studies/factory-data-backbone/`); surfaced in the "Selected work" section of the main page.
+- [notes/](notes/) — field notes on industrial digital architecture.
 
 (A Dutch `/nl/` mirror existed briefly and was removed on 2026-07-18 — it's recoverable from git history if ever wanted.)
+
+### Shared chrome (`partials/`)
+
+Repeated markup — favicon links, CSS/font includes, decorative background, top bars, footers, and script tags — lives once under [`partials/`](partials/). Each HTML page keeps **markers** around those regions:
+
+```html
+<!-- partial:head-assets -->
+  …generated — do not edit by hand…
+<!-- /partial:head-assets -->
+```
+
+Edit the partial, then run `make` (which runs `sync` → `stamp` → `check`). Asset path prefixes (`assets/`, `../assets/`, `../../assets/`, `/assets/`) are derived from the page's depth automatically. Hostinger still serves the committed HTML; there is no runtime templating.
+
+### Adding a note or case study
+
+Copy an existing page in the same folder (it already has the right partial markers), then walk this checklist:
+
+1. **Content** — write the new `…/your-slug/index.html` (title, description, OG tags, body). Keep the `<!-- partial:… -->` markers; don't hand-edit inside them.
+2. **`SECTIONS`** — add an entry in [`assets/js/script.js`](assets/js/script.js) so the tag browser and ⌘K palette know about the page (see "Adding / removing sections" above).
+3. **Index card** — add a card on [`notes/index.html`](notes/index.html) or [`case-studies/index.html`](case-studies/index.html), and on the home "Selected work" section if it's a case study.
+4. **Sitemap** — add a `<url><loc>…</loc></url>` to [`sitemap.xml`](sitemap.xml).
+5. **Related links** — optionally cross-link from sibling notes / the case study (topic cluster).
+6. **`make`** — run before committing so chrome stays in sync and asset hashes are stamped.
+
+For schema.org on long-form pages, copy the Article + BreadcrumbList block from an existing note or case study and update the fields.
 
 ---
 
