@@ -5,7 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Flag JS as available before paint, so scroll-reveal only hides content it can later reveal -->
   <!-- partial:head-boot -->
-  <script>document.documentElement.classList.add('js');try{if(localStorage.getItem('samdonche.nav.rail')==='1')document.documentElement.classList.add('nav-rail')}catch(e){}</script>
+  <script>
+    document.documentElement.classList.add('js');
+    try {
+      if (localStorage.getItem('samdonche.nav.rail') === '1') {
+        document.documentElement.classList.add('nav-rail');
+      }
+      var params = new URLSearchParams(location.search);
+      var mode = params.get('mode');
+      // Canonical: desk | floor. Legacy: site/briefing → desk, operator → floor.
+      if (mode === 'briefing' || mode === 'site') mode = 'desk';
+      if (mode === 'operator') mode = 'floor';
+      if (mode === 'desk' || mode === 'floor') {
+        localStorage.setItem('samdonche.mode', mode);
+      } else {
+        mode = localStorage.getItem('samdonche.mode');
+        if (mode === 'briefing' || mode === 'site') mode = 'desk';
+        if (mode === 'operator') mode = 'floor';
+      }
+      if (mode !== 'floor') mode = 'desk';
+      document.documentElement.setAttribute('data-mode', mode);
+    } catch (e) {
+      document.documentElement.setAttribute('data-mode', 'desk');
+    }
+  </script>
 <!-- /partial:head-boot -->
   <meta name="theme-color" content="#020617" />
   <!-- Google Search Console domain verification -->
@@ -81,7 +104,7 @@
   <link rel="preload" href="assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/css/fonts.css?v=0f6b5ce264" />
   <link rel="stylesheet" href="assets/css/tailwind.css?v=8e6c15230e" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=52799ab273" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=19de52755b" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -106,27 +129,44 @@
   </a>
 
 <!-- partial:home-topbar -->
-  <!-- TOP BAR — logo + system status + mobile nav trigger -->
+  <!-- TOP BAR — logo + desk nav / floor status + mode switch + mobile actions -->
   <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-      <a href="#hero" class="flex items-center gap-2 group" aria-label="Home">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <a href="#hero" class="flex items-center gap-2 group shrink-0" aria-label="Home">
         <span class="relative inline-flex h-2.5 w-2.5">
           <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
           <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
         </span>
-        <span class="font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
+        <span class="brand-mark brand-mark--floor font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
           sam.donche<span class="text-brand-400">@</span>edge
+        </span>
+        <span class="brand-mark brand-mark--desk text-sm sm:text-base font-semibold tracking-tight text-slate-100 group-hover:text-brand-300 transition-colors">
+          Sam Donche
         </span>
       </a>
 
-      <div class="flex items-center gap-2 sm:gap-4">
-        <!-- Always visible — compact on phones so the telemetry egg stays findable -->
-        <span id="sys-status" class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-slate-500 cursor-pointer">
-          <span class="h-1.5 w-1.5 rounded-full bg-accent shrink-0" aria-hidden="true"></span>
-          <span class="hidden sm:inline">System:&nbsp;</span>Online
-        </span>
-        <span aria-hidden="true" class="hidden sm:inline text-slate-700 font-mono text-[11px]">|</span>
-        <span id="local-time" class="hidden sm:inline font-mono text-[11px] uppercase tracking-widest text-slate-500" aria-live="off">--:--:--</span>
+      <nav class="desk-nav hidden md:flex items-center gap-5 text-sm text-slate-400" aria-label="Primary">
+        <a href="#about" class="hover:text-brand-300 transition-colors">About</a>
+        <a href="#experience" class="hover:text-brand-300 transition-colors">Experience</a>
+        <a href="#work" class="hover:text-brand-300 transition-colors">Work</a>
+        <a href="#contact" class="hover:text-brand-300 transition-colors">Contact</a>
+      </nav>
+
+      <div class="flex items-center gap-2 sm:gap-3 ml-auto">
+        <!-- Floor-only: always-visible Online so the telemetry egg stays findable on phones -->
+        <div class="floor-status flex items-center gap-2 sm:gap-4">
+          <span id="sys-status" class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-slate-500 cursor-pointer">
+            <span class="h-1.5 w-1.5 rounded-full bg-accent shrink-0" aria-hidden="true"></span>
+            <span class="hidden sm:inline">System:&nbsp;</span>Online
+          </span>
+          <span aria-hidden="true" class="hidden sm:inline text-slate-700 font-mono text-[11px]">|</span>
+          <span id="local-time" class="hidden sm:inline font-mono text-[11px] uppercase tracking-widest text-slate-500" aria-live="off">--:--:--</span>
+        </div>
+
+        <div class="mode-switch" role="group" aria-label="Presentation mode">
+          <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
+          <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
+        </div>
 
         <!-- Mobile/tablet: open command palette without a keyboard -->
         <button
@@ -836,7 +876,7 @@
   <script src="assets/js/skill-meta.js?v=2caf6458ff" defer></script>
   <script src="assets/js/eggs.js?v=e05e8c5e22" defer></script>
   <script src="assets/js/diagram.js?v=0268aef16a" defer></script>
-  <script src="assets/js/script.js?v=f09630c5b8" defer></script>
+  <script src="assets/js/script.js?v=ffeff2554a" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->
