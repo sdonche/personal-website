@@ -95,6 +95,26 @@ html[data-mode="floor"] .mode-switch {
   border-color: rgba(34, 211, 238, 0.35);
 }
 
+/* First-visit cue: soft pulse on Floor (JS adds .is-hinting once) */
+@keyframes mode-floor-hint {
+  0%, 100% {
+    background: transparent;
+    color: rgb(148 163 184);
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+  35%, 65% {
+    background: rgba(34, 211, 238, 0.16);
+    color: var(--color-brand-300);
+    box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.4);
+  }
+}
+.mode-switch__btn.is-hinting {
+  animation: mode-floor-hint 1.15s ease-in-out 2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mode-switch__btn.is-hinting { animation: none; }
+}
+
 /* Phones: reclaim horizontal space so Desk|Floor + search + nav fit */
 @media (max-width: 639px) {
   /* Floor handle without @edge — keeps the plant-floor cue without crowding */
@@ -1688,8 +1708,17 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   p:has([data-email-reveal]),
   #hero a[href="#experience"],      /* hero buttons */
   #hero a[href="#contact"],
+  .estop,
+  .egg-toast,
+  .egg-discover,
+  .telemetry,
+  .line-banner,
+  .scada-alarm,
+  .boot-seq,
+  .capstone-fx,
   footer { display: none !important; }
 
+  /* beforeprint also flips data-mode to desk; keep main flush either way */
   main { padding-left: 0 !important; }
   main > section { padding: 0.75rem 0 !important; min-height: 0 !important; }
   .section-band { border: 0 !important; }
