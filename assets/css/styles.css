@@ -179,14 +179,11 @@ html { color-scheme: dark; }
    5. Skills — diagram leads; chip index is a quiet footnote
    ---------------------------------------------------- */
 
-/* On phones: chips first (scanable), diagram second (optional deep dive) */
+/* Skills body keeps document order: diagram first, chip index second.
+   (Chips stay demoted visually via flat styling below.) */
 .skills-body {
   display: flex;
   flex-direction: column;
-}
-@media (max-width: 43rem) {
-  .skills-body .stack-diagram { order: 2; margin-top: 1.75rem; }
-  .skills-body .skill-index { order: 1; margin-top: 1.75rem; }
 }
 
 .skill-index__lead {
