@@ -78,21 +78,22 @@
   /* Edges as [fromId, toId, opts] — particles flow from→to.
        spine: true   main data path, drawn heavier
        route:        "elbow" | "tbranch" | "comb" | "over" | "bigL" | "bigLr" | "spk"
+       lane:         integer offset so parallel routes don't share a corridor
        out: true     downstream of the gateway — particles turn emerald */
   const STACK_EDGES = [
-    ["field",    "edge",     { route: "elbow" }],
-    ["ot",       "edge",     { route: "elbow" }],
+    ["field",    "edge",     { route: "elbow", lane: -1 }],
+    ["ot",       "edge",     { route: "elbow", lane:  1 }],
     ["ot",       "mqtt",     { route: "spk" }],              // Sparkplug B straight to the bus
     ["edge",     "mqtt",     { spine: true }],
     ["edge",     "backend",  { route: "over" }],             // Ignition Gateway Network
-    ["mqtt",     "backend",  { spine: true, bidir: true }],
-    ["mqtt",     "stores",   { route: "tbranch" }],
-    ["mes",      "mqtt",     { route: "bigL",  bidir: true, out: true }],
-    ["mes",      "backend",  { route: "bigLr", bidir: true, out: true }],
-    ["backend",  "stores",   { route: "tbranch" }],
-    ["svc",      "stores",   { route: "tbranch" }],
+    ["mqtt",     "backend",  { route: "elbow", spine: true, bidir: true, lane: 0 }],
+    ["mqtt",     "stores",   { route: "tbranch", lane: -2 }],
+    ["mes",      "mqtt",     { route: "bigL",  bidir: true, out: true, lane: -1 }],
+    ["mes",      "backend",  { route: "bigLr", bidir: true, out: true, lane: -1 }],
+    ["backend",  "stores",   { route: "tbranch", lane: -1 }],
+    ["svc",      "stores",   { route: "tbranch", lane: 1 }],
     ["backend",  "hmi",      { route: "comb", out: true, spine: true }],
-    ["stores",   "graf",     { route: "elbow", out: true }],
+    ["stores",   "graf",     { route: "elbow", out: true, lane: 1 }],
   ];
 
   /* Block geometry helpers */
@@ -104,50 +105,64 @@
     return { w, h, x1: n.x - w / 2, y1: n.y - h / 2, x2: n.x + w / 2, y2: n.y + h / 2 };
   }
 
-  /* Orthogonal (right-angle) waypoints from one block edge to another */
+  /* Orthogonal (right-angle) waypoints from one block edge to another.
+     `lane` fans parallel routes so shared corridors stay readable. */
   function edgePoints(from, to, opts) {
     const a = blockRect(from), b = blockRect(to);
     const route = opts && opts.route;
+    const lane = (opts && opts.lane) || 0;
     if (route === "elbow") {
       // leave right side, turn in the column gap, enter left side —
-      // offset the entry row so parallel elbows don't pile onto one point
-      const xm = (a.x2 + b.x1) / 2;
-      const yIn = to.y + (from.y < to.y ? -7 : 7);
+      // lane spreads the mid-column and the entry row
+      const gap = b.x1 - a.x2;
+      const xm = a.x2 + gap * (0.45 + lane * 0.12);
+      const yIn = to.y + lane * 10;
       return [[a.x2, from.y], [xm, from.y], [xm, yIn], [b.x1, yIn]];
     }
     if (route === "tbranch") {
-      // drop from the block bottom, split sideways, drop into the target top
-      const ym = (a.y2 + b.y1) / 2;
-      return [[from.x, a.y2], [from.x, ym], [to.x, ym], [to.x, b.y1]];
+      // drop from the block bottom, run a horizontal lane, enter target top.
+      // lane shifts both the mid-row and the entry x so same-column drops
+      // (Ignition / Services → Data stores) don't stack on one vertical.
+      const baseYm = (a.y2 + b.y1) / 2;
+      const ym = baseYm + lane * 8;
+      const xIn = to.x + lane * 22;
+      return [[from.x, a.y2], [from.x, ym], [xIn, ym], [xIn, b.y1]];
     }
     if (route === "over") {
-      // arc just over the broker: leave source top, run across, drop into target top
-      const yTop = Math.min(a.y1, b.y1) - 20;
-      return [[from.x, a.y1], [from.x, yTop], [to.x, yTop], [to.x, b.y1]];
+      // arc clear above the broker AND above the MES→Ignition run (~y 77)
+      const yTop = Math.min(a.y1, b.y1, 100) - 40;
+      const xIn = to.x + lane * 16;
+      return [[from.x, a.y1], [from.x, yTop], [xIn, yTop], [xIn, b.y1]];
     }
     if (route === "bigL") {
-      // one clean L: run left along the source's own row, then straight down
-      // into the target's top edge
-      return [[a.x1, from.y], [to.x, from.y], [to.x, b.y1]];
+      // run west along the source row, drop into the target top at a lane offset
+      // so we don't share the broker's centerline with mqtt→stores
+      const xIn = to.x + lane * 20;
+      return [[a.x1, from.y], [xIn, from.y], [xIn, b.y1]];
     }
     if (route === "bigLr") {
-      // like bigL, but enter the target's right side (target sits higher up)
-      const xt = b.x2 + 18;
-      return [[a.x1, from.y], [xt, from.y], [xt, to.y], [b.x2, to.y]];
+      // Leave MES via the top, run west above the MES→MQTT row, then drop
+      // into Ignition's right side — clear of the comb trunk (x2+12).
+      const yRun = a.y1 - 10;
+      const xt = b.x2 + 34;
+      return [[from.x, a.y1], [from.x, yRun], [xt, yRun], [xt, to.y], [b.x2, to.y]];
     }
     if (route === "spk") {
-      // sparkplug device in the field column: run right under the edge tier,
-      // then up into the broker's bottom-left corner (bypasses the edge)
-      const turnX = to.x - 58;
-      return [[a.x2, from.y], [turnX, from.y], [turnX, b.y2], [b.x1, b.y2]];
+      // Leave OT via the bottom so we don't share the eastbound stub with
+      // the OT→Edge elbow; then under the edge tier into the broker.
+      const turnX = to.x - 64;
+      return [[from.x, a.y2], [from.x, from.y + 28], [turnX, from.y + 28], [turnX, b.y2], [b.x1, b.y2]];
     }
     if (route === "comb") {
       // shared vertical trunk just right of the source, teeth into each target
       if (from.y === to.y) return [[a.x2, from.y], [b.x1, to.y]];
-      const xt = a.x2 + 14;
+      const xt = a.x2 + 12;
       return [[a.x2, from.y], [xt, from.y], [xt, to.y], [b.x1, to.y]];
     }
-    return [[a.x2, from.y], [b.x1, to.y]];
+    // Default: same-row stays a clean horizontal; otherwise orthogonal elbow
+    if (Math.abs(from.y - to.y) < 1) return [[a.x2, from.y], [b.x1, to.y]];
+    const xm = (a.x2 + b.x1) / 2;
+    return [[a.x2, from.y], [xm, from.y], [xm, to.y], [b.x1, to.y]];
   }
 
   /* Platform slab under the software span (edge → consumers). Shared so the
