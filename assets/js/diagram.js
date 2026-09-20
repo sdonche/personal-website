@@ -61,15 +61,16 @@
     hmi:      { x: 780, y: 165, label: "HMI / SCADA",   kind: "consumer", w: 90, skills: ["hmi", "scada"] },
     graf:     { x: 780, y: 230, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana", "prometheus", "loki"] },
 
-    linux:    { x: 285, y: 348, label: "Linux",         kind: "platform", w: 58 },
+    linux:    { x: 285, y: 348, label: "Linux",         kind: "platform", skills: ["linux"], w: 58 },
     docker:   { x: 425, y: 348, label: "Docker",        kind: "platform", skills: ["docker"] },
     k8s:      { x: 565, y: 348, label: "Kubernetes",    kind: "platform", skills: ["kubernetes"] },
-    cloud:    { x: 705, y: 348, label: "Cloud",         kind: "platform", skills: ["azure", "gcp"], w: 60 },
+    cloud:    { x: 705, y: 348, label: "Cloud",         kind: "platform", skills: ["azure", "gcp"], w: 60, popover: "azure" },
   };
 
   /* Skills routed to the "provisioned & shipped via GitOps" tag rather than to
      a data-flow block — they describe how the platform is built and deployed. */
-  const DELIVERY_SKILLS = ["terraform", "argo-cd", "gitops", "ci-cd", "git", "github-actions", "azure-devops", "helm"];
+  const DELIVERY_SKILLS = ["gitops", "terraform", "argo-cd", "ci-cd", "git", "github-actions", "azure-devops", "helm"];
+  const DELIVERY_POPOVER = "gitops";
 
   /* Edges as [fromId, toId, opts] — particles flow from→to.
        spine: true   main data path, drawn heavier
@@ -220,7 +221,9 @@
 
     // "provisioned & shipped via GitOps" — tag that taps up into the slab.
     const gitTag = append(svgNS, nodesG, "g", {
-      class: "stack-node stack-node--tag", "data-skills": DELIVERY_SKILLS.join(" "),
+      class: "stack-node stack-node--tag",
+      "data-skills": DELIVERY_SKILLS.join(" "),
+      "data-popover": DELIVERY_POPOVER,
     });
     append(svgNS, gitTag, "path", {
       class: "stack-svg__tap", d: `M 180 392 L 180 ${b.y2}`,
@@ -293,6 +296,7 @@
         class: "stack-node",
         "data-node": nodeId,
         ...(n.skills ? { "data-skills": n.skills.join(" ") } : {}),
+        ...(n.popover ? { "data-popover": n.popover } : {}),
       });
 
       // Halo + larger invisible hit target live inside the broker group so
@@ -354,16 +358,19 @@
     });
   }
 
-  /* Clicking a skill chip opens a popover: an on-brand icon (a real brand glyph
-     recoloured to the site cyan, or a cyan role-icon) plus a one-line "what it
-     is". Data lives in skill-meta.js. Hover still drives the diagram highlight;
-     click drives the description — and on touch, where hover is dead, this is
-     the interaction. */
+  /* Clicking a skill chip OR a diagram node opens a popover: an on-brand icon
+     plus a one-line "what it is". Data lives in skill-meta.js. Chips and nodes
+     share the same popover so diagram-only labels (e.g. Linux) still explain
+     themselves after we trim the chip index. Hover still drives cross-highlight. */
   function initSkillPopover() {
     const meta  = window.SKILL_META || {};
     const roles = window.SKILL_ROLE_ICONS || {};
     const chips = Array.from(document.querySelectorAll(".skill-chip[data-skill]"));
-    if (!chips.length) return;
+    const svg   = document.getElementById("stack-svg");
+    const nodes = svg
+      ? Array.from(svg.querySelectorAll(".stack-node[data-skills], .stack-node[data-popover]"))
+      : [];
+    if (!chips.length && !nodes.length) return;
 
     const pop = document.createElement("div");
     pop.className = "skill-popover";
@@ -379,12 +386,37 @@
     function close() {
       if (!current) return;
       pop.hidden = true;
-      current.setAttribute("aria-expanded", "false");
+      if (current.getAttribute) current.setAttribute("aria-expanded", "false");
       current = null;
     }
 
-    function open(chip) {
-      const m = meta[chip.dataset.skill];
+    /* Resolve which SKILL_META slug a trigger should show. */
+    function slugFor(el) {
+      if (el.dataset && el.dataset.skill) return el.dataset.skill;
+      if (el.dataset && el.dataset.popover && meta[el.dataset.popover]) return el.dataset.popover;
+      const slugs = ((el.dataset && el.dataset.skills) || "").split(/\s+/).filter(Boolean);
+      return slugs.find((s) => meta[s]) || null;
+    }
+
+    function bindTrigger(el) {
+      if (!slugFor(el)) return;
+      el.setAttribute("aria-haspopup", "dialog");
+      el.setAttribute("aria-expanded", "false");
+      // Don't add tabindex to SVG nodes — focusing them scrolls the page and
+      // our scroll-to-close handler would dismiss the popover immediately.
+      // Chips are already buttons; MQTT keeps its own egg tabindex.
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (current === el) { close(); return; }
+        close();
+        open(el);
+      });
+    }
+
+    let ignoreScrollUntil = 0;
+    const open = (el) => {
+      const slug = slugFor(el);
+      const m = slug && meta[slug];
       if (!m) return;
       pop.innerHTML =
         `<div class="skill-popover__head">${iconSVG(m)}<span class="skill-popover__name">${m.name}</span></div>` +
@@ -392,12 +424,11 @@
         `<p class="skill-popover__desc">${m.desc}</p>`;
       pop.hidden = false;
 
-      const r = chip.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
       const pw = pop.offsetWidth, ph = pop.offsetHeight;
       const vw = document.documentElement.clientWidth;
       let left = r.left + window.scrollX + r.width / 2 - pw / 2;
       left = Math.max(window.scrollX + 10, Math.min(left, window.scrollX + vw - pw - 10));
-      // default below the chip; flip above if it would overflow the viewport
       let top = r.bottom + window.scrollY + 8;
       if (r.bottom + 8 + ph > window.innerHeight && r.top - 8 - ph > 0) {
         top = r.top + window.scrollY - ph - 8;
@@ -407,25 +438,28 @@
       }
       pop.style.left = `${Math.round(left)}px`;
       pop.style.top  = `${Math.round(top)}px`;
-      chip.setAttribute("aria-expanded", "true");
-      current = chip;
-    }
+      el.setAttribute("aria-expanded", "true");
+      current = el;
+      // Focus/layout can emit scroll right after open — don't dismiss for that.
+      ignoreScrollUntil = Date.now() + 500;
+    };
 
-    chips.forEach((chip) => {
-      chip.setAttribute("aria-haspopup", "dialog");
-      chip.setAttribute("aria-expanded", "false");
-      chip.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (current === chip) { close(); return; }
-        close();
-        open(chip);
-      });
+    chips.forEach(bindTrigger);
+    nodes.forEach(bindTrigger);
+
+    document.addEventListener("click", (e) => {
+      if (!current || pop.hidden) return;
+      if (pop.contains(e.target)) return;
+      if (current === e.target) return;
+      if (typeof current.contains === "function" && current.contains(e.target)) return;
+      close();
     });
-
-    document.addEventListener("click", (e) => { if (current && !pop.contains(e.target)) close(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
     window.addEventListener("resize", close);
-    window.addEventListener("scroll", close, true);
+    window.addEventListener("scroll", () => {
+      if (Date.now() < ignoreScrollUntil) return;
+      close();
+    }, true);
   }
 
   /* ---- init (self-contained; no-op on pages without #stack-svg) ---- */
