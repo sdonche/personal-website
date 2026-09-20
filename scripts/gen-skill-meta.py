@@ -31,15 +31,11 @@ SKILLS = [
     ("unified-namespace", "Unified Namespace", "A single real-time hub where all operational data lives.", ("role","hub")),
     ("mes",               "MES",               "Track production from order to output.", ("role","factory")),
     ("opc-ua",            "OPC UA",            "Open standard for secure, vendor-neutral machine-to-machine data.", ("role","protocol")),
-    ("node-red",          "Node-RED",          "Low-code flow tool for wiring up devices, APIs and services.", ("brand","nodered")),
     # Data & Backend
     ("python",            "Python",            "General-purpose language, my default for backend and data work.", ("brand","python")),
     ("postgresql",        "PostgreSQL",        "Open-source relational database, my default SQL store.", ("brand","postgresql")),
     ("sql-server",        "MS SQL Server",     "Microsoft's relational database, common on industrial estates.", ("role","database")),
-    ("redis",             "Redis",             "In-memory store for caching, queues and fast lookups.", ("brand","redis")),
-    ("influxdb",          "InfluxDB",          "Purpose-built time-series database for metrics and sensor data.", ("brand","influxdb")),
     ("timescaledb",       "TimescaleDB",       "Time-series database built on PostgreSQL.", ("brand","timescale")),
-    ("rabbitmq",          "RabbitMQ",          "Message broker for queues and pub/sub.", ("brand","rabbitmq")),
     ("factry",            "Factry",            "Open industrial historian for time-series process data.", ("role","database")),
     ("grafana",           "Grafana",           "Dashboards and alerting for time-series and operational metrics.", ("brand","grafana")),
     ("prometheus",        "Prometheus",        "Metrics collection and alerting for systems and services.", ("brand","prometheus")),
@@ -52,7 +48,6 @@ SKILLS = [
     ("argo-cd",           "Argo CD",           "GitOps continuous delivery for Kubernetes.", ("brand","argo")),
     ("gitops",            "GitOps",            "Manage infrastructure and deploys through Git as source of truth.", ("role","loop")),
     ("ci-cd",             "CI/CD",             "Automated build, test and deploy pipelines.", ("role","loop")),
-    ("linux",             "Linux",             "The operating system everything runs on.", ("brand","linux")),
 ]
 
 # stroke-based cyan role icons (inner markup, 24x24, fill none / stroke currentColor)

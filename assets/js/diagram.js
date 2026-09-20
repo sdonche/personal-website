@@ -50,18 +50,18 @@
     /* Field: one physical OT box + one protocols box (was four crowded nodes). */
     field:    { x:  72, y: 130, label: "Field devices", kind: "field",    w: 92 },
     ot:       { x:  72, y: 200, label: "OT protocols",  kind: "field",    skills: ["opc-ua", "sparkplug-b"], w: 92 },
-    edge:     { x: 210, y: 130, label: "Ignition Edge", kind: "edge",     skills: ["ignition", "ot-it", "kepware"] },
-    nodered:  { x: 210, y: 200, label: "Node-RED",      kind: "edge",     skills: ["node-red"] },
-    mqtt:     { x: 350, y: 165, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "ot-it", "kafka", "mosquitto", "emqx", "rabbitmq"] },
+    /* Single edge gateway — Node-RED removed from the public toolbelt. */
+    edge:     { x: 210, y: 165, label: "Ignition Edge", kind: "edge",     skills: ["ignition", "ot-it", "kepware"] },
+    mqtt:     { x: 350, y: 165, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "ot-it", "kafka", "mosquitto", "emqx"] },
     backend:  { x: 520, y: 130, label: "Ignition",      kind: "server",   skills: ["ignition", "traefik"] },
     svc:      { x: 520, y: 200, label: "Services",      kind: "server",   skills: ["python", "fastapi", "pydantic", "sqlalchemy", "data-pipelines"] },
-    /* One stores block instead of lake / SQL / Redis / historian strip. */
-    stores:   { x: 520, y: 278, label: "Data stores",   kind: "storage",  skills: ["postgresql", "sql-server", "redis", "influxdb", "timescaledb", "factry", "data-pipelines"], w: 96 },
+    /* One stores block — Redis / InfluxDB dropped from the chip index. */
+    stores:   { x: 520, y: 278, label: "Data stores",   kind: "storage",  skills: ["postgresql", "sql-server", "timescaledb", "factry", "data-pipelines"], w: 96 },
     mes:      { x: 780, y: 100, label: "MES",           kind: "consumer", w: 64, skills: ["mes"] },
     hmi:      { x: 780, y: 165, label: "HMI / SCADA",   kind: "consumer", w: 90, skills: ["hmi", "scada"] },
     graf:     { x: 780, y: 230, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana", "prometheus", "loki"] },
 
-    linux:    { x: 285, y: 348, label: "Linux",         kind: "platform", skills: ["linux"], w: 58 },
+    linux:    { x: 285, y: 348, label: "Linux",         kind: "platform", w: 58 },
     docker:   { x: 425, y: 348, label: "Docker",        kind: "platform", skills: ["docker"] },
     k8s:      { x: 565, y: 348, label: "Kubernetes",    kind: "platform", skills: ["kubernetes"] },
     cloud:    { x: 705, y: 348, label: "Cloud",         kind: "platform", skills: ["azure", "gcp"], w: 60 },
@@ -77,10 +77,9 @@
        out: true     downstream of the gateway — particles turn emerald */
   const STACK_EDGES = [
     ["field",    "edge",     { route: "elbow" }],
-    ["ot",       "nodered",  { route: "elbow" }],
+    ["ot",       "edge",     { route: "elbow" }],
     ["ot",       "mqtt",     { route: "spk" }],              // Sparkplug B straight to the bus
     ["edge",     "mqtt",     { spine: true }],
-    ["nodered",  "mqtt",     { route: "elbow" }],
     ["edge",     "backend",  { route: "over" }],             // Ignition Gateway Network
     ["mqtt",     "backend",  { spine: true, bidir: true }],
     ["mqtt",     "stores",   { route: "tbranch" }],
