@@ -7,7 +7,7 @@
           <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
         </span>
         <span class="brand-mark brand-mark--floor font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
-          sam.donche<span class="text-brand-400">@</span>edge
+          sam.donche<span class="brand-mark__host"><span class="text-brand-400">@</span>edge</span>
         </span>
         <span class="brand-mark brand-mark--desk text-sm sm:text-base font-semibold tracking-tight text-slate-100 group-hover:text-brand-300 transition-colors">
           Sam Donche
@@ -21,18 +21,18 @@
         <a href="#contact" class="hover:text-brand-300 transition-colors">Contact</a>
       </nav>
 
-      <div class="flex items-center gap-2 sm:gap-3 ml-auto">
-        <!-- Floor-only: always-visible Online so the telemetry egg stays findable on phones -->
-        <div class="floor-status flex items-center gap-2 sm:gap-4">
-          <span id="sys-status" class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-slate-500 cursor-pointer">
+      <div class="flex items-center gap-1.5 sm:gap-3 ml-auto min-w-0">
+        <!-- Floor-only: green dot always; "Online" label from sm up (saves bar space on phones) -->
+        <div class="floor-status flex items-center gap-2 sm:gap-4 shrink-0">
+          <span id="sys-status" class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-slate-500 cursor-pointer" title="Telemetry">
             <span class="h-1.5 w-1.5 rounded-full bg-accent shrink-0" aria-hidden="true"></span>
-            <span class="hidden sm:inline">System:&nbsp;</span>Online
+            <span class="floor-status__label"><span class="hidden sm:inline">System:&nbsp;</span>Online</span>
           </span>
           <span aria-hidden="true" class="hidden sm:inline text-slate-700 font-mono text-[11px]">|</span>
           <span id="local-time" class="hidden sm:inline font-mono text-[11px] uppercase tracking-widest text-slate-500" aria-live="off">--:--:--</span>
         </div>
 
-        <div class="mode-switch" role="group" aria-label="Presentation mode">
+        <div class="mode-switch shrink-0" role="group" aria-label="Presentation mode">
           <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
           <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
         </div>

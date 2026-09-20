@@ -58,7 +58,7 @@ html[data-mode="floor"] .floor-status {
 .mode-switch {
   display: inline-flex;
   align-items: stretch;
-  height: 2.25rem;
+  height: 2.5rem; /* match mobile icon buttons (h-10) */
   padding: 2px;
   border-radius: 0.4rem;
   border: 1px solid rgb(51 65 85); /* slate-700 */
@@ -70,15 +70,17 @@ html[data-mode="floor"] .floor-status {
   margin: 0;
   border: 0;
   border-radius: 0.3rem;
-  padding: 0 0.65rem;
+  padding: 0 0.55rem;
+  min-width: 2.75rem; /* comfortable thumb target */
   background: transparent;
   color: rgb(148 163 184); /* slate-400 */
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
   transition: background-color .15s ease, color .15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 .mode-switch__btn:hover { color: rgb(226 232 240); }
 .mode-switch__btn:focus-visible {
@@ -91,6 +93,43 @@ html[data-mode="floor"] .floor-status {
 }
 html[data-mode="floor"] .mode-switch {
   border-color: rgba(34, 211, 238, 0.35);
+}
+
+/* Phones: reclaim horizontal space so Desk|Floor + search + nav fit */
+@media (max-width: 639px) {
+  /* Floor handle without @edge — keeps the plant-floor cue without crowding */
+  html[data-mode="floor"] .brand-mark__host { display: none; }
+
+  /* Telemetry stays findable via the green dot; drop the Online word */
+  .floor-status__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .floor-status #sys-status {
+    padding: 0.55rem; /* enlarge hit area around the dot */
+    margin: -0.55rem;
+  }
+
+  .mode-switch__btn {
+    padding: 0 0.45rem;
+    letter-spacing: 0.04em;
+  }
+}
+@media (min-width: 640px) {
+  .mode-switch { height: 2.25rem; }
+  .mode-switch__btn {
+    padding: 0 0.65rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    min-width: 0;
+  }
 }
 
 /* Desk: hide the Ignition tag browser on desktop; keep overlay for mobile */
