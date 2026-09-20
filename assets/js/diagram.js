@@ -245,13 +245,18 @@
     gitText.textContent = "provisioned & shipped via GitOps";
 
     /* ---- Edges (orthogonal polylines): the data flow ---- */
-    STACK_EDGES.forEach(([fromId, toId, opts]) => {
+    STACK_EDGES.forEach(([fromId, toId, opts], i) => {
       const from = STACK_NODES[fromId];
       const to   = STACK_NODES[toId];
       if (!from || !to) return;
+      const cls = ["stack-svg__edge"];
+      if (opts && opts.spine) cls.push("is-spine");
       append(svgNS, edgesG, "path", {
         d: pathAbs(edgePoints(from, to, opts)),
-        class: opts && opts.spine ? "is-spine" : "",
+        class: cls.join(" "),
+        "data-edge": String(i),
+        "data-from": fromId,
+        "data-to": toId,
       });
     });
 
@@ -266,7 +271,7 @@
         for (let k = 1; k < pts.length; k++) L += Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]);
         return L;
       };
-      const addStream = (pts, opts, i) => {
+      const addStream = (pts, opts, edgeIdx, i) => {
         const len   = pathLen(pts);
         const dur   = Math.max(1.6, len / SPEED);
         const count = Math.min(4, Math.max(1, Math.round(len / GAP)));
@@ -274,7 +279,8 @@
         for (let k = 0; k < count; k++) {
           const dot = append(svgNS, particlesG, "circle", {
             r: 2.4, cx: pts[0][0], cy: pts[0][1],
-            class: opts && opts.out ? "is-out" : "",
+            class: opts && opts.out ? "stack-svg__particle is-out" : "stack-svg__particle",
+            "data-edge": String(edgeIdx),
           });
           // negative begin spreads the dots evenly along the path; the per-edge
           // term keeps different edges from pulsing in lockstep
@@ -290,8 +296,8 @@
         const to   = STACK_NODES[toId];
         if (!from || !to) return;
         const pts = edgePoints(from, to, opts);
-        addStream(pts, opts, i);
-        if (opts && opts.bidir) addStream([...pts].reverse(), opts, i + 0.5);
+        addStream(pts, opts, i, i);
+        if (opts && opts.bidir) addStream([...pts].reverse(), opts, i, i + 0.5);
       });
     }
 
@@ -339,14 +345,32 @@
   /* Cross-highlight: chip → every block tagged with that skill; block → that
      block only + its chips. Node hover must NOT re-activate shared skill slugs
      across other nodes (that made Services light Data stores via data-pipelines,
-     and MQTT light OT/Edge via sparkplug-b / ot-it). */
+     and MQTT light OT/Edge via sparkplug-b / ot-it).
+     While spotlighting, incident edges + their particles stay bright so the
+     flow out of a node stays readable. */
   function wireStackHighlight(svg) {
     const chips = Array.from(document.querySelectorAll(".skill-chip[data-skill]"));
     const nodes = Array.from(svg.querySelectorAll(".stack-node[data-skills]"));
+    const edges = Array.from(svg.querySelectorAll(".stack-svg__edges path[data-edge]"));
+    const particles = Array.from(svg.querySelectorAll(".stack-svg__particles circle[data-edge]"));
     if (!chips.length || !nodes.length) return;
 
     const syncSpotlight = () => {
-      svg.classList.toggle("is-spotlighting", svg.querySelector(".is-linked") != null);
+      const linkedIds = new Set(
+        Array.from(svg.querySelectorAll(".stack-node.is-linked[data-node]"))
+          .map((g) => g.dataset.node)
+          .filter(Boolean)
+      );
+      const linkedEdges = new Set();
+      edges.forEach((path) => {
+        const on = linkedIds.has(path.dataset.from) || linkedIds.has(path.dataset.to);
+        path.classList.toggle("is-linked", on);
+        if (on) linkedEdges.add(path.dataset.edge);
+      });
+      particles.forEach((dot) => {
+        dot.classList.toggle("is-linked", linkedEdges.has(dot.dataset.edge));
+      });
+      svg.classList.toggle("is-spotlighting", linkedIds.size > 0);
     };
 
     /* Chip hover: light every node that lists this skill (multi-home OK). */
