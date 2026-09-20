@@ -747,6 +747,9 @@
     let filtered = items.slice();
 
     function open() {
+      // If the mobile tag-nav overlay is open, close it first so cmdk isn't
+      // trapped under the sidebar and body scroll-lock stays consistent.
+      closeMobileNav();
       root.hidden = false;
       input.value = "";
       filtered = items.slice();
@@ -874,8 +877,17 @@
       }
     });
 
-    // Sidebar button opens the palette
-    opener?.addEventListener("click", open);
+    // Any [data-cmdk-open] control opens the palette (sidebar footer + top-bar search)
+    document.querySelectorAll("[data-cmdk-open]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        open();
+      });
+    });
+    // Back-compat: #cmdk-open without the data attr (static markup)
+    if (opener && !opener.hasAttribute("data-cmdk-open")) {
+      opener.addEventListener("click", open);
+    }
   }
 
   function isEditableTarget(el) {
@@ -1389,12 +1401,18 @@
     const broker = svg && svg.querySelector('.stack-node[data-node="mqtt"]');
     if (!broker) return;
     broker.style.cursor = "pointer";
+    broker.setAttribute("role", "button");
+    broker.setAttribute("tabindex", "0");
+    broker.setAttribute("aria-label", "MQTT broker — tap to publish");
     broker.addEventListener("click", () => {
       svg.classList.add("is-publishing");
       setTimeout(() => svg.classList.remove("is-publishing"), 1400);
       eggToast("▲ publish · " + MQTT_PAYLOADS[mqttIdx % MQTT_PAYLOADS.length]);
       mqttIdx++;
       discoverEgg("mqtt");
+    });
+    broker.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); broker.click(); }
     });
   }
 

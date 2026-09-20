@@ -80,8 +80,8 @@
   <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/css/fonts.css?v=0f6b5ce264" />
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=24f3f3ff7e" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=f2852f3caa" />
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=8e6c15230e" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=e905b6fb7c" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -119,25 +119,42 @@
         </span>
       </a>
 
-      <div class="hidden sm:flex items-center gap-4 font-mono text-[11px] uppercase tracking-widest text-slate-500">
-        <span id="sys-status" class="flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-accent"></span>System: Online</span>
-        <span aria-hidden="true" class="text-slate-700">|</span>
-        <span id="local-time" aria-live="off">--:--:--</span>
-      </div>
+      <div class="flex items-center gap-2 sm:gap-4">
+        <!-- Always visible — compact on phones so the telemetry egg stays findable -->
+        <span id="sys-status" class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-slate-500 cursor-pointer">
+          <span class="h-1.5 w-1.5 rounded-full bg-accent shrink-0" aria-hidden="true"></span>
+          <span class="hidden sm:inline">System:&nbsp;</span>Online
+        </span>
+        <span aria-hidden="true" class="hidden sm:inline text-slate-700 font-mono text-[11px]">|</span>
+        <span id="local-time" class="hidden sm:inline font-mono text-[11px] uppercase tracking-widest text-slate-500" aria-live="off">--:--:--</span>
 
-      <!-- Mobile-only: open tag-browser sidebar overlay -->
-      <button
-        id="nav-toggle"
-        type="button"
-        class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition"
-        aria-label="Open navigation"
-        aria-expanded="false"
-        aria-controls="tag-nav"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
-          <path d="M3 6h18M3 12h18M3 18h18"/>
-        </svg>
-      </button>
+        <!-- Mobile/tablet: open command palette without a keyboard -->
+        <button
+          id="cmdk-open-bar"
+          type="button"
+          class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition"
+          aria-label="Open tag search"
+          data-cmdk-open
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true">
+            <circle cx="11" cy="11" r="6"/><path stroke-linecap="round" d="M20 20l-3.5-3.5"/>
+          </svg>
+        </button>
+
+        <!-- Mobile-only: open tag-browser sidebar overlay -->
+        <button
+          id="nav-toggle"
+          type="button"
+          class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition"
+          aria-label="Open navigation"
+          aria-expanded="false"
+          aria-controls="tag-nav"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+            <path d="M3 6h18M3 12h18M3 18h18"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 <!-- /partial:home-topbar -->
@@ -192,8 +209,8 @@
       </div>
 
       <footer class="tag-nav__footer">
-        <button id="cmdk-open" type="button" class="tag-nav__cmdk" aria-label="Open tag search (Cmd+K)">
-          <span class="tag-nav__cmdk-keys"><kbd>⌘</kbd><kbd>K</kbd></span>
+        <button id="cmdk-open" type="button" class="tag-nav__cmdk" aria-label="Open tag search" data-cmdk-open>
+          <span class="tag-nav__cmdk-keys" aria-hidden="true"><kbd>⌘</kbd><kbd>K</kbd></span>
           <span class="tag-nav__cmdk-label">search tags</span>
         </button>
       </footer>
@@ -558,8 +575,9 @@
         </div>
 
         <!--
-          Decorative tech-stack diagram. Pure visual — no interaction.
-          Built by buildStackDiagram() in script.js from the STACK_NODES registry.
+          Reference architecture diagram. Interactive: skill chips highlight
+          matching blocks; the MQTT broker node publishes an easter-egg burst.
+          Built by buildStackDiagram() in diagram.js from the STACK_NODES registry.
         -->
         <figure class="stack-diagram reveal mt-10">
           <div class="stack-diagram__header">
@@ -814,9 +832,9 @@
 
 <!-- partial:home-scripts -->
   <script src="assets/js/skill-meta.js?v=ae64c7ead7" defer></script>
-  <script src="assets/js/eggs.js?v=184404dc3e" defer></script>
-  <script src="assets/js/diagram.js?v=ee4b3ce4a1" defer></script>
-  <script src="assets/js/script.js?v=307bdd9539" defer></script>
+  <script src="assets/js/eggs.js?v=e05e8c5e22" defer></script>
+  <script src="assets/js/diagram.js?v=c1e7036c55" defer></script>
+  <script src="assets/js/script.js?v=f09630c5b8" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->
