@@ -1252,6 +1252,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   stroke-width: 1;
   stroke-dasharray: 3 4;
   opacity: 0.4;
+  transition: opacity 0.18s ease, stroke 0.15s ease, stroke-width 0.15s ease;
 }
 .stack-svg__edges path.is-spine {
   stroke-width: 1.6;
@@ -1265,6 +1266,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   fill: var(--color-brand-400);
   opacity: 0.9;
   filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));
+  transition: opacity 0.18s ease;
 }
 .stack-svg__particles circle.is-out {
   fill: var(--color-accent);
@@ -1360,11 +1362,20 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
 /* Blocks tied to a skill invite the hover */
 .stack-node[data-skills],
 .stack-node[data-popover] { cursor: pointer; }
-/* Spotlight: while a skill is active, fade everything that isn't linked */
+/* Spotlight: fade unlinked nodes; keep incident edges/particles bright */
 #stack-svg.is-spotlighting .stack-node:not(.is-linked) { opacity: 0.28; }
-#stack-svg.is-spotlighting .stack-svg__edges,
-#stack-svg.is-spotlighting .stack-svg__particles { opacity: 0.22; }
 #stack-svg.is-spotlighting .stack-svg__stages { opacity: 0.45; }
+#stack-svg.is-spotlighting .stack-svg__edges path:not(.is-linked) { opacity: 0.08; }
+#stack-svg.is-spotlighting .stack-svg__edges path.is-linked {
+  opacity: 1;
+  stroke: var(--color-brand-400);
+  stroke-width: 1.75;
+}
+#stack-svg.is-spotlighting .stack-svg__edges path.is-linked.is-spine {
+  stroke-width: 2.1;
+}
+#stack-svg.is-spotlighting .stack-svg__particles circle:not(.is-linked) { opacity: 0.08; }
+#stack-svg.is-spotlighting .stack-svg__particles circle.is-linked { opacity: 1; }
 .stack-node.is-linked .stack-svg__block {
   stroke: var(--color-brand-400);
   stroke-width: 2;
