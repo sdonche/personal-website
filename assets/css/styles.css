@@ -180,10 +180,18 @@ html { color-scheme: dark; }
    ---------------------------------------------------- */
 
 /* Skills body keeps document order: diagram first, chip index second.
-   (Chips stay demoted visually via flat styling below.) */
+   Explicit width:100% — a column flex item can otherwise shrink-wrap to the
+   SVG's intrinsic size (~390px) and clip the architecture on the right. */
 .skills-body {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+}
+.skills-body > .stack-diagram,
+.skills-body > .skill-index {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .skill-index__lead {
