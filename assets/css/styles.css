@@ -176,44 +176,75 @@ html { color-scheme: dark; }
 
 
 /* ----------------------------------------------------
-   5. Skills
+   5. Skills — diagram leads; chip index is a quiet footnote
    ---------------------------------------------------- */
+
+/* On phones: chips first (scanable), diagram second (optional deep dive) */
+.skills-body {
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 43rem) {
+  .skills-body .stack-diagram { order: 2; margin-top: 1.75rem; }
+  .skills-body .skill-index { order: 1; margin-top: 1.75rem; }
+}
+
+.skill-index__lead {
+  margin: 0 0 1rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(100 116 139);
+}
+.skill-index__grid {
+  display: grid;
+  gap: 1.25rem 2rem;
+}
+@media (min-width: 48rem) {
+  .skill-index__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 64rem) {
+  .skill-index__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Flat groups — no card chrome competing with the diagram panel */
 .skill-group {
-  padding: 1.25rem 1.5rem;
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgb(30 41 59);
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
 }
 .skill-group__title {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.45rem;
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgb(148 163 184);
-  margin-bottom: 1rem;
+  letter-spacing: 0.18em;
+  color: rgb(100 116 139);
+  margin-bottom: 0.55rem;
 }
 .skill-group__icon {
-  width: 1.05rem;
-  height: 1.05rem;
-  color: var(--color-brand-400);
+  width: 0.9rem;
+  height: 0.9rem;
+  color: rgb(71 85 105);
   flex-shrink: 0;
 }
 
-/* Skill chips — plain tools, no self-rated bars (see GitHub for the live stack) */
-.skill-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+/* Quiet chips — readable, not a second visual system */
+.skill-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .skill-chip {
   display: inline-block;
   margin: 0;
-  padding: 0.25rem 0.6rem;
-  border-radius: 5px;
+  padding: 0.18rem 0.5rem;
+  border-radius: 4px;
   font-family: inherit;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   line-height: 1.3;
-  color: rgb(203 213 225);
-  background: rgba(15, 23, 42, 0.6);
+  color: rgb(148 163 184);
+  background: transparent;
   border: 1px solid rgb(30 41 59);
   cursor: pointer;
   transition: border-color .15s ease, color .15s ease, background-color .15s ease, box-shadow .15s ease;
@@ -222,18 +253,17 @@ html { color-scheme: dark; }
   outline: 2px solid rgba(34, 211, 238, 0.6);
   outline-offset: 2px;
 }
-.skill-group:hover .skill-chip { border-color: rgba(34, 211, 238, 0.22); }
 .skill-chip:hover {
-  border-color: rgba(34, 211, 238, 0.55);
-  color: rgb(241 245 249);
-  background: rgba(34, 211, 238, 0.06);
+  border-color: rgba(34, 211, 238, 0.45);
+  color: rgb(226 232 240);
+  background: rgba(34, 211, 238, 0.05);
 }
 /* Lit from the diagram side (hovering its block) — mirror the hover look */
 .skill-chip.is-linked {
-  border-color: rgba(34, 211, 238, 0.7);
+  border-color: rgba(34, 211, 238, 0.65);
   color: rgb(241 245 249);
-  background: rgba(34, 211, 238, 0.1);
-  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.25);
+  background: rgba(34, 211, 238, 0.08);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.2);
 }
 
 /* Spoken languages — lives in About aside, stacked like other bio facts */
@@ -1179,14 +1209,20 @@ html { color-scheme: dark; }
   fill: rgb(148 163 184);
 }
 
-/* ---- Cross-highlight between the diagram and the skill chips ---- */
-.stack-node { transition: opacity 0.18s ease; }
+.stack-svg__edges,
+.stack-svg__particles,
+.stack-svg__stages {
+  transition: opacity 0.18s ease;
+}
 .stack-node .stack-svg__block { transition: stroke 0.15s ease, stroke-width 0.15s ease, fill 0.15s ease; }
 .stack-node .stack-svg__block-label { transition: fill 0.15s ease; }
 /* Blocks tied to a skill invite the hover */
 .stack-node[data-skills] { cursor: pointer; }
 /* Spotlight: while a skill is active, fade everything that isn't linked */
 #stack-svg.is-spotlighting .stack-node:not(.is-linked) { opacity: 0.28; }
+#stack-svg.is-spotlighting .stack-svg__edges,
+#stack-svg.is-spotlighting .stack-svg__particles { opacity: 0.22; }
+#stack-svg.is-spotlighting .stack-svg__stages { opacity: 0.45; }
 .stack-node.is-linked .stack-svg__block {
   stroke: var(--color-brand-400);
   stroke-width: 2;
