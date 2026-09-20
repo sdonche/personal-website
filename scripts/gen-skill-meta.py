@@ -24,8 +24,7 @@ with open(os.path.join(HERE, "skill-icons.jsonl")) as f:
 SKILLS = [
     # Industry 4.0 / IIoT
     ("ignition",          "Ignition",          "Industrial platform for SCADA, HMI and MES on the plant floor.", ("role","bolt")),
-    ("scada",             "SCADA",             "Watch and steer plant processes in real time.", ("role","gauge")),
-    ("hmi",               "HMI",               "Operator screens for monitoring and running equipment.", ("role","screen")),
+    ("hmi-scada",         "HMI / SCADA",       "Operator screens (HMI) and supervisory control (SCADA) watching the floor.", ("role","gauge")),
     ("mqtt",              "MQTT",              "Lightweight publish/subscribe messaging, the backbone of IIoT data.", ("brand","mqtt")),
     ("sparkplug-b",       "Sparkplug B",       "MQTT spec that makes industrial device data self-describing.", ("role","bolt")),
     ("unified-namespace", "Unified Namespace", "A single real-time hub where all operational data lives.", ("role","hub")),
@@ -43,8 +42,7 @@ SKILLS = [
     ("kubernetes",        "Kubernetes",        "Container orchestration: run and scale services across a cluster.", ("brand","kubernetes")),
     ("docker",            "Docker",            "Package applications into portable containers.", ("brand","docker")),
     ("terraform",         "Terraform",         "Infrastructure as code: provision cloud and platform resources.", ("brand","terraform")),
-    ("azure",             "Azure",             "Microsoft's cloud platform for compute, storage and services.", ("role","cloud")),
-    ("gcp",               "GCP",               "Compute, data and ML services.", ("brand","googlecloud")),
+    ("cloud",             "Azure / GCP",       "Where the platform runs off-prem — Azure or GCP.", ("role","cloud")),
     ("argo-cd",           "Argo CD",           "GitOps continuous delivery for Kubernetes.", ("brand","argo")),
     ("gitops",            "GitOps",            "Manage infrastructure and deploys through Git as source of truth.", ("role","loop")),
     ("ci-cd",             "CI/CD",             "Automated build, test and deploy pipelines.", ("role","loop")),
@@ -71,13 +69,12 @@ ROLE = {
 
 # Acronyms that benefit from spelling out, shown above the description
 FULL = {
-    "scada":  "Supervisory Control and Data Acquisition",
-    "hmi":    "Human-Machine Interface",
-    "mes":    "Manufacturing Execution System",
-    "mqtt":   "Message Queuing Telemetry Transport",
-    "opc-ua": "Open Platform Communications Unified Architecture",
-    "ci-cd":  "Continuous Integration / Continuous Delivery",
-    "gcp":    "Google Cloud Platform",
+    "hmi-scada":  "Human-Machine Interface / Supervisory Control and Data Acquisition",
+    "mes":        "Manufacturing Execution System",
+    "mqtt":       "Message Queuing Telemetry Transport",
+    "opc-ua":     "Open Platform Communications Unified Architecture",
+    "ci-cd":      "Continuous Integration / Continuous Delivery",
+    "cloud":      "Microsoft Azure / Google Cloud Platform",
 }
 
 meta = {}

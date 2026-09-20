@@ -8,17 +8,11 @@ window.SKILL_META = {
   "desc": "Industrial platform for SCADA, HMI and MES on the plant floor.",
   "role": "bolt"
  },
- "scada": {
-  "name": "SCADA",
-  "desc": "Watch and steer plant processes in real time.",
+ "hmi-scada": {
+  "name": "HMI / SCADA",
+  "desc": "Operator screens (HMI) and supervisory control (SCADA) watching the floor.",
   "role": "gauge",
-  "full": "Supervisory Control and Data Acquisition"
- },
- "hmi": {
-  "name": "HMI",
-  "desc": "Operator screens for monitoring and running equipment.",
-  "role": "screen",
-  "full": "Human-Machine Interface"
+  "full": "Human-Machine Interface / Supervisory Control and Data Acquisition"
  },
  "mqtt": {
   "name": "MQTT",
@@ -98,16 +92,11 @@ window.SKILL_META = {
   "desc": "Infrastructure as code: provision cloud and platform resources.",
   "brand": "M1.44 0v7.575l6.561 3.79V3.787zm21.12 4.227l-6.561 3.791v7.574l6.56-3.787zM8.72 4.23v7.575l6.561 3.787V8.018zm0 8.405v7.575L15.28 24v-7.578z"
  },
- "azure": {
-  "name": "Azure",
-  "desc": "Microsoft's cloud platform for compute, storage and services.",
-  "role": "cloud"
- },
- "gcp": {
-  "name": "GCP",
-  "desc": "Compute, data and ML services.",
-  "brand": "M12.19 2.38a9.344 9.344 0 0 0-9.234 6.893c.053-.02-.055.013 0 0-3.875 2.551-3.922 8.11-.247 10.941l.006-.007-.007.03a6.717 6.717 0 0 0 4.077 1.356h5.173l.03.03h5.192c6.687.053 9.376-8.605 3.835-12.35a9.365 9.365 0 0 0-2.821-4.552l-.043.043.006-.05A9.344 9.344 0 0 0 12.19 2.38zm-.358 4.146c1.244-.04 2.518.368 3.486 1.15a5.186 5.186 0 0 1 1.862 4.078v.518c3.53-.07 3.53 5.262 0 5.193h-5.193l-.008.009v-.04H6.785a2.59 2.59 0 0 1-1.067-.23h.001a2.597 2.597 0 1 1 3.437-3.437l3.013-3.012A6.747 6.747 0 0 0 8.11 8.24c.018-.01.04-.026.054-.023a5.186 5.186 0 0 1 3.67-1.69z",
-  "full": "Google Cloud Platform"
+ "cloud": {
+  "name": "Azure / GCP",
+  "desc": "Where the platform runs off-prem — Azure or GCP.",
+  "role": "cloud",
+  "full": "Microsoft Azure / Google Cloud Platform"
  },
  "argo-cd": {
   "name": "Argo CD",
@@ -139,6 +128,5 @@ window.SKILL_ROLE_ICONS = {
  "gauge": "<path d=\"M4 15a8 8 0 0 1 16 0\"/><path d=\"M12 15l3.5-3.5\"/><circle cx=\"12\" cy=\"15\" r=\"1\"/>",
  "hub": "<circle cx=\"12\" cy=\"12\" r=\"2.4\"/><circle cx=\"5\" cy=\"5\" r=\"1.7\"/><circle cx=\"19\" cy=\"5\" r=\"1.7\"/><circle cx=\"5\" cy=\"19\" r=\"1.7\"/><circle cx=\"19\" cy=\"19\" r=\"1.7\"/><path d=\"M10.3 10.3 6.3 6.3M13.7 10.3l4-4M10.3 13.7l-4 4M13.7 13.7l4 4\"/>",
  "loop": "<path d=\"M4 12a8 8 0 0 1 13.7-5.6L20 8\"/><path d=\"M20 4v4h-4\"/><path d=\"M20 12a8 8 0 0 1-13.7 5.6L4 16\"/><path d=\"M4 20v-4h4\"/>",
- "protocol": "<path d=\"M9 3v5M15 3v5\"/><path d=\"M7 8h10v3a5 5 0 0 1-10 0z\"/><path d=\"M12 16v5\"/>",
- "screen": "<rect x=\"3\" y=\"4.5\" width=\"18\" height=\"12\" rx=\"1.5\"/><path d=\"M8 20.5h8M12 16.5v4\"/>"
+ "protocol": "<path d=\"M9 3v5M15 3v5\"/><path d=\"M7 8h10v3a5 5 0 0 1-10 0z\"/><path d=\"M12 16v5\"/>"
 };

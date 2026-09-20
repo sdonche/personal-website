@@ -1206,16 +1206,17 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   text-anchor: middle;
   font-weight: 600;
 }
+/* Column guides — solid + quieter so they don't read as data edges */
 .stack-svg__stage-divider {
-  stroke: rgba(148, 163, 184, 0.10);
+  stroke: rgba(148, 163, 184, 0.09);
   stroke-width: 1;
-  stroke-dasharray: 2 4;
+  stroke-dasharray: none;
 }
 /* OT ↔ IT boundary: physical field devices on the left, software on the right */
 .stack-svg__otit {
-  stroke: rgba(148, 163, 184, 0.22);
+  stroke: rgba(148, 163, 184, 0.28);
   stroke-width: 1;
-  stroke-dasharray: 1 5;
+  stroke-dasharray: 1 6;
 }
 .stack-svg__otit-label {
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
@@ -1288,13 +1289,6 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   stroke: rgba(148, 163, 184, 0.2);
   stroke-width: 1;
   stroke-dasharray: 5 4;
-}
-/* Subtle grouping around the storage row so the bottom reads as data stores */
-.stack-svg__databand {
-  fill: rgba(15, 23, 42, 0.3);
-  stroke: rgba(148, 163, 184, 0.16);
-  stroke-width: 1;
-  stroke-dasharray: 4 4;
 }
 .stack-svg__tier-label {
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
