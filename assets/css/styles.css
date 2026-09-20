@@ -1226,7 +1226,8 @@ html { color-scheme: dark; }
 .stack-node .stack-svg__block { transition: stroke 0.15s ease, stroke-width 0.15s ease, fill 0.15s ease; }
 .stack-node .stack-svg__block-label { transition: fill 0.15s ease; }
 /* Blocks tied to a skill invite the hover */
-.stack-node[data-skills] { cursor: pointer; }
+.stack-node[data-skills],
+.stack-node[data-popover] { cursor: pointer; }
 /* Spotlight: while a skill is active, fade everything that isn't linked */
 #stack-svg.is-spotlighting .stack-node:not(.is-linked) { opacity: 0.28; }
 #stack-svg.is-spotlighting .stack-svg__edges,

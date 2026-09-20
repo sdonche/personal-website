@@ -48,6 +48,8 @@ SKILLS = [
     ("argo-cd",           "Argo CD",           "GitOps continuous delivery for Kubernetes.", ("brand","argo")),
     ("gitops",            "GitOps",            "Manage infrastructure and deploys through Git as source of truth.", ("role","loop")),
     ("ci-cd",             "CI/CD",             "Automated build, test and deploy pipelines.", ("role","loop")),
+    # Diagram-only (no chip) — still popoverable from the architecture SVG
+    ("linux",             "Linux",             "The operating system everything runs on.", ("brand","linux")),
 ]
 
 # stroke-based cyan role icons (inner markup, 24x24, fill none / stroke currentColor)
