@@ -61,13 +61,13 @@
     /* One stores block — Redis / InfluxDB dropped from the chip index. */
     stores:   { x: 520, y: 278, label: "Data stores",   kind: "storage",  skills: ["postgresql", "sql-server", "timescaledb", "factry"], w: 96 },
     mes:      { x: 780, y: 100, label: "MES",           kind: "consumer", w: 64, skills: ["mes"] },
-    hmi:      { x: 780, y: 165, label: "HMI / SCADA",   kind: "consumer", w: 90, skills: ["hmi", "scada"], popover: "hmi-scada" },
+    hmi:      { x: 780, y: 165, label: "HMI / SCADA",   kind: "consumer", w: 90, skills: ["hmi-scada"], popover: "hmi-scada" },
     graf:     { x: 780, y: 230, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana", "prometheus", "loki"] },
 
     linux:    { x: 285, y: 348, label: "Linux",         kind: "platform", skills: ["linux"], w: 58 },
     docker:   { x: 425, y: 348, label: "Docker",        kind: "platform", skills: ["docker"] },
     k8s:      { x: 565, y: 348, label: "Kubernetes",    kind: "platform", skills: ["kubernetes"] },
-    cloud:    { x: 705, y: 348, label: "Cloud",         kind: "platform", skills: ["azure", "gcp"], w: 60, popover: "cloud" },
+    cloud:    { x: 705, y: 348, label: "Cloud",         kind: "platform", skills: ["cloud"], w: 60, popover: "cloud" },
   };
 
   /* Skills routed to the "provisioned & shipped via GitOps" tag rather than to
@@ -194,16 +194,6 @@
         });
       }
     });
-
-    /* ---- Data-stores slab behind the single stores block ---- */
-    append(svgNS, stagesG, "rect", {
-      class: "stack-svg__slab",
-      x: 460, y: 262, width: 120, height: 33, rx: 10,
-    });
-    const dataLabel = append(svgNS, stagesG, "text", {
-      class: "stack-svg__tier-label", x: 460, y: 256,
-    });
-    dataLabel.textContent = "// data stores";
 
     /* ---- Platform slab scaffolding (behind the blocks) ---- */
     const b = PLATFORM_SLAB;
