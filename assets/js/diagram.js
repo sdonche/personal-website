@@ -52,19 +52,22 @@
     ot:       { x:  72, y: 200, label: "OT protocols",  kind: "field",    skills: ["opc-ua", "sparkplug-b"], w: 92 },
     /* Single edge gateway — Node-RED removed from the public toolbelt. */
     edge:     { x: 210, y: 165, label: "Ignition Edge", kind: "edge",     skills: ["ignition", "ot-it", "kepware"] },
-    mqtt:     { x: 350, y: 165, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "ot-it", "kafka", "mosquitto", "emqx"] },
+    /* skills = chips that locate this block. Keep membership exclusive where
+       a shared slug would otherwise light a neighbour (e.g. data-pipelines).
+       Multi-home chips (Sparkplug B, Ignition) still intentionally span nodes. */
+    mqtt:     { x: 350, y: 165, label: "MQTT",          kind: "broker",   skills: ["mqtt", "sparkplug-b", "unified-namespace", "kafka", "mosquitto", "emqx"] },
     backend:  { x: 520, y: 130, label: "Ignition",      kind: "server",   skills: ["ignition", "traefik"] },
     svc:      { x: 520, y: 200, label: "Services",      kind: "server",   skills: ["python", "fastapi", "pydantic", "sqlalchemy", "data-pipelines"] },
     /* One stores block — Redis / InfluxDB dropped from the chip index. */
-    stores:   { x: 520, y: 278, label: "Data stores",   kind: "storage",  skills: ["postgresql", "sql-server", "timescaledb", "factry", "data-pipelines"], w: 96 },
+    stores:   { x: 520, y: 278, label: "Data stores",   kind: "storage",  skills: ["postgresql", "sql-server", "timescaledb", "factry"], w: 96 },
     mes:      { x: 780, y: 100, label: "MES",           kind: "consumer", w: 64, skills: ["mes"] },
-    hmi:      { x: 780, y: 165, label: "HMI / SCADA",   kind: "consumer", w: 90, skills: ["hmi", "scada"] },
+    hmi:      { x: 780, y: 165, label: "HMI / SCADA",   kind: "consumer", w: 90, skills: ["hmi", "scada"], popover: "hmi-scada" },
     graf:     { x: 780, y: 230, label: "Grafana",       kind: "consumer", w: 64, skills: ["grafana", "prometheus", "loki"] },
 
     linux:    { x: 285, y: 348, label: "Linux",         kind: "platform", skills: ["linux"], w: 58 },
     docker:   { x: 425, y: 348, label: "Docker",        kind: "platform", skills: ["docker"] },
     k8s:      { x: 565, y: 348, label: "Kubernetes",    kind: "platform", skills: ["kubernetes"] },
-    cloud:    { x: 705, y: 348, label: "Cloud",         kind: "platform", skills: ["azure", "gcp"], w: 60, popover: "azure" },
+    cloud:    { x: 705, y: 348, label: "Cloud",         kind: "platform", skills: ["azure", "gcp"], w: 60, popover: "cloud" },
   };
 
   /* Skills routed to the "provisioned & shipped via GitOps" tag rather than to
@@ -328,33 +331,48 @@
     wireStackHighlight(svg);
   }
 
-  /* Cross-highlight: hovering a skill chip lights its block(s) in the diagram,
-     and hovering a block lights its chip(s). Pure progressive enhancement —
-     the chips and blocks are fully legible without it. */
+  /* Cross-highlight: chip → every block tagged with that skill; block → that
+     block only + its chips. Node hover must NOT re-activate shared skill slugs
+     across other nodes (that made Services light Data stores via data-pipelines,
+     and MQTT light OT/Edge via sparkplug-b / ot-it). */
   function wireStackHighlight(svg) {
     const chips = Array.from(document.querySelectorAll(".skill-chip[data-skill]"));
     const nodes = Array.from(svg.querySelectorAll(".stack-node[data-skills]"));
     if (!chips.length || !nodes.length) return;
 
-    const setActive = (slug, on) => {
+    const syncSpotlight = () => {
+      svg.classList.toggle("is-spotlighting", svg.querySelector(".is-linked") != null);
+    };
+
+    /* Chip hover: light every node that lists this skill (multi-home OK). */
+    const setChipActive = (slug, on) => {
       nodes.forEach((g) => {
         if (g.dataset.skills.split(" ").includes(slug)) g.classList.toggle("is-linked", on);
       });
       chips.forEach((c) => {
         if (c.dataset.skill === slug) c.classList.toggle("is-linked", on);
       });
-      svg.classList.toggle("is-spotlighting", on ? true : svg.querySelector(".is-linked") != null);
+      syncSpotlight();
+    };
+
+    /* Node hover: light this node + matching chips only — never sibling nodes. */
+    const setNodeActive = (node, on) => {
+      node.classList.toggle("is-linked", on);
+      const slugs = new Set((node.dataset.skills || "").split(" ").filter(Boolean));
+      chips.forEach((c) => {
+        if (slugs.has(c.dataset.skill)) c.classList.toggle("is-linked", on);
+      });
+      syncSpotlight();
     };
 
     chips.forEach((c) => {
       const slug = c.dataset.skill;
-      c.addEventListener("mouseenter", () => setActive(slug, true));
-      c.addEventListener("mouseleave", () => setActive(slug, false));
+      c.addEventListener("mouseenter", () => setChipActive(slug, true));
+      c.addEventListener("mouseleave", () => setChipActive(slug, false));
     });
     nodes.forEach((g) => {
-      const slugs = g.dataset.skills.split(" ");
-      g.addEventListener("mouseenter", () => slugs.forEach((s) => setActive(s, true)));
-      g.addEventListener("mouseleave", () => slugs.forEach((s) => setActive(s, false)));
+      g.addEventListener("mouseenter", () => setNodeActive(g, true));
+      g.addEventListener("mouseleave", () => setNodeActive(g, false));
     });
   }
 

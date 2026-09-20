@@ -50,6 +50,9 @@ SKILLS = [
     ("ci-cd",             "CI/CD",             "Automated build, test and deploy pipelines.", ("role","loop")),
     # Diagram-only (no chip) — still popoverable from the architecture SVG
     ("linux",             "Linux",             "The operating system everything runs on.", ("brand","linux")),
+    # Combined diagram labels (one block, several chip skills)
+    ("hmi-scada",         "HMI / SCADA",       "Operator screens (HMI) and supervisory control (SCADA) watching the floor.", ("role","gauge")),
+    ("cloud",             "Cloud",             "Where the platform runs off-prem — Azure or GCP.", ("role","cloud")),
 ]
 
 # stroke-based cyan role icons (inner markup, 24x24, fill none / stroke currentColor)
@@ -71,13 +74,14 @@ ROLE = {
 
 # Acronyms that benefit from spelling out, shown above the description
 FULL = {
-    "scada":  "Supervisory Control and Data Acquisition",
-    "hmi":    "Human-Machine Interface",
-    "mes":    "Manufacturing Execution System",
-    "mqtt":   "Message Queuing Telemetry Transport",
-    "opc-ua": "Open Platform Communications Unified Architecture",
-    "ci-cd":  "Continuous Integration / Continuous Delivery",
-    "gcp":    "Google Cloud Platform",
+    "scada":      "Supervisory Control and Data Acquisition",
+    "hmi":        "Human-Machine Interface",
+    "hmi-scada":  "Human-Machine Interface / Supervisory Control and Data Acquisition",
+    "mes":        "Manufacturing Execution System",
+    "mqtt":       "Message Queuing Telemetry Transport",
+    "opc-ua":     "Open Platform Communications Unified Architecture",
+    "ci-cd":      "Continuous Integration / Continuous Delivery",
+    "gcp":        "Google Cloud Platform",
 }
 
 meta = {}
