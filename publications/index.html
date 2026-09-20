@@ -63,7 +63,7 @@
   <link rel="preload" href="../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="../assets/css/fonts.css?v=0f6b5ce264" />
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=8e6c15230e" />
-  <link rel="stylesheet" href="../assets/css/styles.css?v=19de52755b" />
+  <link rel="stylesheet" href="../assets/css/styles.css?v=f5276443da" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -87,18 +87,18 @@
           <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
         </span>
         <span class="brand-mark brand-mark--floor font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
-          sam.donche<span class="text-brand-400">@</span>edge
+          sam.donche<span class="brand-mark__host"><span class="text-brand-400">@</span>edge</span>
         </span>
         <span class="brand-mark brand-mark--desk text-sm sm:text-base font-semibold tracking-tight text-slate-100 group-hover:text-brand-300 transition-colors">
           Sam Donche
         </span>
       </a>
-      <div class="flex items-center gap-2 sm:gap-3">
-        <div class="mode-switch" role="group" aria-label="Presentation mode">
+      <div class="flex items-center gap-1.5 sm:gap-3 min-w-0">
+        <div class="mode-switch shrink-0" role="group" aria-label="Presentation mode">
           <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
           <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
         </div>
-        <a href="../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors">← back</a>
+        <a href="../" class="subpage-back font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← back</a>
         <button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
       </div>
     </div>
