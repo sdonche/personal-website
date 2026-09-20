@@ -81,7 +81,7 @@
   <link rel="preload" href="assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/css/fonts.css?v=0f6b5ce264" />
   <link rel="stylesheet" href="assets/css/tailwind.css?v=8e6c15230e" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=e905b6fb7c" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=186469c5e6" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -575,10 +575,12 @@
         </div>
 
         <!--
-          Reference architecture diagram. Interactive: skill chips highlight
-          matching blocks; the MQTT broker node publishes an easter-egg burst.
-          Built by buildStackDiagram() in diagram.js from the STACK_NODES registry.
+          Reference architecture diagram — primary visual for this section.
+          Interactive: skill chips highlight matching blocks; the MQTT broker
+          node publishes an easter-egg burst. Built by buildStackDiagram()
+          in assets/js/diagram.js. Skill chips below are a quieter index.
         -->
+        <div class="skills-body">
         <figure class="stack-diagram reveal mt-10">
           <div class="stack-diagram__header">
             <span class="stack-diagram__caption">[ REFERENCE ARCHITECTURE ]</span>
@@ -591,9 +593,9 @@
             <span class="stack-diagram__swipe" aria-hidden="true">swipe to explore &rarr;</span>
             <svg
               id="stack-svg"
-              viewBox="0 0 860 430"
+              viewBox="0 0 860 400"
               role="img"
-              aria-label="Reference architecture for a factory data backbone built around a Unified Namespace. Field devices (PLCs, sensors and a Sparkplug B smart sensor) reach an MQTT broker via an Ignition Edge gateway and Node-RED. The MQTT broker is the central bus: an Ignition gateway and MES both publish and subscribe to it, and a data lake ingests from it. The Ignition gateway also links directly to the edge over an Ignition Gateway Network, persists to a historian, and its services write to a SQL database and Redis. Consumers: the gateway serves HMI and SCADA, and Grafana reads the historian. The whole software stack runs on a foundation of Linux, Docker, Kubernetes and cloud, provisioned and shipped via GitOps. Hover a skill below to see where it sits, or click it for a description."
+              aria-label="Reference architecture for a factory data backbone. Field devices and OT protocols reach MQTT via Ignition Edge and Node-RED. Ignition and services sit on the gateway side of the bus, persist to data stores, and feed MES, HMI/SCADA and Grafana. The stack runs on Linux, Docker, Kubernetes and cloud, shipped via GitOps. Hover a skill below to see where it sits."
             >
               <g class="stack-svg__stages"></g>
               <g class="stack-svg__edges"></g>
@@ -603,13 +605,15 @@
           </div>
           <figcaption class="stack-diagram__cap">
             The backbone I build, from factory floor to dashboards.
-            <span class="stack-diagram__hint">Hover a skill to see where it lives. Click for what it is.</span>
+            <span class="stack-diagram__hint">Hover a node or skill to connect them. Click a skill for what it is.</span>
           </figcaption>
         </figure>
 
-        <div class="mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="skill-index mt-8 reveal">
+          <p class="skill-index__lead">Tools on the diagram — hover to locate, click for a one-liner.</p>
+          <div class="skill-index__grid">
 
-          <div class="skill-group reveal">
+          <div class="skill-group">
             <h3 class="skill-group__title">
               <svg class="skill-group__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path stroke-linecap="round" d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2"/></svg>
               Industry 4.0 / IIoT
@@ -627,7 +631,7 @@
             </div>
           </div>
 
-          <div class="skill-group reveal">
+          <div class="skill-group">
             <h3 class="skill-group__title">
               <svg class="skill-group__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7" ry="2.5"/><path stroke-linecap="round" d="M5 5.5v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6M5 11.5v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6"/></svg>
               Data &amp; Backend
@@ -646,7 +650,7 @@
             </div>
           </div>
 
-          <div class="skill-group reveal">
+          <div class="skill-group">
             <h3 class="skill-group__title">
               <svg class="skill-group__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linejoin="round" d="M7 18a4 4 0 0 1-.5-8 5 5 0 0 1 9.6-1.2A3.5 3.5 0 0 1 16.5 18H7z"/></svg>
               Cloud &amp; Infrastructure
@@ -663,6 +667,9 @@
               <button type="button" class="skill-chip" data-skill="ci-cd">CI/CD</button>
             </div>
           </div>
+
+          </div>
+        </div>
         </div>
       </div>
     </section>
@@ -833,7 +840,7 @@
 <!-- partial:home-scripts -->
   <script src="assets/js/skill-meta.js?v=ae64c7ead7" defer></script>
   <script src="assets/js/eggs.js?v=e05e8c5e22" defer></script>
-  <script src="assets/js/diagram.js?v=c1e7036c55" defer></script>
+  <script src="assets/js/diagram.js?v=358f7cbb7c" defer></script>
   <script src="assets/js/script.js?v=f09630c5b8" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
