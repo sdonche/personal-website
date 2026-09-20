@@ -137,6 +137,7 @@
     }
     document.documentElement.setAttribute("data-mode", next);
     try { localStorage.setItem(MODE_KEY, next); } catch (e) {}
+    if (next === "floor") markFloorHintSeen();
     syncModeUI();
     if (opts && opts.announce) {
       eggToast(next === "floor"
@@ -161,6 +162,51 @@
         setMode(btn.getAttribute("data-mode-set"), { announce: true });
       });
     });
+    // Other tabs write samdonche.mode → pick it up here (storage events
+    // only fire in windows that did *not* make the write).
+    window.addEventListener("storage", (e) => {
+      if (e.key !== MODE_KEY || e.newValue == null) return;
+      setMode(e.newValue, { announce: false });
+    });
+    // Print / Save-as-PDF should always look like Desk (clean CV), then restore.
+    window.addEventListener("beforeprint", () => {
+      document.documentElement.dataset.modeBeforePrint = currentMode();
+      document.documentElement.setAttribute("data-mode", "desk");
+      syncModeUI();
+    });
+    window.addEventListener("afterprint", () => {
+      const prev = document.documentElement.dataset.modeBeforePrint;
+      delete document.documentElement.dataset.modeBeforePrint;
+      if (prev) {
+        document.documentElement.setAttribute("data-mode", normalizeMode(prev));
+        syncModeUI();
+      }
+    });
+    maybePulseFloorHint();
+  }
+
+  const FLOOR_HINT_KEY = "samdonche.mode.floorHint";
+
+  /* Soft pulse on the Floor segment once — first Desk visit, until Floor is tried
+     (or the hint has already played). Honors prefers-reduced-motion. */
+  function markFloorHintSeen() {
+    try { localStorage.setItem(FLOOR_HINT_KEY, "1"); } catch (e) {}
+  }
+
+  function maybePulseFloorHint() {
+    if (prefersReducedMotion) return;
+    if (currentMode() === "floor") { markFloorHintSeen(); return; }
+    try {
+      if (localStorage.getItem(FLOOR_HINT_KEY) === "1") return;
+    } catch (e) { return; }
+
+    const floors = document.querySelectorAll('.mode-switch__btn[data-mode-set="floor"]');
+    if (!floors.length) return;
+    markFloorHintSeen();
+    floors.forEach((btn) => btn.classList.add("is-hinting"));
+    setTimeout(() => {
+      floors.forEach((btn) => btn.classList.remove("is-hinting"));
+    }, 2400);
   }
 
   function toggleMode() {
