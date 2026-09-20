@@ -4,7 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- partial:head-boot -->
-  <script>document.documentElement.classList.add('js');try{if(localStorage.getItem('samdonche.nav.rail')==='1')document.documentElement.classList.add('nav-rail')}catch(e){}</script>
+  <script>
+    document.documentElement.classList.add('js');
+    try {
+      if (localStorage.getItem('samdonche.nav.rail') === '1') {
+        document.documentElement.classList.add('nav-rail');
+      }
+      var params = new URLSearchParams(location.search);
+      var mode = params.get('mode');
+      // Canonical: desk | floor. Legacy: site/briefing → desk, operator → floor.
+      if (mode === 'briefing' || mode === 'site') mode = 'desk';
+      if (mode === 'operator') mode = 'floor';
+      if (mode === 'desk' || mode === 'floor') {
+        localStorage.setItem('samdonche.mode', mode);
+      } else {
+        mode = localStorage.getItem('samdonche.mode');
+        if (mode === 'briefing' || mode === 'site') mode = 'desk';
+        if (mode === 'operator') mode = 'floor';
+      }
+      if (mode !== 'floor') mode = 'desk';
+      document.documentElement.setAttribute('data-mode', mode);
+    } catch (e) {
+      document.documentElement.setAttribute('data-mode', 'desk');
+    }
+  </script>
 <!-- /partial:head-boot -->
   <meta name="theme-color" content="#020617" />
   <meta name="description" content="Case studies by Sam Donche: industrial data architecture work on the plant floor, from scattered spreadsheets to a factory-wide data backbone on Ignition, MQTT and a unified namespace." />
@@ -40,7 +63,7 @@
   <link rel="preload" href="../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="../assets/css/fonts.css?v=0f6b5ce264" />
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=8e6c15230e" />
-  <link rel="stylesheet" href="../assets/css/styles.css?v=52799ab273" />
+  <link rel="stylesheet" href="../assets/css/styles.css?v=19de52755b" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -57,17 +80,27 @@
 <!-- partial:subpage-topbar -->
 <!-- Top bar -->
   <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-      <a href="../" class="flex items-center gap-2 group" aria-label="Home">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <a href="../" class="flex items-center gap-2 group shrink-0" aria-label="Home">
         <span class="relative inline-flex h-2.5 w-2.5">
           <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
           <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
         </span>
-        <span class="font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
+        <span class="brand-mark brand-mark--floor font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
           sam.donche<span class="text-brand-400">@</span>edge
         </span>
+        <span class="brand-mark brand-mark--desk text-sm sm:text-base font-semibold tracking-tight text-slate-100 group-hover:text-brand-300 transition-colors">
+          Sam Donche
+        </span>
       </a>
-      <div class="flex items-center gap-3"><a href="../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors">← back</a><button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="mode-switch" role="group" aria-label="Presentation mode">
+          <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
+          <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
+        </div>
+        <a href="../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors">← back</a>
+        <button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      </div>
     </div>
   </header>
 <!-- /partial:subpage-topbar -->
@@ -114,7 +147,7 @@
 
 <!-- partial:site-scripts -->
   <script src="../assets/js/eggs.js?v=e05e8c5e22" defer></script>
-  <script src="../assets/js/script.js?v=f09630c5b8" defer></script>
+  <script src="../assets/js/script.js?v=ffeff2554a" defer></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../assets/js/goatcounter.js"></script>
 <!-- /partial:site-scripts -->
 </body>

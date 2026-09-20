@@ -30,6 +30,85 @@ html { color-scheme: dark; }
   html { scroll-behavior: auto; }
 }
 
+/* ----------------------------------------------------
+   1b. Presentation mode — Desk (default) vs Floor
+       data-mode is set before paint in head-boot.
+       CSS defaults to Desk so no-JS still looks clean.
+       Legacy aliases: briefing/site → desk, operator → floor.
+   ---------------------------------------------------- */
+
+/* Brand mark swap — Floor handle hidden unless mode=floor */
+.brand-mark--floor { display: none; }
+html[data-mode="floor"] .brand-mark--floor { display: inline; }
+html[data-mode="floor"] .brand-mark--desk { display: none; }
+
+/* Floor status strip (System Online + clock) — Floor only */
+.floor-status { display: none !important; }
+html[data-mode="floor"] .floor-status {
+  display: flex !important;
+}
+
+/* Desk primary links — desktop only; mobile uses the hamburger */
+.desk-nav { display: none; }
+@media (min-width: 768px) {
+  html:not([data-mode="floor"]) .desk-nav { display: flex; }
+}
+
+/* Segmented Desk | Floor switch — both options always visible */
+.mode-switch {
+  display: inline-flex;
+  align-items: stretch;
+  height: 2.25rem;
+  padding: 2px;
+  border-radius: 0.4rem;
+  border: 1px solid rgb(51 65 85); /* slate-700 */
+  background: rgba(2, 6, 23, 0.65);
+  gap: 2px;
+}
+.mode-switch__btn {
+  appearance: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0.3rem;
+  padding: 0 0.65rem;
+  background: transparent;
+  color: rgb(148 163 184); /* slate-400 */
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+.mode-switch__btn:hover { color: rgb(226 232 240); }
+.mode-switch__btn:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 1px;
+}
+.mode-switch__btn[aria-pressed="true"] {
+  background: rgba(34, 211, 238, 0.14);
+  color: var(--color-brand-300);
+}
+html[data-mode="floor"] .mode-switch {
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+/* Desk: hide the Ignition tag browser on desktop; keep overlay for mobile */
+@media (min-width: 1024px) {
+  html:not([data-mode="floor"]) .tag-nav { display: none; }
+  html:not([data-mode="floor"]) .lg\:pl-64 { padding-left: 0; }
+}
+
+/* Desk: quieter plant-floor atmosphere */
+html:not([data-mode="floor"]) .grid-bg { opacity: 0.18; }
+
+/* Desk: hide floor-only toys (still wired; discoverable once flipped) */
+html:not([data-mode="floor"]) .estop,
+html:not([data-mode="floor"]) .tag-nav__legend,
+html:not([data-mode="floor"]) .tag-nav__caption { display: none; }
+html:not([data-mode="floor"]) .qv-badge { display: none; }
+
+
 
 /* ----------------------------------------------------
    2. Decorative background grid
@@ -507,7 +586,7 @@ html { color-scheme: dark; }
   display: none;                 /* too cramped below md */
 }
 @media (min-width: 768px) {
-  .tag-path { display: block; }
+  html[data-mode="floor"] .tag-path { display: block; }
 }
 .tag-path__sep { color: rgba(148, 163, 184, 0.4); padding: 0 0.15rem; }
 .tag-path__leaf { color: rgb(148 163 184); }

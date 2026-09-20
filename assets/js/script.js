@@ -85,9 +85,12 @@
     try { sessionStorage.setItem(VISITED_KEY, JSON.stringify([...visited])); } catch (e) {}
   }
 
+  const MODE_KEY = "samdonche.mode";
+
   document.addEventListener("DOMContentLoaded", init);
 
   function init() {
+    wireModeToggle();
     startClock();
     setFooterYear();
     loadVisited();
@@ -106,6 +109,62 @@
     wireEmailLinks();
     wireEasterEggs();
     scrollToHashOnLoad();
+  }
+
+
+  /* ----------------------------------------------------
+     0. Presentation mode — Desk (default) vs Floor
+        Persisted in localStorage; ?mode= overrides on load
+        (handled before paint in head-boot).
+        Legacy aliases: briefing/site → desk, operator → floor.
+     ---------------------------------------------------- */
+  function normalizeMode(mode) {
+    if (mode === "floor" || mode === "operator") return "floor";
+    if (mode === "desk" || mode === "site" || mode === "briefing") return "desk";
+    return "desk";
+  }
+
+  function currentMode() {
+    return normalizeMode(document.documentElement.getAttribute("data-mode"));
+  }
+
+  function setMode(mode, opts) {
+    const next = normalizeMode(mode);
+    const prev = currentMode();
+    if (next === prev && !(opts && opts.force)) {
+      syncModeUI();
+      return next;
+    }
+    document.documentElement.setAttribute("data-mode", next);
+    try { localStorage.setItem(MODE_KEY, next); } catch (e) {}
+    syncModeUI();
+    if (opts && opts.announce) {
+      eggToast(next === "floor"
+        ? "Floor mode · tag browser online"
+        : "Desk mode · clean reading view");
+    }
+    return next;
+  }
+
+  function syncModeUI() {
+    const mode = currentMode();
+    document.querySelectorAll(".mode-switch__btn").forEach((btn) => {
+      const target = normalizeMode(btn.getAttribute("data-mode-set"));
+      btn.setAttribute("aria-pressed", String(target === mode));
+    });
+  }
+
+  function wireModeToggle() {
+    syncModeUI();
+    document.querySelectorAll(".mode-switch__btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setMode(btn.getAttribute("data-mode-set"), { announce: true });
+      });
+    });
+  }
+
+  function toggleMode() {
+    return setMode(currentMode() === "floor" ? "desk" : "floor", { announce: true });
   }
 
   /* ----------------------------------------------------
@@ -725,23 +784,33 @@
               : `samdonche/${s.label}`,
     }));
 
-    // Secret commands — hidden until you type a matching verb. `run` marks a
-    // row as a command (vs a tag), handled in choose().
+    // Secret commands — `modes` gates floor-only toys.
     const commands = [
-      { id: "cmd-hire",   path: "hire",        desc: "route to the contact channel", run: () => scrollToSection("contact") },
-      { id: "cmd-sudo",   path: "sudo",        desc: "make me a sandwich",            run: () => eggToast("Okay. &nbsp;🥪") },
-      { id: "cmd-whoami", path: "whoami",      desc: "sam.donche@edge",               run: () => eggToast("sam.donche@edge &middot; Industry 4.0") },
-      { id: "cmd-42",     path: "42",          desc: "life, the universe & everything", run: () => eggToast("42.") },
-      { id: "cmd-ship",    path: "deploy",      desc: "ship it",                       run: () => eggToast("🚀 shipped · GitOps did the rest") },
-      { id: "cmd-ping",    path: "ping",        desc: "are you there?",                run: () => eggToast("pong") },
-      { id: "cmd-frituur", path: "frituur",     desc: "Ieper's finest",                run: () => eggToast("🍟 order up") },
-      { id: "cmd-uptime", path: "uptime",      desc: "years on the plant floor",      run: () => eggToast(industryYears() + "+ yrs on the floor") },
-      { id: "cmd-konami", path: "konami",      desc: "↑↑↓↓←→←→ B A", run: () => eggToast("↑ ↑ ↓ ↓ ← → ← → B A") },
-      { id: "cmd-night",  path: "night shift", desc: "toggle amber HMI mode",         run: () => toggleNightShift() },
-      { id: "cmd-estop",  path: "estop",       desc: "emergency stop the line",       run: () => toggleEStop() },
-      { id: "cmd-boot",   path: "boot",        desc: "replay the cold-start sequence", run: () => runBootSequence() },
-      { id: "cmd-log",    path: "log",         desc: "open the operator log",         run: () => location.assign("log/") },
+      { id: "cmd-hire",      path: "hire",        desc: "route to the contact channel", run: () => scrollToSection("contact") },
+      { id: "cmd-floor",     path: "floor",       desc: "switch to Floor mode",         run: () => setMode("floor", { announce: true }) },
+      { id: "cmd-desk",      path: "desk",        desc: "switch to Desk mode",          run: () => setMode("desk", { announce: true }) },
+      { id: "cmd-operator",  path: "operator",    desc: "alias for floor mode",         run: () => setMode("floor", { announce: true }) },
+      { id: "cmd-site",      path: "site",        desc: "alias for desk mode",          run: () => setMode("desk", { announce: true }) },
+      { id: "cmd-briefing",  path: "briefing",    desc: "alias for desk mode",          run: () => setMode("desk", { announce: true }) },
+      { id: "cmd-mode",      path: "mode",        desc: "toggle Desk / Floor",          run: () => toggleMode() },
+      { id: "cmd-sudo",      path: "sudo",        desc: "make me a sandwich",            run: () => eggToast("Okay. &nbsp;🥪"), modes: "floor" },
+      { id: "cmd-whoami",    path: "whoami",      desc: "sam.donche@edge",               run: () => eggToast("sam.donche@edge &middot; Industry 4.0"), modes: "floor" },
+      { id: "cmd-42",        path: "42",          desc: "life, the universe & everything", run: () => eggToast("42."), modes: "floor" },
+      { id: "cmd-ship",      path: "deploy",      desc: "ship it",                       run: () => eggToast("🚀 shipped · GitOps did the rest"), modes: "floor" },
+      { id: "cmd-ping",      path: "ping",        desc: "are you there?",                run: () => eggToast("pong"), modes: "floor" },
+      { id: "cmd-frituur",   path: "frituur",     desc: "Ieper's finest",                run: () => eggToast("🍟 order up"), modes: "floor" },
+      { id: "cmd-uptime",    path: "uptime",      desc: "years on the plant floor",      run: () => eggToast(industryYears() + "+ yrs on the floor"), modes: "floor" },
+      { id: "cmd-konami",    path: "konami",      desc: "↑↑↓↓←→←→ B A", run: () => eggToast("↑ ↑ ↓ ↓ ← → ← → B A"), modes: "floor" },
+      { id: "cmd-night",     path: "night shift", desc: "toggle amber HMI mode",         run: () => toggleNightShift(), modes: "floor" },
+      { id: "cmd-estop",     path: "estop",       desc: "emergency stop the line",       run: () => toggleEStop(), modes: "floor" },
+      { id: "cmd-boot",      path: "boot",        desc: "replay the cold-start sequence", run: () => runBootSequence(), modes: "floor" },
+      { id: "cmd-log",       path: "log",         desc: "open the operator log",         run: () => location.assign("log/"), modes: "floor" },
     ];
+
+    function activeCommands() {
+      const mode = currentMode();
+      return commands.filter((c) => !c.modes || c.modes === mode);
+    }
 
     let selected = 0;
     let filtered = items.slice();
@@ -807,7 +876,11 @@
     function choose(id) {
       close();
       const cmd = commands.find(c => c.id === id);
-      if (cmd) { discoverEgg("commands"); cmd.run(); return; }
+      if (cmd) {
+        if (!cmd.modes || cmd.modes === currentMode()) discoverEgg("commands");
+        cmd.run();
+        return;
+      }
       const it = items.find(i => i.id === id);
       if (it && it.page) { visited.add(id); saveVisited(); location.assign(abs(it.href)); return; }
       scrollToSection(id);
@@ -831,7 +904,7 @@
       const q = input.value.trim().toLowerCase();
       const match = list => list.filter(i =>
         i.path.toLowerCase().includes(q) || i.desc.toLowerCase().includes(q));
-      filtered = q ? match(items).concat(match(commands)) : items.slice();
+      filtered = q ? match(items).concat(match(activeCommands())) : items.slice();
       selected = 0;
       render();
     });
@@ -1556,19 +1629,45 @@
     window.samdonche = {
       help() {
         console.log("%csamdonche.*", cyan);
-        console.log("  hire()    — route to the contact channel");
-        console.log("  stack()   — print the toolbelt");
-        console.log("  uptime()  — years on the plant floor");
-        console.log("  ship()    — 🚀 ship it");
-        console.log("  ping()    — pong");
-        console.log("  frituur() — 🍟 Ieper's finest");
-        console.log("  boot()    — replay the cold-start sequence");
-        console.log("  secrets() — open the operator log (found so far)");
+        console.log("  hire()     — route to the contact channel");
+        console.log("  mode()     — toggle Desk / Floor");
+        console.log("  floor()    — plant-floor chrome");
+        console.log("  desk()     — clean reading view");
+        console.log("  stack()    — print the toolbelt");
+        console.log("  uptime()   — years on the plant floor");
+        console.log("  ship()     — 🚀 ship it");
+        console.log("  ping()     — pong");
+        console.log("  frituur()  — 🍟 Ieper's finest");
+        console.log("  boot()     — replay the cold-start sequence");
+        console.log("  secrets()  — open the operator log (found so far)");
         return "↑ pick one";
       },
       hire() {
         scrollToSection("contact");
         return "Routing to sam.donche@edge — let's build something.";
+      },
+      mode() {
+        return toggleMode();
+      },
+      floor() {
+        setMode("floor", { announce: true });
+        return "Floor mode.";
+      },
+      desk() {
+        setMode("desk", { announce: true });
+        return "Desk mode.";
+      },
+      operator() {
+        setMode("floor", { announce: true });
+        return "Floor mode. (operator is now floor)";
+      },
+      site() {
+        setMode("desk", { announce: true });
+        return "Desk mode. (site is now desk)";
+      },
+      briefing() {
+        setMode("desk", { announce: true });
+        return "Desk mode. (briefing is now desk)";
       },
       stack() {
         const chips = [...document.querySelectorAll(".skill-chip")].map(c => c.textContent.trim());
