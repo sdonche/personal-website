@@ -783,6 +783,10 @@ html { color-scheme: dark; }
   background: rgba(15, 23, 42, 0.8);
 }
 .tag-nav__cmdk-keys { display: inline-flex; gap: 0.15rem; }
+/* On touch devices the ⌘K chord is noise — the label is enough */
+@media (hover: none) {
+  .tag-nav__cmdk-keys { display: none; }
+}
 .tag-nav__cmdk kbd,
 .cmdk kbd {
   font-family: inherit;
@@ -1695,7 +1699,8 @@ html.hmi-night body::after {
 /* ---- Emergency Stop: hidden red mushroom button ---- */
 .estop {
   position: fixed;
-  right: 1rem; bottom: 1rem;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
   z-index: 55;
   width: 46px; height: 46px;
   display: flex; align-items: center; justify-content: center;
@@ -1711,6 +1716,7 @@ html.hmi-night body::after {
               inset 0 2px 3px rgba(255, 255, 255, 0.35),
               inset 0 -3px 6px rgba(0, 0, 0, 0.45);
   transition: opacity 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 .estop:hover { opacity: 1; }
 .estop:active { transform: translateY(1px) scale(0.96); }
@@ -1721,6 +1727,10 @@ html.hmi-night body::after {
               inset 0 -3px 6px rgba(0, 0, 0, 0.45);
 }
 .estop__label { pointer-events: none; }
+/* Touch devices have no hover — keep the mushroom slightly more visible */
+@media (hover: none) {
+  .estop { opacity: 0.55; }
+}
 
 /* Line stopped: freeze every animation/transition on the page */
 html.line-stopped *,
@@ -1780,7 +1790,8 @@ html.line-stopped *::after {
 /* ---- Discovery toast (bottom-right, links to the log) ---- */
 .egg-discover {
   position: fixed;
-  right: 1.25rem; bottom: 5rem;
+  right: max(1.25rem, env(safe-area-inset-right));
+  bottom: max(5rem, calc(env(safe-area-inset-bottom) + 4.25rem));
   z-index: 72;
   display: flex; align-items: center; gap: 0.6rem;
   max-width: 18rem;

@@ -11,24 +11,41 @@
         </span>
       </a>
 
-      <div class="hidden sm:flex items-center gap-4 font-mono text-[11px] uppercase tracking-widest text-slate-500">
-        <span id="sys-status" class="flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-accent"></span>System: Online</span>
-        <span aria-hidden="true" class="text-slate-700">|</span>
-        <span id="local-time" aria-live="off">--:--:--</span>
-      </div>
+      <div class="flex items-center gap-2 sm:gap-4">
+        <!-- Always visible — compact on phones so the telemetry egg stays findable -->
+        <span id="sys-status" class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-slate-500 cursor-pointer">
+          <span class="h-1.5 w-1.5 rounded-full bg-accent shrink-0" aria-hidden="true"></span>
+          <span class="hidden sm:inline">System:&nbsp;</span>Online
+        </span>
+        <span aria-hidden="true" class="hidden sm:inline text-slate-700 font-mono text-[11px]">|</span>
+        <span id="local-time" class="hidden sm:inline font-mono text-[11px] uppercase tracking-widest text-slate-500" aria-live="off">--:--:--</span>
 
-      <!-- Mobile-only: open tag-browser sidebar overlay -->
-      <button
-        id="nav-toggle"
-        type="button"
-        class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition"
-        aria-label="Open navigation"
-        aria-expanded="false"
-        aria-controls="tag-nav"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
-          <path d="M3 6h18M3 12h18M3 18h18"/>
-        </svg>
-      </button>
+        <!-- Mobile/tablet: open command palette without a keyboard -->
+        <button
+          id="cmdk-open-bar"
+          type="button"
+          class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition"
+          aria-label="Open tag search"
+          data-cmdk-open
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true">
+            <circle cx="11" cy="11" r="6"/><path stroke-linecap="round" d="M20 20l-3.5-3.5"/>
+          </svg>
+        </button>
+
+        <!-- Mobile-only: open tag-browser sidebar overlay -->
+        <button
+          id="nav-toggle"
+          type="button"
+          class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition"
+          aria-label="Open navigation"
+          aria-expanded="false"
+          aria-controls="tag-nav"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+            <path d="M3 6h18M3 12h18M3 18h18"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>

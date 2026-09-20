@@ -324,18 +324,25 @@
     Object.entries(STACK_NODES).forEach(([nodeId, n]) => {
       const r = blockRect(n);
 
-      if (n.kind === "broker") {
-        append(svgNS, nodesG, "circle", {
-          class: "stack-svg__center-halo",
-          cx: n.x, cy: n.y, r: 30,
-        });
-      }
-
       const g = append(svgNS, nodesG, "g", {
         class: "stack-node",
         "data-node": nodeId,
         ...(n.skills ? { "data-skills": n.skills.join(" ") } : {}),
       });
+
+      // Halo + larger invisible hit target live inside the broker group so
+      // taps on the glow (or near it) still fire the MQTT publish egg.
+      if (n.kind === "broker") {
+        append(svgNS, g, "circle", {
+          class: "stack-svg__center-halo",
+          cx: n.x, cy: n.y, r: 30,
+        });
+        append(svgNS, g, "circle", {
+          class: "stack-svg__hit",
+          cx: n.x, cy: n.y, r: 42,
+          fill: "transparent",
+        });
+      }
 
       append(svgNS, g, "rect", {
         class: `stack-svg__block stack-svg__block--${n.kind}`,
