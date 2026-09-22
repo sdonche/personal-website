@@ -1,18 +1,20 @@
 /* =============================================================
-   plant.js — Packaging Line HMI (/plant/)
-   Nested tag browser (Packaging / Line#) + Line3 P&ID mimic.
-   Line1/Line2: live tags only (no drawing yet).
+   plant.js — Heuvelland chocolate plant HMI (/plant/)
+   Site → Packaging / Line# tag browser + Line3 P&ID mimic.
+   Line1/Line2: live tags only (no drawing yet). Mixing TBD.
    State persists in localStorage until "Reset line".
    ============================================================= */
 
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "samdonche.plant.v3";
+  const STORAGE_KEY = "samdonche.plant.v4";
   const TICK_MS = 1000;
   const PROVIDER = "[edge]";
+  const SITE = "Heuvelland";
   const AREA = "Packaging";
   const LIVE_LINE = "Line3";
+  const AREA_ROOT = `${SITE}/${AREA}`;
 
   /** @typedef {"Good"|"Uncertain"|"Bad"|"Stale"} Quality */
 
@@ -57,7 +59,7 @@
     { id: "Outfeed", label: "Outfeed", pid: "CV-350", kind: "conveyor" },
   ];
 
-  /** @type {TagDef[]} — ids are relative to Packaging/Line3/ */
+  /** @type {TagDef[]} — ids are relative to Heuvelland/Packaging/Line3/ */
   const LINE3_TAGS = [
     { id: "Running", name: "Running", type: "bool", live: true },
     { id: "Mode", name: "Mode", type: "string", live: true },
@@ -115,16 +117,17 @@
   }
 
   function pathOf(rel) {
-    if (isStubTag(rel)) return `${PROVIDER}${AREA}/${rel}`;
-    return `${PROVIDER}${AREA}/${LIVE_LINE}/${rel}`;
+    if (isStubTag(rel)) return `${PROVIDER}${AREA_ROOT}/${rel}`;
+    return `${PROVIDER}${AREA_ROOT}/${LIVE_LINE}/${rel}`;
   }
 
   /** Default open folders in the nested tree (node keys). */
   const DEFAULT_OPEN = [
-    "Packaging",
-    "Packaging/Line3",
-    "Packaging/Line3/Cartoner",
-    "Packaging/Line3/Checkweigher",
+    SITE,
+    AREA_ROOT,
+    `${AREA_ROOT}/Line3`,
+    `${AREA_ROOT}/Line3/Cartoner`,
+    `${AREA_ROOT}/Line3/Checkweigher`,
   ];
 
   function defaultState() {
@@ -402,7 +405,7 @@
   }
 
   function renderEquipFolder(equipId) {
-    const nodeKey = `Packaging/${LIVE_LINE}/${equipId}`;
+    const nodeKey = `${AREA_ROOT}/${LIVE_LINE}/${equipId}`;
     let body = tagsUnder(LINE3_TAGS, equipId).map((t) => renderTagButton(t.id, t)).join("");
     if (equipId === "Checkweigher") {
       const rejectTags = tagsUnder(LINE3_TAGS, "Checkweigher/Reject")
@@ -414,14 +417,14 @@
   }
 
   function renderLine3Folder() {
-    const nodeKey = `Packaging/${LIVE_LINE}`;
+    const nodeKey = `${AREA_ROOT}/${LIVE_LINE}`;
     const lineTags = tagsUnder(LINE3_TAGS, "").map((t) => renderTagButton(t.id, t)).join("");
     const equips = EQUIPMENT.map((e) => renderEquipFolder(e.id)).join("");
     return renderFolder(nodeKey, "Line3", lineTags + equips, "plant-tree__line plant-tree__line--live");
   }
 
   function renderStubLineFolder(line) {
-    const nodeKey = `Packaging/${line.id}`;
+    const nodeKey = `${AREA_ROOT}/${line.id}`;
     const lineTags = tagsUnderStub(line.id, "")
       .map((t) => renderTagButton(t.id, t))
       .join("");
@@ -441,12 +444,13 @@
     const lines =
       STUB_LINES.map(renderStubLineFolder).join("") + renderLine3Folder();
 
-    root.innerHTML = renderFolder("Packaging", "Packaging", lines, "plant-tree__area");
+    const packaging = renderFolder(AREA_ROOT, AREA, lines, "plant-tree__area");
+    root.innerHTML = renderFolder(SITE, SITE, packaging, "plant-tree__site");
     treeBuilt = true;
     updateTreeValues();
 
     const headPath = document.getElementById("plant-tree-path");
-    if (headPath) headPath.textContent = `${PROVIDER}${AREA}`;
+    if (headPath) headPath.textContent = `${PROVIDER}${SITE}`;
   }
 
   function updateTreeValues() {
@@ -680,7 +684,7 @@
 
     host.innerHTML = `
       <svg class="pid-svg is-running" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Line 3 packaging P and ID">
-        <title>Packaging Line 3 — P&amp;ID</title>
+        <title>Heuvelland Packaging Line 3 — P&amp;ID</title>
 
         <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
         <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
@@ -693,7 +697,7 @@
           <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
           <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
           <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
-          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Packaging / Line3</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Line3</text>
           <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
         </g>
 
@@ -982,18 +986,19 @@
     if (!id || !TAG_BY_ID[id]) return;
     state.selectedTag = id;
     const open = new Set(state.openNodes);
-    open.add("Packaging");
+    open.add(SITE);
+    open.add(AREA_ROOT);
     if (isStubTag(id)) {
       const parts = id.split("/");
-      let acc = "Packaging";
+      let acc = AREA_ROOT;
       for (let i = 0; i < parts.length - 1; i++) {
         acc += "/" + parts[i];
         open.add(acc);
       }
     } else {
-      open.add(`Packaging/${LIVE_LINE}`);
+      open.add(`${AREA_ROOT}/${LIVE_LINE}`);
       const parts = id.split("/");
-      let acc = `Packaging/${LIVE_LINE}`;
+      let acc = `${AREA_ROOT}/${LIVE_LINE}`;
       for (let i = 0; i < parts.length - 1; i++) {
         acc += "/" + parts[i];
         open.add(acc);

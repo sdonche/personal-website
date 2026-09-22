@@ -347,8 +347,12 @@
   color: rgb(203 213 225);
 }
 
-.plant-tree__line--offline > details > summary {
-  color: rgb(100 116 139);
+.plant-tree__site > details > summary {
+  color: rgb(226 232 240);
+  font-weight: 600;
+}
+.plant-tree__area > details > summary {
+  color: rgb(203 213 225);
 }
 .plant-tree__line--live > details > summary .plant-tree__label::after {
   content: "LIVE";
