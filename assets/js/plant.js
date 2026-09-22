@@ -320,11 +320,7 @@
   const DEFAULT_OPEN = [
     EDGE_ROOT,
     SITE,
-    /* Land on Packaging drawing — keep other areas collapsed so sister sites stay in view. */
-    AREA_ROOT,
-    `${AREA_ROOT}/Line3`,
-    `${AREA_ROOT}/Line3/Cartoner`,
-    `${AREA_ROOT}/Line3/Checkweigher`,
+    /* Areas stay collapsed so Gullegem/Ieper/Gent/Brugge stay on-screen. */
   ];
 
   function defaultState() {
