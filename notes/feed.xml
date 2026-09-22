@@ -5,8 +5,89 @@
   <link href="https://samdonche.com/notes/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://samdonche.com/notes/" rel="alternate" type="text/html"/>
   <id>https://samdonche.com/notes/</id>
-  <updated>2026-07-25T12:00:00Z</updated>
+  <updated>2026-09-22T12:00:00Z</updated>
   <author><name>Sam Donche</name></author>
+  <entry>
+    <title>Ignition credentials belong in your secrets manager</title>
+    <link href="https://samdonche.com/notes/ignition-secrets/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/ignition-secrets/</id>
+    <published>2026-09-22T12:00:00Z</published>
+    <updated>2026-09-22T12:00:00Z</updated>
+    <summary>Gateways still hold database passwords and script secrets. Why that breaks rotation and audits, and how a native secret-provider module resolves them from Vault, Azure, AWS or Google instead.</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
+  <entry>
+    <title>Put your Ignition gateway on the same dashboards as everything else</title>
+    <link href="https://samdonche.com/notes/ignition-observability/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/ignition-observability/</id>
+    <published>2026-09-22T12:00:00Z</published>
+    <updated>2026-09-22T12:00:00Z</updated>
+    <summary>OpenTelemetry and Prometheus for Ignition 8.3: curated metrics, logs, and no wrapper.conf surgery.</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
+  <entry>
+    <title>Tag history that stays fast when retention gets long</title>
+    <link href="https://samdonche.com/notes/ignition-historian/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/ignition-historian/</id>
+    <published>2026-09-22T12:00:00Z</published>
+    <updated>2026-09-22T12:00:00Z</updated>
+    <summary>TimescaleDB-backed historian for Ignition 8.3. Aggregates in tens of milliseconds over hundreds of millions of rows.</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
+  <entry>
+    <title>Stop scripting RabbitMQ inside Ignition</title>
+    <link href="https://samdonche.com/notes/ignition-amqp/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/ignition-amqp/</id>
+    <published>2026-09-22T12:00:00Z</published>
+    <updated>2026-09-22T12:00:00Z</updated>
+    <summary>Named AMQP broker connections as gateway config, Event Streams and system.amqp scripting. Replaces the client parked in getGlobals().</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
+  <entry>
+    <title>Page the channel the crew actually watches</title>
+    <link href="https://samdonche.com/notes/ignition-alarms/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/ignition-alarms/</id>
+    <published>2026-09-22T12:00:00Z</published>
+    <updated>2026-09-22T12:00:00Z</updated>
+    <summary>Teams, Slack and webhook alarm notification profiles for Ignition 8.3, with acknowledgement, retry, fallback and a delivery audit trail.</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
+  <entry>
+    <title>Fourteen Perspective components the platform never shipped</title>
+    <link href="https://samdonche.com/notes/ignition-perspective/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/ignition-perspective/</id>
+    <published>2026-09-22T12:00:00Z</published>
+    <updated>2026-09-22T12:00:00Z</updated>
+    <summary>Free Apache-2.0 components: scheduling board, calendar, editable grid, pan-and-zoom, branching diagram, and the admin family Vision had.</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
+  <entry>
+    <title>Yes, your Ignition gateway can run Doom</title>
+    <link href="https://samdonche.com/notes/ignition-doom/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/ignition-doom/</id>
+    <published>2026-09-22T12:00:00Z</published>
+    <updated>2026-09-22T12:00:00Z</updated>
+    <summary>A free Perspective component that runs Doom inside SCADA. Tags fire the shotgun, alarms pause the marine. Industrially useless on purpose.</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
+  <entry>
+    <title>A dark Ignition Designer from one menu item</title>
+    <link href="https://samdonche.com/notes/ignition-dark-mode/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/ignition-dark-mode/</id>
+    <published>2026-09-22T12:00:00Z</published>
+    <updated>2026-09-22T12:00:00Z</updated>
+    <summary>Free FlatLaf dark mode for the Ignition 8.3 Designer. Tools → Dark Mode, remembered between launches, open source on GitHub.</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
+  <entry>
+    <title>Ignition modules for the gaps the platform leaves</title>
+    <link href="https://samdonche.com/notes/ignition-modules/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/ignition-modules/</id>
+    <published>2026-09-22T12:00:00Z</published>
+    <updated>2026-09-22T12:00:00Z</updated>
+    <summary>Secrets, RabbitMQ, Timescale, OpenTelemetry, alarm channels, Perspective UI, Designer dark mode, and Doom: Ignition 8.3 modules from Mustry, and where each one fits.</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
   <entry>
     <title>MQTT and Sparkplug B: why factories stopped polling</title>
     <link href="https://samdonche.com/notes/mqtt-sparkplug-b/" rel="alternate" type="text/html"/>

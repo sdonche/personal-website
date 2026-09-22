@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- partial:head-boot -->
+  <script>
+    document.documentElement.classList.add('js');
+    try {
+      if (localStorage.getItem('samdonche.nav.rail') === '1') {
+        document.documentElement.classList.add('nav-rail');
+      }
+      var params = new URLSearchParams(location.search);
+      var mode = params.get('mode');
+      // Canonical: desk | floor. Legacy: site/briefing → desk, operator → floor.
+      if (mode === 'briefing' || mode === 'site') mode = 'desk';
+      if (mode === 'operator') mode = 'floor';
+      if (mode === 'desk' || mode === 'floor') {
+        localStorage.setItem('samdonche.mode', mode);
+      } else {
+        mode = localStorage.getItem('samdonche.mode');
+        if (mode === 'briefing' || mode === 'site') mode = 'desk';
+        if (mode === 'operator') mode = 'floor';
+      }
+      if (mode !== 'floor') mode = 'desk';
+      document.documentElement.setAttribute('data-mode', mode);
+    } catch (e) {
+      document.documentElement.setAttribute('data-mode', 'desk');
+    }
+  </script>
+<!-- /partial:head-boot -->
+  <meta name="theme-color" content="#020617" />
+  <meta name="description" content="The gateway usually knows it is in trouble before anyone rings. OpenTelemetry and Prometheus observability for Ignition 8.3, without wrapper.conf surgery." />
+  <meta name="author" content="Sam Donche" />
+  <title>Put your Ignition gateway on the same dashboards as everything else — Sam Donche</title>
+
+  <link rel="canonical" href="https://samdonche.com/notes/ignition-observability/" />
+  <link rel="alternate" type="application/atom+xml" title="Sam Donche — Notes" href="../feed.xml" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Sam Donche" />
+  <meta property="og:title" content="Put your Ignition gateway on the same dashboards as everything else" />
+  <meta property="og:description" content="Curated gateway metrics and logs over OpenTelemetry or Prometheus scrape. No sidecar to own." />
+  <meta property="og:url" content="https://samdonche.com/notes/ignition-observability/" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://samdonche.com/assets/img/og/ignition-observability.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Put your Ignition gateway on the same dashboards as everything else — Sam Donche" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Put your Ignition gateway on the same dashboards as everything else" />
+  <meta name="twitter:description" content="Curated gateway metrics and logs over OpenTelemetry or Prometheus scrape. No sidecar to own." />
+  <meta name="twitter:image" content="https://samdonche.com/assets/img/og/ignition-observability.jpg" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "Put your Ignition gateway on the same dashboards as everything else",
+        "description": "The gateway usually knows it is in trouble before anyone rings. OpenTelemetry and Prometheus observability for Ignition 8.3, without wrapper.conf surgery.",
+        "image": "https://samdonche.com/assets/img/og/ignition-observability.jpg",
+        "datePublished": "2026-09-22",
+        "dateModified": "2026-09-22",
+        "inLanguage": "en",
+        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "publisher": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "mainEntityOfPage": "https://samdonche.com/notes/ignition-observability/",
+        "keywords": "Ignition, OpenTelemetry, Prometheus, Grafana, observability, Mustry"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Notes", "item": "https://samdonche.com/notes/" },
+          { "@type": "ListItem", "position": 3, "name": "Put your Ignition gateway on the same dashboards as everything else", "item": "https://samdonche.com/notes/ignition-observability/" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- partial:favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Cpath d='M9 11 L14 16 L9 21' fill='none' stroke='%2322d3ee' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='16' y='18.7' width='7.5' height='2.6' rx='1.3' fill='%2322d3ee'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/apple-touch-icon.png" />
+<!-- /partial:favicon -->
+
+<!-- partial:head-assets -->
+  <link rel="preload" href="../../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../../assets/css/fonts.css?v=0f6b5ce264" />
+  <link rel="stylesheet" href="../../assets/css/tailwind.css?v=c826c2f54a" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=3de7925a3a" />
+<!-- /partial:head-assets -->
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans antialiased">
+
+<!-- partial:site-bg -->
+  <div aria-hidden="true" class="fixed inset-0 -z-10 bg-slate-950">
+    <div class="absolute inset-0 grid-bg opacity-[0.35]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(52,211,153,0.05),_transparent_50%)]"></div>
+  </div>
+<!-- /partial:site-bg -->
+
+<!-- partial:subpage-topbar -->
+<!-- Top bar -->
+  <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <a href="../../" class="flex items-center gap-2 group shrink-0" aria-label="Home">
+        <span class="relative inline-flex h-2.5 w-2.5">
+          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+        </span>
+        <span class="brand-mark brand-mark--floor font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
+          sam.donche<span class="brand-mark__host"><span class="text-brand-400">@</span>edge</span>
+        </span>
+        <span class="brand-mark brand-mark--desk text-sm sm:text-base font-semibold tracking-tight text-slate-100 group-hover:text-brand-300 transition-colors">
+          Sam Donche
+        </span>
+      </a>
+      <div class="flex items-center gap-1.5 sm:gap-3 min-w-0">
+        <div class="mode-switch shrink-0" role="group" aria-label="Presentation mode">
+          <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
+          <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
+        </div>
+        <a href="../" class="subpage-back font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← notes</a>
+        <button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      </div>
+    </div>
+  </header>
+<!-- /partial:subpage-topbar -->
+
+  <div class="lg:pl-64">
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-24">
+    <article>
+      <div class="hero-enter">
+        <p class="section-eyebrow">// Notes</p>
+        <h1 class="section-title">Put your Ignition gateway on the same dashboards as everything else.</h1>
+        <p class="mt-4 font-mono text-xs tracking-wider text-slate-500">
+          2026-09-22 <span class="text-slate-700">·</span> 7 min read <span class="text-slate-700">·</span> Ignition
+        </p>
+      </div>
+
+      <div class="note-prose reveal mt-10">
+
+        <p>
+          Most teams find out a gateway is in trouble when an operator rings. The gateway usually
+          knew first. Heap climbing for a week. A device disconnected since night shift. Store-and-forward
+          queue growing. All of it sitting on a status page nobody had open at 2&nbsp;a.m.
+        </p>
+        <p>
+          The people who own uptime are already in Grafana or Datadog, with alert rules and on-call
+          rotations. The gateway is the one box missing. Closing that by hand means JVM exporters,
+          <code>wrapper.conf</code> edits and a log shipper that nobody owns by year two.
+        </p>
+        <p>
+          <a href="https://mustrysolutions.com/ignition-modules/observability" target="_blank" rel="noopener">Mustry Observability</a>
+          does it from inside Ignition&nbsp;8.3. Metrics and logs leave over OpenTelemetry, or
+          Prometheus scrapes the gateway itself. No sidecar to babysit.
+        </p>
+
+        <figure class="note-gallery__card" style="margin:0 0 1.5rem;display:block">
+          <div class="note-gallery__media" style="aspect-ratio:16/9">
+            <img src="../../assets/img/notes/shot-observability.jpg" alt="Ignition gateway metrics on a Grafana dashboard" width="960" height="540" loading="lazy" />
+          </div>
+          <figcaption class="note-gallery__cap">
+            <b>Gateway health on Grafana</b>
+            <span><span class="note-tech" style="--icon: url(../../assets/img/notes/tech/grafana.svg)" aria-hidden="true"></span> the pack ships with the module</span>
+          </figcaption>
+        </figure>
+
+        <div class="note-fig" aria-hidden="true">
+          <p class="note-fig__title">Raw registry vs curated catalog</p>
+          <div class="note-bars">
+            <div>
+              <div class="note-bar__head"><span>Raw internal series</span><span class="note-bar__val">300+</span></div>
+              <div class="note-bar__track"><div class="note-bar__fill note-bar__fill--muted" style="width:100%"></div></div>
+            </div>
+            <div>
+              <div class="note-bar__head"><span>Curated, documented, low-cardinality</span><span class="note-bar__val">92</span></div>
+              <div class="note-bar__track"><div class="note-bar__fill" style="width:31%"></div></div>
+            </div>
+          </div>
+          <p class="note-arrow"><span class="note-arrow__glyph">↓</span> exported as</p>
+          <div class="note-row">
+            <div class="note-node note-node--center">
+              <div class="note-node__marks"><span class="note-tech" style="--icon: url(../../assets/img/notes/tech/opentelemetry.svg)" aria-hidden="true"></span></div>
+              <b>OTLP push</b>
+              Grafana, Datadog, New Relic, Azure Monitor
+            </div>
+            <div class="note-node note-node--center">
+              <div class="note-node__marks"><span class="note-tech" style="--icon: url(../../assets/img/notes/tech/prometheus.svg)" aria-hidden="true"></span></div>
+              <b>Scrape :9464</b>
+              on the gateway itself
+            </div>
+            <div class="note-node note-node--center">
+              <b>system.observability.*</b>
+              your own KPIs on the same pipe
+            </div>
+          </div>
+          <p class="note-fig__note">A firehose of internal names is not a dashboard. The catalog is documented and stable across Ignition upgrades.</p>
+        </div>
+
+        <h2>What the registry never had</h2>
+        <p>
+          Polled collector packs read live alarm counts, OPC connection and device states, and MQTT
+          diagnostics for Cirrus Link. None of that sits in the gateway&rsquo;s metric registry. With
+          the collectors on, a device that dropped an hour ago is a graph line instead of a phone call.
+        </p>
+        <p>
+          Logs carry logger name, thread, MDC context and structured exceptions. Opt-in audit export
+          puts Ignition audit records on the same pipe. Logger exclusions and a hard rate limit cap
+          what leaves, so the backend bill is a choice rather than a surprise.
+        </p>
+
+        <h2>Scope</h2>
+        <p>
+          This is gateway health and project KPIs in the place you already watch servers. It does not
+          replace plant-floor historians or MES reporting. Config lives under
+          Platform&nbsp;&rarr;&nbsp;Observability and applies without a restart. JVM system properties
+          can override the UI for container fleets.
+        </p>
+        <p>
+          Ignition Edge is out: Edge only loads modules on Inductive&rsquo;s vendor list. Target is
+          standard gateways on 8.3+. &euro;800 per gateway, perpetual, Grafana pack in the download.
+        </p>
+
+      </div>
+
+      <div class="mt-12 rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 reveal">
+        <p class="text-slate-300 leading-relaxed">Manual, Grafana pack and the request form are on the product page.</p>
+        <a href="https://mustrysolutions.com/ignition-modules/observability" target="_blank" rel="noopener" class="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-md bg-brand-400 text-slate-950 font-semibold hover:bg-brand-300 transition">
+          Observability module on Mustry
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+            <nav class="mt-12 reveal" aria-label="Related reading">
+        <p class="section-eyebrow">// Related</p>
+        <ul class="mt-4 grid gap-3">
+          <li>
+            <a href="../ignition-modules/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Ignition modules for the gaps the platform leaves</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="../ignition-alarms/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Page the channel the crew actually watches</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="../ignition-historian/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Tag history that stays fast when retention gets long</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="../ignition-secrets/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Ignition credentials belong in your secrets manager</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <p class="mt-10 font-mono text-xs">
+        <a href="../" class="text-slate-500 hover:text-brand-300 transition-colors">← all notes</a>
+      </p>
+
+    </article>
+  </main>
+  </div>
+
+<!-- partial:subpage-footer -->
+  <footer class="border-t border-slate-800/60 lg:pl-64">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-500">
+      <p class="font-mono text-xs">&copy; <span id="year"></span> Sam Donche</p>
+    </div>
+  </footer>
+<!-- /partial:subpage-footer -->
+
+<!-- partial:site-scripts -->
+  <script src="../../assets/js/eggs.js?v=e05e8c5e22" defer></script>
+  <script src="../../assets/js/script.js?v=919c9239db" defer></script>
+  <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../../assets/js/goatcounter.js"></script>
+<!-- /partial:site-scripts -->
+</body>
+</html>
