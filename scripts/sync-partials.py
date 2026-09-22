@@ -34,6 +34,7 @@ HTML_FILES = [
     "404.html",
     "publications/index.html",
     "log/index.html",
+    "plant/index.html",
     *sorted(glob.glob("case-studies/**/index.html", root_dir=ROOT, recursive=True)),
     *sorted(glob.glob("notes/**/index.html", root_dir=ROOT, recursive=True)),
 ]
@@ -48,6 +49,10 @@ REQUIRED = {
     "log/index.html": {
         "head-boot", "favicon", "head-assets", "site-bg",
         "log-topbar", "log-scripts",
+    },
+    "plant/index.html": {
+        "plant-head-boot", "favicon", "head-assets", "site-bg",
+        "plant-topbar", "plant-scripts",
     },
 }
 DEFAULT_REQUIRED = {

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- partial:plant-head-boot -->
+  <script>
+    document.documentElement.classList.add('js');
+    // Plant Live View is Floor-only — no Desk chrome, no mode switch.
+    document.documentElement.setAttribute('data-mode', 'floor');
+  </script>
+<!-- /partial:plant-head-boot -->
+  <meta name="theme-color" content="#020617" />
+  <meta name="description" content="Plant Live View — a simulated packaging line at samdonche@edge. Tag browser, line mimic, and operator alarms you can poke." />
+  <meta name="author" content="Sam Donche" />
+  <title>Plant Live View — Line 3 · Sam Donche</title>
+
+  <link rel="canonical" href="https://samdonche.com/plant/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Sam Donche" />
+  <meta property="og:title" content="Plant Live View — Line 3" />
+  <meta property="og:description" content="Simulated packaging line demoware: Ignition-style tags, OPC qualities, and operator actions on Line 3." />
+  <meta property="og:url" content="https://samdonche.com/plant/" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://samdonche.com/assets/img/og/plant.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Plant Live View — Line 3 · Sam Donche" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Plant Live View — Line 3" />
+  <meta name="twitter:description" content="Simulated packaging line demoware: Ignition-style tags, OPC qualities, and operator actions on Line 3." />
+  <meta name="twitter:image" content="https://samdonche.com/assets/img/og/plant.jpg" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "Plant Live View",
+        "description": "Simulated packaging line with tag browser, line mimic, and operator alarms.",
+        "url": "https://samdonche.com/plant/",
+        "applicationCategory": "DemoApplication",
+        "operatingSystem": "Any",
+        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Plant Live View", "item": "https://samdonche.com/plant/" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- partial:favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Cpath d='M9 11 L14 16 L9 21' fill='none' stroke='%2322d3ee' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='16' y='18.7' width='7.5' height='2.6' rx='1.3' fill='%2322d3ee'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/img/apple-touch-icon.png" />
+<!-- /partial:favicon -->
+
+<!-- partial:head-assets -->
+  <link rel="preload" href="../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../assets/css/fonts.css?v=0f6b5ce264" />
+  <link rel="stylesheet" href="../assets/css/tailwind.css?v=c826c2f54a" />
+  <link rel="stylesheet" href="../assets/css/styles.css?v=7b7a106a9c" />
+<!-- /partial:head-assets -->
+  <link rel="stylesheet" href="../assets/css/plant.css?v=75724db936" />
+</head>
+
+<body class="plant-page bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
+
+<!-- partial:site-bg -->
+  <div aria-hidden="true" class="fixed inset-0 -z-10 bg-slate-950">
+    <div class="absolute inset-0 grid-bg opacity-[0.35]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(52,211,153,0.05),_transparent_50%)]"></div>
+  </div>
+<!-- /partial:site-bg -->
+
+<!-- partial:plant-topbar -->
+  <!-- Slim site chrome — escape hatch home; HMI owns the rest -->
+  <header class="plant-site-bar fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-4 h-12 flex items-center justify-between gap-3">
+      <a href="../" class="flex items-center gap-2 group shrink-0 min-w-0" aria-label="Home">
+        <span class="relative inline-flex h-2.5 w-2.5 shrink-0">
+          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+        </span>
+        <span class="font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors truncate">
+          sam.donche<span class="text-brand-400">@</span>edge
+        </span>
+      </a>
+      <a href="../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← Sam Donche</a>
+    </div>
+  </header>
+<!-- /partial:plant-topbar -->
+
+  <div class="plant-shell">
+    <div id="plant-noscript" class="plant-noscript">
+      Plant Live View needs JavaScript for the live tag scan.
+    </div>
+
+    <div id="plant-app" class="plant-hmi" hidden>
+      <header class="plant-hmi__header">
+        <div class="plant-hmi__title">
+          <h1>samdonche@edge · Line 3</h1>
+          <span class="plant-sim-badge" title="Simulated demoware — not a live plant">SIM</span>
+        </div>
+        <div class="plant-hmi__meta">
+          <span class="plant-q-legend" aria-label="Quality legend">
+            <span><i class="plant-q-dot plant-q-dot--good" aria-hidden="true"></i>Good</span>
+            <span><i class="plant-q-dot plant-q-dot--uncertain" aria-hidden="true"></i>Uncertain</span>
+            <span><i class="plant-q-dot plant-q-dot--bad" aria-hidden="true"></i>Bad</span>
+            <span><i class="plant-q-dot plant-q-dot--stale" aria-hidden="true"></i>Stale</span>
+          </span>
+          <span class="plant-scan">
+            <span id="plant-scan-dot" class="plant-scan__dot" aria-hidden="true"></span>
+            <span id="plant-scan-label">Scanning</span>
+          </span>
+          <span id="plant-clock" aria-live="off">--:--:--</span>
+        </div>
+      </header>
+
+      <div class="plant-body">
+        <!-- Tag browser -->
+        <aside class="plant-pane plant-pane--tree" aria-label="Tag browser">
+          <div class="plant-pane__head">
+            <span>Tag browser</span>
+            <span class="text-slate-600">[edge]Line3</span>
+          </div>
+          <div class="plant-pane__body">
+            <ul id="plant-tree" class="plant-tree"></ul>
+          </div>
+        </aside>
+
+        <!-- Mimic -->
+        <section class="plant-pane plant-mimic" aria-label="Line mimic">
+          <div class="plant-toolbar" role="toolbar" aria-label="Operator actions">
+            <button type="button" class="plant-btn" data-scenario="jam">Jam</button>
+            <button type="button" class="plant-btn" data-scenario="starved">Starved</button>
+            <button type="button" class="plant-btn plant-btn--accent" data-scenario="recover">Recover</button>
+            <span class="plant-toolbar__sep" aria-hidden="true"></span>
+            <button type="button" class="plant-btn" data-action="ack-all">Ack all</button>
+            <button type="button" class="plant-btn" data-action="reset-reject">Reset reject</button>
+            <button type="button" class="plant-btn" data-action="clear-jam">Clear cartoner jam</button>
+            <span class="plant-toolbar__sep" aria-hidden="true"></span>
+            <button type="button" class="plant-btn plant-btn--ghost" data-action="reset-line">Reset line</button>
+          </div>
+
+          <div class="plant-mimic__canvas">
+            <div class="plant-kpis" aria-label="Line KPIs">
+              <div class="plant-kpi">
+                <div class="plant-kpi__label">OEE</div>
+                <div id="kpi-oee" class="plant-kpi__value">—</div>
+              </div>
+              <div class="plant-kpi">
+                <div class="plant-kpi__label">Throughput</div>
+                <div id="kpi-thru" class="plant-kpi__value">—</div>
+              </div>
+              <div class="plant-kpi">
+                <div class="plant-kpi__label">Mode</div>
+                <div id="kpi-mode" class="plant-kpi__value">—</div>
+              </div>
+              <div class="plant-kpi">
+                <div class="plant-kpi__label">Rejects</div>
+                <div id="kpi-reject" class="plant-kpi__value">—</div>
+              </div>
+            </div>
+
+            <div id="plant-line" class="plant-line is-running" aria-label="Packaging line">
+              <div class="plant-line__track" aria-hidden="true"><div class="plant-line__flow"></div></div>
+              <div id="plant-stages" class="plant-stages"></div>
+              <div class="plant-reject-branch" aria-hidden="true">
+                <div class="plant-reject-branch__line"></div>
+                <div id="plant-reject" class="plant-reject-branch__box">Reject · 0</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="plant-detail" class="plant-detail" aria-live="polite"></div>
+        </section>
+
+        <!-- Alarms -->
+        <aside class="plant-pane plant-pane--alarms" aria-label="Alarm list">
+          <div class="plant-pane__head">
+            <span>Alarms</span>
+            <span class="plant-alarm-count"><span id="plant-alarm-count">0</span> active</span>
+          </div>
+          <div class="plant-pane__body">
+            <ul id="plant-alarms" class="plant-alarms"></ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+<!-- partial:plant-scripts -->
+  <script src="../assets/js/plant.js?v=4bc72dd116" defer></script>
+  <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../assets/js/goatcounter.js"></script>
+<!-- /partial:plant-scripts -->
+</body>
+</html>

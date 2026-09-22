@@ -25,6 +25,7 @@ PAGES = [
     {"loc": "https://samdonche.com/notes/mqtt-sparkplug-b/", "file": "notes/mqtt-sparkplug-b/index.html", "changefreq": "yearly", "priority": "0.6"},
     {"loc": "https://samdonche.com/notes/mes-scada-vs-historian/", "file": "notes/mes-scada-vs-historian/index.html", "changefreq": "yearly", "priority": "0.6"},
     {"loc": "https://samdonche.com/publications/", "file": "publications/index.html", "changefreq": "yearly", "priority": "0.5"},
+    {"loc": "https://samdonche.com/plant/", "file": "plant/index.html", "changefreq": "monthly", "priority": "0.7"},
 ]
 
 

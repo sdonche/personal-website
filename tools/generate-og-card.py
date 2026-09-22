@@ -54,6 +54,11 @@ CARDS = [
         "eyebrow": "CASE STUDY",
         "title": "From data islands to a factory-wide backbone",
     },
+    {
+        "slug": "plant",
+        "eyebrow": "PLANT LIVE VIEW",
+        "title": "Line 3 — simulated packaging line at the edge",
+    },
 ]
 
 # Palette (site tokens)
