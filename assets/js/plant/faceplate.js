@@ -14,6 +14,9 @@ Plant.renderDetail = function renderDetail() {
   const writable = def.id === "SpeedSP";
   const numeric = def.type === "number";
   const spark = numeric ? Plant.sparklineSvg(Plant.trends[def.id] || []) : "";
+  const sisterNote = Plant.isSisterSiteTag(def.id)
+    ? `<p class="plant-faceplate__note">Sister site offline stub — Heuvelland P&amp;ID still shown</p>`
+    : "";
   const writeBlock = writable ? `
     <form class="plant-faceplate__write" data-faceplate-write="SpeedSP">
       <label class="plant-faceplate__write-label">Write SpeedSP
@@ -26,6 +29,7 @@ Plant.renderDetail = function renderDetail() {
     <div class="plant-faceplate">
       <div class="plant-faceplate__main">
         <p class="plant-faceplate__path" title="${Plant.escapeHtml(path)}">${Plant.escapeHtml(path)}</p>
+        ${sisterNote}
         <div class="plant-faceplate__row">
           <strong class="plant-faceplate__val">${Plant.escapeHtml(Plant.formatValue(def, lv.value))}</strong>
           <span class="plant-q plant-q--${Plant.escapeHtml(lv.quality.toLowerCase())}">${Plant.escapeHtml(lv.quality)}</span>
@@ -40,7 +44,6 @@ Plant.renderDetail = function renderDetail() {
 Plant.writeSpeedSp = function writeSpeedSp(next) {
   const n = Number(next);
   if (!Number.isFinite(n) || n < 40 || n > 180) return false;
-  if (!window.confirm(`Write SpeedSP = ${Math.round(n)} cpm?`)) return false;
   Plant.state.speedSp = Math.round(n);
   Plant.saveState();
   Plant.computeLive();

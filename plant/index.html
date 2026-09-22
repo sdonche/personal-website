@@ -70,7 +70,7 @@
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=c826c2f54a" />
   <link rel="stylesheet" href="../assets/css/styles.css?v=7b7a106a9c" />
 <!-- /partial:head-assets -->
-  <link rel="stylesheet" href="../assets/css/plant.css?v=13b9e3640b" />
+  <link rel="stylesheet" href="../assets/css/plant.css?v=a4e41f5c3d" />
 </head>
 
 <body class="plant-page bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -87,15 +87,18 @@
   <!-- Slim site chrome — escape hatch home; HMI owns the rest -->
   <header class="plant-site-bar fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
     <div class="max-w-[1600px] mx-auto px-3 sm:px-4 h-12 flex items-center justify-between gap-3">
-      <a href="../" class="flex items-center gap-2 group shrink-0 min-w-0" aria-label="Home">
-        <span class="relative inline-flex h-2.5 w-2.5 shrink-0">
-          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
-          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
-        </span>
-        <span class="font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors truncate">
-          sam.donche<span class="text-brand-400">@</span>edge
-        </span>
-      </a>
+      <div class="flex items-center gap-2.5 min-w-0">
+        <a href="../" class="flex items-center gap-2 group shrink-0 min-w-0" aria-label="Home">
+          <span class="relative inline-flex h-2.5 w-2.5 shrink-0">
+            <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+            <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+          </span>
+          <span class="font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors truncate">
+            sam.donche<span class="text-brand-400">@</span>edge
+          </span>
+        </a>
+        <span class="plant-sim-badge" title="Simulated demoware — not a live plant">SIM</span>
+      </div>
       <a href="../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← Sam Donche</a>
     </div>
   </header>
@@ -110,7 +113,6 @@
       <header class="plant-hmi__header">
         <div class="plant-hmi__title">
           <h1>Heuvelland · Line 3</h1>
-          <span class="plant-sim-badge" title="Simulated demoware — not a live plant">SIM</span>
         </div>
         <nav class="plant-area-nav" role="tablist" aria-label="Plant areas">
           <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="overview" aria-selected="false">Overview</button>
@@ -122,16 +124,13 @@
           <button type="button" class="plant-area-nav__btn is-active" role="tab" data-drawing="packaging" aria-selected="true">Packaging</button>
         </nav>
         <div class="plant-hmi__meta">
-          <span class="plant-q-legend" aria-label="Quality legend">
-            <span><i class="plant-q-dot plant-q-dot--good" aria-hidden="true"></i>Good</span>
-            <span><i class="plant-q-dot plant-q-dot--uncertain" aria-hidden="true"></i>Uncertain</span>
-            <span><i class="plant-q-dot plant-q-dot--bad" aria-hidden="true"></i>Bad</span>
-            <span><i class="plant-q-dot plant-q-dot--stale" aria-hidden="true"></i>Stale</span>
-          </span>
-          <span class="plant-scan">
+          <span class="plant-scan" title="Area runtime state">
             <span id="plant-scan-dot" class="plant-scan__dot" aria-hidden="true"></span>
-            <span id="plant-scan-label">Scanning</span>
+            <span id="plant-scan-label">Line healthy</span>
           </span>
+          <button type="button" id="plant-header-alarms" class="plant-header-alarms" hidden title="Jump to alarm list">
+            <span id="plant-header-alarm-count">0</span> alarms
+          </button>
           <span id="plant-clock" aria-live="off">--:--:--</span>
         </div>
       </header>
@@ -139,9 +138,17 @@
       <div class="plant-body">
         <!-- Tag browser -->
         <aside class="plant-pane plant-pane--tree" aria-label="Tag browser">
-          <div class="plant-pane__head">
-            <span>Tag browser</span>
-            <span id="plant-tree-path" class="text-slate-600">[edge]Heuvelland</span>
+          <div class="plant-pane__head plant-pane__head--tree">
+            <div class="plant-pane__head-row">
+              <span>Tag browser</span>
+              <span id="plant-tree-path" class="text-slate-600">[edge]Heuvelland</span>
+            </div>
+            <span class="plant-q-legend" aria-label="OPC quality legend">
+              <span><i class="plant-q-dot plant-q-dot--good" aria-hidden="true"></i>Good</span>
+              <span><i class="plant-q-dot plant-q-dot--uncertain" aria-hidden="true"></i>Uncertain</span>
+              <span><i class="plant-q-dot plant-q-dot--bad" aria-hidden="true"></i>Bad</span>
+              <span><i class="plant-q-dot plant-q-dot--stale" aria-hidden="true"></i>Stale</span>
+            </span>
           </div>
           <div class="plant-pane__body">
             <ul id="plant-tree" class="plant-tree"></ul>
@@ -153,43 +160,43 @@
           <div class="plant-toolbar" role="toolbar" aria-label="Operator actions">
             <div class="plant-toolbar__group" data-toolbar-area="overview" role="group" aria-label="Plant overview" hidden>
               <span class="plant-toolbar__label">Plant</span>
-              <button type="button" class="plant-btn plant-btn--recover" data-action="recover-all" title="Clear all area faults">Recover all</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-action="recover-all" title="Clear all area faults">Recover all</button>
             </div>
             <div class="plant-toolbar__group" data-toolbar-area="packaging" role="group" aria-label="Packaging scenarios">
               <span class="plant-toolbar__label">Scenario</span>
               <button type="button" class="plant-btn plant-btn--jam" data-scenario="jam" title="Cartoner jam fault">Jam</button>
               <button type="button" class="plant-btn plant-btn--starved" data-scenario="starved" title="Infeed starved">Starved</button>
-              <button type="button" class="plant-btn plant-btn--recover" data-scenario="recover" title="Return packaging line to healthy AUTO">Recover</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-scenario="recover" title="Return packaging line to healthy AUTO">Recover</button>
             </div>
             <div class="plant-toolbar__group" data-toolbar-area="mixing" role="group" aria-label="Mixing scenarios" hidden>
               <span class="plant-toolbar__label">Scenario</span>
               <button type="button" class="plant-btn plant-btn--jam" data-mix-scenario="overtemp" title="Jacket overtemperature">Overtemp</button>
               <button type="button" class="plant-btn plant-btn--starved" data-mix-scenario="valve" title="Cocoa liquor valve stuck closed">Valve fault</button>
-              <button type="button" class="plant-btn plant-btn--recover" data-mix-scenario="recover" title="Clear mixing faults">Recover</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-mix-scenario="recover" title="Clear mixing faults">Recover</button>
             </div>
             <div class="plant-toolbar__group" data-toolbar-area="tempering" role="group" aria-label="Tempering scenarios" hidden>
               <span class="plant-toolbar__label">Scenario</span>
-              <button type="button" class="plant-btn plant-btn--jam" data-temper-scenario="warm" title="Cooling zones too warm">Zone warm</button>
-              <button type="button" class="plant-btn plant-btn--starved" data-temper-scenario="belt" title="Temper belt stopped">Belt stop</button>
-              <button type="button" class="plant-btn plant-btn--recover" data-temper-scenario="recover" title="Clear tempering faults">Recover</button>
+              <button type="button" class="plant-btn plant-btn--jam" data-temper-scenario="warm" title="Temper zones too warm (heat/cool/reheat)">Zone warm</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-temper-scenario="belt" title="Temper screw drive stopped">Drive stop</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-temper-scenario="recover" title="Clear tempering faults">Recover</button>
             </div>
             <div class="plant-toolbar__group" data-toolbar-area="refining" role="group" aria-label="Refining scenarios" hidden>
               <span class="plant-toolbar__label">Scenario</span>
               <button type="button" class="plant-btn plant-btn--jam" data-refine-scenario="pressure" title="Hydraulic / roll pressure collapse">Pressure</button>
               <button type="button" class="plant-btn plant-btn--starved" data-refine-scenario="particle" title="Particle size out of spec">Particle</button>
-              <button type="button" class="plant-btn plant-btn--recover" data-refine-scenario="recover" title="Clear refining faults">Recover</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-refine-scenario="recover" title="Clear refining faults">Recover</button>
             </div>
             <div class="plant-toolbar__group" data-toolbar-area="conching" role="group" aria-label="Conching scenarios" hidden>
               <span class="plant-toolbar__label">Scenario</span>
               <button type="button" class="plant-btn plant-btn--jam" data-conche-scenario="overtemp" title="Conche mass overtemperature">Overtemp</button>
               <button type="button" class="plant-btn plant-btn--starved" data-conche-scenario="agitator" title="Agitator stall">Agitator</button>
-              <button type="button" class="plant-btn plant-btn--recover" data-conche-scenario="recover" title="Clear conching faults">Recover</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-conche-scenario="recover" title="Clear conching faults">Recover</button>
             </div>
             <div class="plant-toolbar__group" data-toolbar-area="moulding" role="group" aria-label="Moulding scenarios" hidden>
               <span class="plant-toolbar__label">Scenario</span>
               <button type="button" class="plant-btn plant-btn--jam" data-mould-scenario="jam" title="Moulder jam — cycles stopped">Jam</button>
               <button type="button" class="plant-btn plant-btn--starved" data-mould-scenario="cool" title="Cooling air too warm">Cool air</button>
-              <button type="button" class="plant-btn plant-btn--recover" data-mould-scenario="recover" title="Clear moulding faults">Recover</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-mould-scenario="recover" title="Clear moulding faults">Recover</button>
             </div>
             <span class="plant-toolbar__sep" aria-hidden="true"></span>
             <button type="button" class="plant-btn" data-action="ack-all">Ack all</button>
@@ -201,6 +208,7 @@
 
           <nav id="plant-batch-trail" class="plant-batch-trail" aria-label="Batch trail through the line">
             <button type="button" class="plant-batch-trail__id" id="plant-batch-id" title="Select BatchId tag">BATCH —</button>
+            <span class="plant-batch-trail__label" title="Where the current batch is on the line — not the open drawing">Batch position</span>
             <ol class="plant-batch-trail__steps" id="plant-batch-steps">
               <li><button type="button" data-batch-step="mixing">Mixing</button></li>
               <li><button type="button" data-batch-step="refining">Refining</button></li>
@@ -256,7 +264,7 @@
   </div>
 
 <!-- partial:plant-scripts -->
-  <script type="module" src="../assets/js/plant.js?v=9e427e1e6d"></script>
+  <script type="module" src="../assets/js/plant.js?v=564e3af0ed"></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../assets/js/goatcounter.js"></script>
 <!-- /partial:plant-scripts -->
 </body>
