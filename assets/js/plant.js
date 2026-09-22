@@ -8,15 +8,17 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "samdonche.plant.v5";
+  const STORAGE_KEY = "samdonche.plant.v6";
   const TICK_MS = 1000;
   const PROVIDER = "[edge]";
   const SITE = "Heuvelland";
   const AREA = "Packaging";
   const MIXING_AREA = "Mixing";
+  const TEMPERING_AREA = "Tempering";
   const LIVE_LINE = "Line3";
   const AREA_ROOT = `${SITE}/${AREA}`;
   const MIXING_ROOT = `${SITE}/${MIXING_AREA}`;
+  const TEMPERING_ROOT = `${SITE}/${TEMPERING_AREA}`;
 
   /** @typedef {"Good"|"Uncertain"|"Bad"|"Stale"} Quality */
 
@@ -130,12 +132,34 @@
     { id: "Mixing/Drain/ValveOpen", name: "ValveOpen", type: "bool", live: true },
   ];
 
+  /** Tempering tags — cooling tunnel Temper1. */
+  const TEMPERING_TAGS = [
+    { id: "Tempering/Running", name: "Running", type: "bool", live: true },
+    { id: "Tempering/Mode", name: "Mode", type: "string", live: true },
+
+    { id: "Tempering/Temper1/Running", name: "Running", type: "bool", live: true },
+    { id: "Tempering/Temper1/BeltSpeed", name: "BeltSpeed", type: "number", unit: "m/min", format: (v) => v.toFixed(1), live: true },
+    { id: "Tempering/Temper1/Zone1TempC", name: "Zone1TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
+    { id: "Tempering/Temper1/Zone2TempC", name: "Zone2TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
+    { id: "Tempering/Temper1/Zone3TempC", name: "Zone3TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
+    { id: "Tempering/Temper1/MassTempC", name: "MassTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
+
+    { id: "Tempering/Inlet/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+    { id: "Tempering/Inlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Tempering/Outlet/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+    { id: "Tempering/Outlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Tempering/ChilledWater/FlowM3H", name: "FlowM3H", type: "number", unit: "m³/h", format: (v) => v.toFixed(1), live: true },
+    { id: "Tempering/ChilledWater/SupplyTempC", name: "SupplyTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
+  ];
+
   /** Prefixed stub tags: Line1/OEE, Line2/Infeed/Speed, … */
   const STUB_TAGS = STUB_LINES.flatMap((line) =>
     STUB_LINE_TAGS.map((t) => ({ ...t, id: `${line.id}/${t.id}` }))
   );
 
-  const ALL_TAGS = LINE3_TAGS.concat(STUB_TAGS, MIXING_TAGS);
+  const ALL_TAGS = LINE3_TAGS.concat(STUB_TAGS, MIXING_TAGS, TEMPERING_TAGS);
   const TAG_BY_ID = Object.fromEntries(ALL_TAGS.map((t) => [t.id, t]));
 
   function isStubTag(rel) {
@@ -146,12 +170,18 @@
     return !!rel && rel.startsWith("Mixing/");
   }
 
+  function isTemperingTag(rel) {
+    return !!rel && rel.startsWith("Tempering/");
+  }
+
   function drawingForTag(rel) {
-    return isMixingTag(rel) ? "mixing" : "packaging";
+    if (isMixingTag(rel)) return "mixing";
+    if (isTemperingTag(rel)) return "tempering";
+    return "packaging";
   }
 
   function pathOf(rel) {
-    if (isMixingTag(rel)) return `${PROVIDER}${SITE}/${rel}`;
+    if (isMixingTag(rel) || isTemperingTag(rel)) return `${PROVIDER}${SITE}/${rel}`;
     if (isStubTag(rel)) return `${PROVIDER}${AREA_ROOT}/${rel}`;
     return `${PROVIDER}${AREA_ROOT}/${LIVE_LINE}/${rel}`;
   }
@@ -165,18 +195,21 @@
     `${AREA_ROOT}/Line3/Checkweigher`,
     MIXING_ROOT,
     `${MIXING_ROOT}/Mixer1`,
+    TEMPERING_ROOT,
+    `${TEMPERING_ROOT}/Temper1`,
   ];
 
   function defaultState() {
     return {
       scenario: /** @type {null|"jam"|"starved"} */ (null),
+      mixScenario: /** @type {null|"overtemp"|"valve"} */ (null),
       cartonerJamCleared: false,
       rejectCount: 12,
       underCount: 3,
       overCount: 1,
       palletsDone: 47,
       selectedTag: "OEE",
-      activeDrawing: /** @type {"packaging"|"mixing"} */ ("packaging"),
+      activeDrawing: /** @type {"packaging"|"mixing"|"tempering"} */ ("packaging"),
       alarms: /** @type {Alarm[]} */ ([]),
       openNodes: DEFAULT_OPEN.slice(),
     };
@@ -218,9 +251,12 @@
         alarms: Array.isArray(parsed.alarms) ? parsed.alarms : [],
         openNodes: Array.isArray(parsed.openNodes) ? parsed.openNodes : base.openNodes,
         selectedTag: TAG_BY_ID[parsed.selectedTag] ? parsed.selectedTag : base.selectedTag,
-        activeDrawing: parsed.activeDrawing === "mixing" || parsed.activeDrawing === "packaging"
+        activeDrawing: ["packaging", "mixing", "tempering"].includes(parsed.activeDrawing)
           ? parsed.activeDrawing
           : drawingForTag(TAG_BY_ID[parsed.selectedTag] ? parsed.selectedTag : base.selectedTag),
+        mixScenario: parsed.mixScenario === "overtemp" || parsed.mixScenario === "valve"
+          ? parsed.mixScenario
+          : null,
       };
     } catch (e) {
       return defaultState();
@@ -326,34 +362,68 @@
       live[`${p}Outfeed/Occupied`] = { value: occ, quality: "Good" };
     });
 
-    /* Mixing — chocolate mass mixer (independent of packaging scenarios). */
-    const mixRun = true;
-    const level = clamp(drift(62, 4, 7), 20, 92);
-    const jacket = clamp(drift(48.5, 1.2, 8), 40, 55);
-    const massT = clamp(drift(46.2, 1.0, 9), 38, 52);
-    const rpm = clamp(drift(42, 3, 10), 20, 60);
-    const cocoaOpen = level < 85;
-    const sugarOpen = level < 80;
-    const outletOpen = level > 55;
+    /* Mixing — chocolate mass mixer. */
+    const mixOver = state.mixScenario === "overtemp";
+    const mixValve = state.mixScenario === "valve";
+    const mixFault = mixOver || mixValve;
+    const mixRun = !mixFault;
+    const level = clamp(drift(mixValve ? 38 : 62, 4, 7), 18, 92);
+    const jacket = mixOver ? clamp(drift(62, 1.5, 8), 58, 68) : clamp(drift(48.5, 1.2, 8), 40, 55);
+    const massT = mixOver ? clamp(drift(58, 1.2, 9), 54, 64) : clamp(drift(46.2, 1.0, 9), 38, 52);
+    const rpm = mixFault ? clamp(drift(8, 2, 10), 0, 15) : clamp(drift(42, 3, 10), 20, 60);
+    let cocoaOpen = !mixValve && level < 85;
+    const sugarOpen = !mixFault && level < 80;
+    const outletOpen = !mixFault && level > 55;
+    if (mixValve) cocoaOpen = false;
     const cocoaFlow = cocoaOpen ? Math.max(0, drift(820, 40, 11)) : 0;
     const sugarFlow = sugarOpen ? Math.max(0, drift(310, 25, 12)) : 0;
     const outFlow = outletOpen ? Math.max(0, drift(980, 50, 13)) : 0;
     const batchN = 1400 + Math.floor(tick / 90);
-    live["Mixing/Running"] = { value: mixRun, quality: "Good" };
-    live["Mixing/Mode"] = { value: "AUTO", quality: "Good" };
+    const mixMode = mixOver ? "FAULT" : mixValve ? "HOLD" : "AUTO";
+    const mixQ = mixOver ? "Bad" : mixValve ? "Uncertain" : "Good";
+    live["Mixing/Running"] = { value: mixRun, quality: mixQ };
+    live["Mixing/Mode"] = { value: mixMode, quality: mixQ };
     live["Mixing/BatchId"] = { value: `B-${batchN}`, quality: "Good" };
-    live["Mixing/Mixer1/Running"] = { value: mixRun, quality: "Good" };
-    live["Mixing/Mixer1/LevelPct"] = { value: level, quality: "Good" };
-    live["Mixing/Mixer1/AgitatorRpm"] = { value: rpm, quality: "Good" };
-    live["Mixing/Mixer1/JacketTempC"] = { value: jacket, quality: jacket > 52 ? "Uncertain" : "Good" };
-    live["Mixing/Mixer1/MassTempC"] = { value: massT, quality: "Good" };
-    live["Mixing/CocoaLiquor/ValveOpen"] = { value: cocoaOpen, quality: "Good" };
-    live["Mixing/CocoaLiquor/FlowKgH"] = { value: cocoaFlow, quality: "Good" };
+    live["Mixing/Mixer1/Running"] = { value: mixRun, quality: mixQ };
+    live["Mixing/Mixer1/LevelPct"] = { value: level, quality: mixValve ? "Uncertain" : "Good" };
+    live["Mixing/Mixer1/AgitatorRpm"] = { value: rpm, quality: mixFault ? "Uncertain" : "Good" };
+    live["Mixing/Mixer1/JacketTempC"] = { value: jacket, quality: mixOver ? "Bad" : jacket > 52 ? "Uncertain" : "Good" };
+    live["Mixing/Mixer1/MassTempC"] = { value: massT, quality: mixOver ? "Bad" : "Good" };
+    live["Mixing/CocoaLiquor/ValveOpen"] = { value: cocoaOpen, quality: mixValve ? "Bad" : "Good" };
+    live["Mixing/CocoaLiquor/FlowKgH"] = { value: cocoaFlow, quality: mixValve ? "Bad" : "Good" };
     live["Mixing/Sugar/ValveOpen"] = { value: sugarOpen, quality: "Good" };
     live["Mixing/Sugar/FlowKgH"] = { value: sugarFlow, quality: "Good" };
     live["Mixing/Outlet/ValveOpen"] = { value: outletOpen, quality: "Good" };
     live["Mixing/Outlet/FlowKgH"] = { value: outFlow, quality: "Good" };
     live["Mixing/Drain/ValveOpen"] = { value: false, quality: "Good" };
+
+    /* Tempering — cooling tunnel (downstream of Mixing). */
+    const temperRun = true;
+    const z1 = clamp(drift(32.5, 0.8, 14), 28, 36);
+    const z2 = clamp(drift(29.0, 0.7, 15), 26, 33);
+    const z3 = clamp(drift(27.2, 0.6, 16), 24, 31);
+    const massOut = clamp(drift(28.4, 0.5, 17), 25, 32);
+    const belt = clamp(drift(4.2, 0.25, 18), 2.5, 6);
+    const inOpen = true;
+    const outOpen = true;
+    const inFlow = Math.max(0, drift(960, 40, 19));
+    const tOutFlow = Math.max(0, drift(950, 35, 20));
+    const cwFlow = clamp(drift(12.5, 0.8, 21), 8, 18);
+    const cwSupply = clamp(drift(6.5, 0.4, 22), 4, 9);
+    live["Tempering/Running"] = { value: temperRun, quality: "Good" };
+    live["Tempering/Mode"] = { value: "AUTO", quality: "Good" };
+    live["Tempering/Temper1/Running"] = { value: temperRun, quality: "Good" };
+    live["Tempering/Temper1/BeltSpeed"] = { value: belt, quality: "Good" };
+    live["Tempering/Temper1/Zone1TempC"] = { value: z1, quality: "Good" };
+    live["Tempering/Temper1/Zone2TempC"] = { value: z2, quality: "Good" };
+    live["Tempering/Temper1/Zone3TempC"] = { value: z3, quality: "Good" };
+    live["Tempering/Temper1/MassTempC"] = { value: massOut, quality: "Good" };
+    live["Tempering/Inlet/ValveOpen"] = { value: inOpen, quality: "Good" };
+    live["Tempering/Inlet/FlowKgH"] = { value: inFlow, quality: "Good" };
+    live["Tempering/Outlet/ValveOpen"] = { value: outOpen, quality: "Good" };
+    live["Tempering/Outlet/FlowKgH"] = { value: tOutFlow, quality: "Good" };
+    live["Tempering/ChilledWater/FlowM3H"] = { value: cwFlow, quality: "Good" };
+    live["Tempering/ChilledWater/SupplyTempC"] = { value: cwSupply, quality: "Good" };
 
     syncScenarioAlarms();
   }
@@ -373,6 +443,22 @@
         id: "alm-infeed-starved",
         path: pathOf("Infeed/Starved"),
         message: "Infeed starved — no product detected at photoeye",
+        severity: /** @type {const} */ ("warning"),
+      });
+    }
+    if (state.mixScenario === "overtemp") {
+      want.push({
+        id: "alm-mix-overtemp",
+        path: pathOf("Mixing/Mixer1/JacketTempC"),
+        message: "Mixer1 jacket overtemperature — mass at risk",
+        severity: /** @type {const} */ ("critical"),
+      });
+    }
+    if (state.mixScenario === "valve") {
+      want.push({
+        id: "alm-mix-valve",
+        path: pathOf("Mixing/CocoaLiquor/ValveOpen"),
+        message: "Cocoa liquor valve XV-101 stuck closed — mixer starving",
         severity: /** @type {const} */ ("warning"),
       });
     }
@@ -540,6 +626,36 @@
     return renderFolder(MIXING_ROOT, MIXING_AREA, body, "plant-tree__area plant-tree__area--live");
   }
 
+  function temperingTagsUnder(prefix) {
+    const base = "Tempering/";
+    if (!prefix) {
+      return TEMPERING_TAGS.filter((t) => {
+        const rest = t.id.slice(base.length);
+        return !rest.includes("/");
+      });
+    }
+    const p = base + (prefix.endsWith("/") ? prefix : prefix + "/");
+    return TEMPERING_TAGS.filter((t) => {
+      if (!t.id.startsWith(p)) return false;
+      return !t.id.slice(p.length).includes("/");
+    });
+  }
+
+  function renderTemperingFolder() {
+    const areaTags = temperingTagsUnder("").map((t) => renderTagButton(t.id, t)).join("");
+    const temper = temperingTagsUnder("Temper1").map((t) => renderTagButton(t.id, t)).join("");
+    const inlet = temperingTagsUnder("Inlet").map((t) => renderTagButton(t.id, t)).join("");
+    const outlet = temperingTagsUnder("Outlet").map((t) => renderTagButton(t.id, t)).join("");
+    const chilled = temperingTagsUnder("ChilledWater").map((t) => renderTagButton(t.id, t)).join("");
+    const body =
+      areaTags +
+      renderFolder(`${TEMPERING_ROOT}/Temper1`, "Temper1", temper) +
+      renderFolder(`${TEMPERING_ROOT}/Inlet`, "Inlet", inlet) +
+      renderFolder(`${TEMPERING_ROOT}/Outlet`, "Outlet", outlet) +
+      renderFolder(`${TEMPERING_ROOT}/ChilledWater`, "ChilledWater", chilled);
+    return renderFolder(TEMPERING_ROOT, TEMPERING_AREA, body, "plant-tree__area plant-tree__area--live");
+  }
+
   function buildTree() {
     const root = document.getElementById("plant-tree");
     if (!root) return;
@@ -549,7 +665,8 @@
 
     const packaging = renderFolder(AREA_ROOT, AREA, lines, "plant-tree__area");
     const mixing = renderMixingFolder();
-    root.innerHTML = renderFolder(SITE, SITE, packaging + mixing, "plant-tree__site");
+    const tempering = renderTemperingFolder();
+    root.innerHTML = renderFolder(SITE, SITE, packaging + mixing + tempering, "plant-tree__site");
     treeBuilt = true;
     updateTreeValues();
 
@@ -628,9 +745,9 @@
 
   function equipKeyForTag(tagId) {
     if (!tagId) return null;
-    if (isMixingTag(tagId)) {
+    if (isMixingTag(tagId) || isTemperingTag(tagId)) {
       const parts = tagId.split("/");
-      // Mixing/Mixer1/LevelPct → Mixer1; Mixing/CocoaLiquor/ValveOpen → CocoaLiquor
+      // Mixing/Mixer1/LevelPct → Mixer1; Tempering/Temper1/Zone1TempC → Temper1
       return parts[1] || null;
     }
     let id = tagId;
@@ -927,8 +1044,93 @@
     pidBuilt = true;
   }
 
+  function buildTemperingPid() {
+    const host = document.getElementById("plant-pid");
+    if (!host) return;
+
+    const vbW = 960;
+    const vbH = 420;
+    const tunnelX = 220;
+    const tunnelY = 150;
+    const tunnelW = 520;
+    const tunnelH = 120;
+    const zoneW = tunnelW / 3;
+    const midY = tunnelY + tunnelH / 2;
+    const inY = midY;
+    const outY = midY;
+
+    const zones = [0, 1, 2].map((i) => {
+      const x = tunnelX + i * zoneW;
+      const label = `Z${i + 1}`;
+      return `
+        <rect class="pid-tunnel__zone" x="${x}" y="${tunnelY}" width="${zoneW}" height="${tunnelH}" />
+        <text class="pid-tunnel__zone-label" x="${x + zoneW / 2}" y="${tunnelY + 22}" text-anchor="middle">${label}</text>`;
+    }).join("");
+
+    const balloons = [
+      balloon(tunnelX + zoneW * 0.5, 86, "TI", "211", "Tempering/Temper1/Zone1TempC", tunnelX + zoneW * 0.5, tunnelY, "Temper1"),
+      balloon(tunnelX + zoneW * 1.5, 86, "TI", "212", "Tempering/Temper1/Zone2TempC", tunnelX + zoneW * 1.5, tunnelY, "Temper1"),
+      balloon(tunnelX + zoneW * 2.5, 86, "TI", "213", "Tempering/Temper1/Zone3TempC", tunnelX + zoneW * 2.5, tunnelY, "Temper1"),
+      balloon(tunnelX + tunnelW / 2, 320, "SI", "210", "Tempering/Temper1/BeltSpeed", tunnelX + tunnelW / 2, tunnelY + tunnelH, "Temper1"),
+      balloon(110, inY - 50, "FI", "201", "Tempering/Inlet/FlowKgH", 170, inY, "Inlet"),
+      balloon(820, outY - 50, "FI", "230", "Tempering/Outlet/FlowKgH", 760, outY, "Outlet"),
+      balloon(480, 340, "TI", "240", "Tempering/ChilledWater/SupplyTempC", 480, tunnelY + tunnelH + 8, "ChilledWater"),
+    ].join("");
+
+    host.innerHTML = `
+      <svg class="pid-svg pid-svg--tempering is-running" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Heuvelland Tempering Temper1 P and ID">
+        <title>Heuvelland Tempering — Temper1</title>
+        <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
+        <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
+
+        <g class="pid-titleblock">
+          <rect class="pid-titleblock__box" x="${vbW - 220}" y="${vbH - 56}" width="208" height="44" />
+          <line class="pid-sheet__rule" x1="${vbW - 220}" y1="${vbH - 34}" x2="${vbW - 12}" y2="${vbH - 34}" />
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 42}">DWG</text>
+          <text class="pid-titleblock__v" x="${vbW - 180}" y="${vbH - 42}">TMP-210</text>
+          <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
+          <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Tempering</text>
+          <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
+        </g>
+
+        <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — TEMPERING TUNNEL</text>
+        <text class="pid-sheet__sub" x="24" y="52">Mass in from Mixing → three cooling zones → to Packaging</text>
+
+        <text class="pid-flow-label" x="28" y="${inY - 10}" text-anchor="start">MASS IN</text>
+        <line class="pid-pipe pid-pipe--main" x1="28" y1="${inY}" x2="${tunnelX}" y2="${inY}" />
+        ${flowArrow(120, inY)}
+        ${mixValve(170, inY, "Tempering/Inlet/ValveOpen", "Inlet", "XV-201")}
+        ${flange(tunnelX, inY)}
+
+        <g class="pid-tunnel pid-equip--run" data-equip="Temper1" data-tag="Tempering/Temper1/Running" role="button" tabindex="0">
+          <rect class="pid-tunnel__shell" x="${tunnelX}" y="${tunnelY}" width="${tunnelW}" height="${tunnelH}" rx="4" />
+          ${zones}
+          <line class="pid-tunnel__belt" x1="${tunnelX + 16}" y1="${midY}" x2="${tunnelX + tunnelW - 16}" y2="${midY}" />
+          <text class="pid-equip__pid" x="${tunnelX + tunnelW / 2}" y="${tunnelY - 10}" text-anchor="middle">TMP-210</text>
+          <text class="pid-equip__name" x="${tunnelX + tunnelW / 2}" y="${tunnelY + tunnelH + 18}" text-anchor="middle">Temper1</text>
+        </g>
+
+        <line class="pid-pipe pid-pipe--main" x1="${tunnelX + tunnelW}" y1="${outY}" x2="900" y2="${outY}" />
+        ${flange(tunnelX + tunnelW, outY)}
+        ${mixValve(780, outY, "Tempering/Outlet/ValveOpen", "Outlet", "XV-230")}
+        ${flowArrow(850, outY)}
+        <text class="pid-flow-label" x="908" y="${outY - 10}" text-anchor="start">TO PACK</text>
+
+        <text class="pid-flow-label" x="28" y="340" text-anchor="start">CHILLED WATER</text>
+        <line class="pid-pipe pid-pipe--divert" x1="140" y1="340" x2="${tunnelX + 40}" y2="${tunnelY + tunnelH}" />
+        <line class="pid-pipe pid-pipe--divert" x1="${tunnelX + tunnelW - 40}" y1="${tunnelY + tunnelH}" x2="700" y2="340" />
+
+        ${balloons}
+      </svg>`;
+
+    pidBuilt = true;
+  }
+
   function buildPid() {
     if (state.activeDrawing === "mixing") buildMixingPid();
+    else if (state.activeDrawing === "tempering") buildTemperingPid();
     else buildPackagingPid();
   }
 
@@ -960,9 +1162,13 @@
     const svg = host.querySelector(".pid-svg");
     if (!svg) return;
     const mixing = state.activeDrawing === "mixing";
+    const tempering = state.activeDrawing === "tempering";
+    const mixOver = state.mixScenario === "overtemp";
+    const mixValve = state.mixScenario === "valve";
 
     svg.classList.remove("is-running", "is-fault", "is-warn");
-    if (mixing) svg.classList.add("is-running");
+    if (mixing) svg.classList.add(mixOver ? "is-fault" : mixValve ? "is-warn" : "is-running");
+    else if (tempering) svg.classList.add("is-running");
     else svg.classList.add(jam ? "is-fault" : starved ? "is-warn" : "is-running");
 
     const flow = svg.querySelector("[data-pid-flow]");
@@ -995,11 +1201,13 @@
         const count = bin.querySelector("[data-pid-reject-count]");
         if (count) count.textContent = String(Math.round(live["Checkweigher/Reject/Count"]?.value ?? state.rejectCount));
       }
-    } else {
+    } else if (mixing) {
       const tank = svg.querySelector(".pid-tank");
       if (tank) {
-        tank.classList.remove("is-selected", "is-hover");
+        tank.classList.remove("is-selected", "is-hover", "is-fault", "is-warn");
         if (state.selectedTag.startsWith("Mixing/Mixer1")) tank.classList.add("is-selected");
+        if (mixOver) tank.classList.add("is-fault");
+        else if (mixValve) tank.classList.add("is-warn");
       }
       const level = (live["Mixing/Mixer1/LevelPct"] || {}).value ?? 50;
       const levelEl = svg.querySelector("[data-pid-level]");
@@ -1009,6 +1217,20 @@
         const top = 120 + 14 + (tankH - h);
         levelEl.setAttribute("y", String(top));
         levelEl.setAttribute("height", String(h));
+      }
+      svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
+        const tagId = g.getAttribute("data-tag");
+        const open = !!(live[tagId] || {}).value;
+        g.classList.toggle("is-open", open);
+        g.classList.toggle("is-fault", mixValve && tagId === "Mixing/CocoaLiquor/ValveOpen");
+        g.classList.toggle("is-selected", tagId === state.selectedTag);
+        g.classList.remove("is-hover");
+      });
+    } else if (tempering) {
+      const tunnel = svg.querySelector(".pid-tunnel");
+      if (tunnel) {
+        tunnel.classList.remove("is-selected", "is-hover");
+        if (state.selectedTag.startsWith("Tempering/Temper1")) tunnel.classList.add("is-selected");
       }
       svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
         const tagId = g.getAttribute("data-tag");
@@ -1040,6 +1262,9 @@
     const jam = state.scenario === "jam" && !state.cartonerJamCleared;
     const starved = state.scenario === "starved";
     const mixing = state.activeDrawing === "mixing";
+    const tempering = state.activeDrawing === "tempering";
+    const mixOver = state.mixScenario === "overtemp";
+    const mixValve = state.mixScenario === "valve";
     const setKpi = (id, text, tone) => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -1060,10 +1285,22 @@
       setLabel("kpi-b-label", "Jacket");
       setLabel("kpi-c-label", "RPM");
       setLabel("kpi-d-label", "Mode");
-      setKpi("kpi-a", `${level.toFixed(1)}%`, level > 88 ? "warn" : "good");
-      setKpi("kpi-b", `${jacket.toFixed(1)}°C`, jacket > 52 ? "warn" : "good");
-      setKpi("kpi-c", String(Math.round(rpm)), "good");
-      setKpi("kpi-d", String(live["Mixing/Mode"]?.value ?? "—"), "good");
+      setKpi("kpi-a", `${level.toFixed(1)}%`, mixValve ? "warn" : level > 88 ? "warn" : "good");
+      setKpi("kpi-b", `${jacket.toFixed(1)}°C`, mixOver || jacket > 52 ? "bad" : "good");
+      setKpi("kpi-c", String(Math.round(rpm)), mixOver || mixValve ? "warn" : "good");
+      setKpi("kpi-d", String(live["Mixing/Mode"]?.value ?? "—"), mixOver ? "bad" : mixValve ? "warn" : "good");
+    } else if (tempering) {
+      const z1 = live["Tempering/Temper1/Zone1TempC"]?.value ?? 0;
+      const z3 = live["Tempering/Temper1/Zone3TempC"]?.value ?? 0;
+      const belt = live["Tempering/Temper1/BeltSpeed"]?.value ?? 0;
+      setLabel("kpi-a-label", "Zone1");
+      setLabel("kpi-b-label", "Zone3");
+      setLabel("kpi-c-label", "Belt");
+      setLabel("kpi-d-label", "Mode");
+      setKpi("kpi-a", `${z1.toFixed(1)}°C`, "good");
+      setKpi("kpi-b", `${z3.toFixed(1)}°C`, "good");
+      setKpi("kpi-c", `${belt.toFixed(1)}`, "good");
+      setKpi("kpi-d", String(live["Tempering/Mode"]?.value ?? "—"), "good");
     } else {
       const oee = live.OEE?.value ?? 0;
       setLabel("kpi-a-label", "OEE");
@@ -1077,24 +1314,42 @@
     }
 
     const pkgToolbar = document.querySelector('[data-toolbar-area="packaging"]');
-    if (pkgToolbar) pkgToolbar.hidden = mixing;
+    const mixToolbar = document.querySelector('[data-toolbar-area="mixing"]');
+    if (pkgToolbar) pkgToolbar.hidden = mixing || tempering;
+    if (mixToolbar) mixToolbar.hidden = !mixing;
+    document.querySelectorAll("[data-toolbar-packaging-only]").forEach((el) => {
+      el.hidden = mixing || tempering;
+    });
 
     document.querySelectorAll("[data-scenario]").forEach((btn) => {
       const sc = btn.getAttribute("data-scenario");
       const active = sc === "recover" ? state.scenario === null : state.scenario === sc;
       btn.classList.toggle("is-active", active);
     });
+    document.querySelectorAll("[data-mix-scenario]").forEach((btn) => {
+      const sc = btn.getAttribute("data-mix-scenario");
+      const active = sc === "recover" ? state.mixScenario === null : state.mixScenario === sc;
+      btn.classList.toggle("is-active", active);
+    });
 
     const title = document.querySelector(".plant-hmi__title h1");
-    if (title) title.textContent = mixing ? "Heuvelland · Mixing" : "Heuvelland · Line 3";
+    if (title) {
+      title.textContent = mixing
+        ? "Heuvelland · Mixing"
+        : tempering
+          ? "Heuvelland · Tempering"
+          : "Heuvelland · Line 3";
+    }
 
     const scanDot = document.getElementById("plant-scan-dot");
     const scanLabel = document.getElementById("plant-scan-label");
     if (scanDot && scanLabel) {
       scanDot.classList.remove("is-fault", "is-warn");
-      if (!mixing && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
-      else if (!mixing && starved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
-      else { scanLabel.textContent = mixing ? "Mixing" : "Scanning"; }
+      if (mixing && mixOver) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Overtemp"; }
+      else if (mixing && mixValve) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Valve fault"; }
+      else if (!mixing && !tempering && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
+      else if (!mixing && !tempering && starved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
+      else { scanLabel.textContent = mixing ? "Mixing" : tempering ? "Tempering" : "Scanning"; }
     }
   }
 
@@ -1108,9 +1363,9 @@
       return;
     }
     const folder = (() => {
-      if (isMixingTag(state.selectedTag)) {
+      if (isMixingTag(state.selectedTag) || isTemperingTag(state.selectedTag)) {
         const parts = state.selectedTag.split("/");
-        return parts.length > 2 ? parts.slice(0, -1).join(" / ") : "Mixing";
+        return parts.length > 2 ? parts.slice(0, -1).join(" / ") : parts[0];
       }
       if (isStubTag(state.selectedTag)) {
         const parts = state.selectedTag.split("/");
@@ -1196,7 +1451,6 @@
     if (name === "recover") {
       state.scenario = null;
       state.cartonerJamCleared = false;
-      state.alarms = [];
     } else if (name === "jam") {
       state.scenario = "jam";
       state.cartonerJamCleared = false;
@@ -1204,6 +1458,14 @@
       state.scenario = "starved";
       state.cartonerJamCleared = false;
     }
+    saveState();
+    computeLive();
+    renderAll();
+  }
+
+  function setMixScenario(name) {
+    if (name === "recover") state.mixScenario = null;
+    else if (name === "overtemp" || name === "valve") state.mixScenario = name;
     saveState();
     computeLive();
     renderAll();
@@ -1261,9 +1523,10 @@
     state.selectedTag = id;
     const open = new Set(state.openNodes);
     open.add(SITE);
-    if (isMixingTag(id)) {
-      open.add(MIXING_ROOT);
-      const parts = id.split("/"); // Mixing, Mixer1, LevelPct
+    if (isMixingTag(id) || isTemperingTag(id)) {
+      const root = isMixingTag(id) ? MIXING_ROOT : TEMPERING_ROOT;
+      open.add(root);
+      const parts = id.split("/");
       let acc = SITE;
       for (let i = 0; i < parts.length - 1; i++) {
         acc += "/" + parts[i];
@@ -1361,10 +1624,12 @@
     });
 
     document.querySelector(".plant-toolbar")?.addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-action], [data-scenario]");
+      const btn = e.target.closest("[data-action], [data-scenario], [data-mix-scenario]");
       if (!btn) return;
       const sc = btn.getAttribute("data-scenario");
+      const mixSc = btn.getAttribute("data-mix-scenario");
       if (sc) { setScenario(sc); return; }
+      if (mixSc) { setMixScenario(mixSc); return; }
       const action = btn.getAttribute("data-action");
       if (action === "ack-all") ackAll();
       else if (action === "reset-reject") resetReject();

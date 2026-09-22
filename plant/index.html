@@ -70,7 +70,7 @@
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=c826c2f54a" />
   <link rel="stylesheet" href="../assets/css/styles.css?v=7b7a106a9c" />
 <!-- /partial:head-assets -->
-  <link rel="stylesheet" href="../assets/css/plant.css?v=0c0a400b92" />
+  <link rel="stylesheet" href="../assets/css/plant.css?v=332cf9d757" />
 </head>
 
 <body class="plant-page bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -142,16 +142,22 @@
         <!-- Mimic -->
         <section class="plant-pane plant-mimic" aria-label="Line P and ID">
           <div class="plant-toolbar" role="toolbar" aria-label="Operator actions">
-            <div class="plant-toolbar__group" data-toolbar-area="packaging" role="group" aria-label="Line scenarios">
+            <div class="plant-toolbar__group" data-toolbar-area="packaging" role="group" aria-label="Packaging scenarios">
               <span class="plant-toolbar__label">Scenario</span>
               <button type="button" class="plant-btn plant-btn--jam" data-scenario="jam" title="Cartoner jam fault">Jam</button>
               <button type="button" class="plant-btn plant-btn--starved" data-scenario="starved" title="Infeed starved">Starved</button>
-              <button type="button" class="plant-btn plant-btn--recover" data-scenario="recover" title="Return line to healthy AUTO">Recover</button>
+              <button type="button" class="plant-btn plant-btn--recover" data-scenario="recover" title="Return packaging line to healthy AUTO">Recover</button>
+            </div>
+            <div class="plant-toolbar__group" data-toolbar-area="mixing" role="group" aria-label="Mixing scenarios" hidden>
+              <span class="plant-toolbar__label">Scenario</span>
+              <button type="button" class="plant-btn plant-btn--jam" data-mix-scenario="overtemp" title="Jacket overtemperature">Overtemp</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-mix-scenario="valve" title="Cocoa liquor valve stuck closed">Valve fault</button>
+              <button type="button" class="plant-btn plant-btn--recover" data-mix-scenario="recover" title="Clear mixing faults">Recover</button>
             </div>
             <span class="plant-toolbar__sep" aria-hidden="true"></span>
             <button type="button" class="plant-btn" data-action="ack-all">Ack all</button>
-            <button type="button" class="plant-btn" data-action="reset-reject">Reset reject</button>
-            <button type="button" class="plant-btn" data-action="clear-jam">Clear cartoner jam</button>
+            <button type="button" class="plant-btn" data-action="reset-reject" data-toolbar-packaging-only>Reset reject</button>
+            <button type="button" class="plant-btn" data-action="clear-jam" data-toolbar-packaging-only>Clear cartoner jam</button>
             <span class="plant-toolbar__sep" aria-hidden="true"></span>
             <button type="button" class="plant-btn plant-btn--ghost" data-action="reset-line">Reset line</button>
           </div>
@@ -188,7 +194,7 @@
   </div>
 
 <!-- partial:plant-scripts -->
-  <script src="../assets/js/plant.js?v=f0605aa80b" defer></script>
+  <script src="../assets/js/plant.js?v=316b3252ac" defer></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../assets/js/goatcounter.js"></script>
 <!-- /partial:plant-scripts -->
 </body>

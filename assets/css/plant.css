@@ -682,18 +682,47 @@
   stroke: #94a3b8;
   stroke-width: 1.5;
 }
-.pid-mix-valve.is-open .pid-mix-valve__body {
-  fill: rgba(52, 211, 153, 0.18);
-  stroke: #34d399;
+.pid-mix-valve.is-fault .pid-mix-valve__body {
+  fill: rgba(248, 113, 113, 0.2);
+  stroke: #f87171;
 }
-.pid-mix-valve.is-selected .pid-mix-valve__body,
-.pid-mix-valve.is-hover .pid-mix-valve__body {
+
+.pid-tank.is-fault .pid-tank__shell {
+  stroke: #f87171;
+}
+.pid-tank.is-warn .pid-tank__shell {
+  stroke: #fbbf24;
+}
+.pid-tank.is-fault .pid-tank__level {
+  fill: rgba(248, 113, 113, 0.35);
+}
+
+.pid-tunnel {
+  cursor: pointer;
+}
+.pid-tunnel__shell {
+  fill: rgba(2, 6, 23, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.75;
+}
+.pid-tunnel__zone {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.35);
+  stroke-width: 1;
+}
+.pid-tunnel__zone-label {
+  fill: rgb(100 116 139);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+.pid-tunnel__belt {
+  stroke: #94a3b8;
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+}
+.pid-tunnel.is-selected .pid-tunnel__shell,
+.pid-tunnel.is-hover .pid-tunnel__shell {
   stroke: var(--color-brand-300);
-}
-.pid-mix-valve__pid {
-  fill: rgb(148 163 184);
-  font-size: 8px;
-  letter-spacing: 0.04em;
 }
 
 .pid-pipe-flow {
