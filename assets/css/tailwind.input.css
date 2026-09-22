@@ -21,7 +21,10 @@
 @source "../../404.html";
 @source "../../publications/index.html";
 @source "../../case-studies/**/*.html";
+@source "../../notes/**/*.html";
+@source "../../plant/**/*.html";
 @source "../js/script.js";
+@source "../js/plant.js";
 
 /* Design tokens — previously inline in index.html's <head>.
    These power utility classes like bg-brand-400 and are also
