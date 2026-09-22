@@ -1,96 +1,103 @@
 /* =============================================================
    plant.js — Plant Live View (/plant/)
-   Simulated packaging line: tag tree, mimic, alarms, scenarios.
+   Nested tag browser (Packaging / Line#) + P&ID mimic.
    State persists in localStorage until "Reset line".
    ============================================================= */
 
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "samdonche.plant.v1";
+  const STORAGE_KEY = "samdonche.plant.v2";
   const TICK_MS = 1000;
   const PROVIDER = "[edge]";
-  const LINE = "Line3";
-
-  const AREAS = [
-    "Line",
-    "Infeed",
-    "Cartoner",
-    "Checkweigher",
-    "Reject",
-    "CasePacker",
-    "Palletizer",
-    "Outfeed",
-  ];
-
-  const STAGES = [
-    { id: "Infeed", label: "Infeed" },
-    { id: "Cartoner", label: "Cartoner" },
-    { id: "Checkweigher", label: "Checkweigher" },
-    { id: "CasePacker", label: "Case packer" },
-    { id: "Palletizer", label: "Palletizer" },
-    { id: "Outfeed", label: "Outfeed" },
-  ];
+  const AREA = "Packaging";
+  const LIVE_LINE = "Line3";
 
   /** @typedef {"Good"|"Uncertain"|"Bad"|"Stale"} Quality */
 
   /**
    * @typedef {{
    *   id: string,
-   *   area: string,
    *   name: string,
    *   type: "bool"|"number"|"string",
    *   unit?: string,
-   *   format?: (v: any) => string
+   *   format?: (v: any) => string,
+   *   live?: boolean
    * }} TagDef
    */
 
-  /** @type {TagDef[]} */
-  const TAG_DEFS = [
-    { id: "Line/Running", area: "Line", name: "Running", type: "bool" },
-    { id: "Line/Mode", area: "Line", name: "Mode", type: "string" },
-    { id: "Line/OEE", area: "Line", name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1) },
-    { id: "Line/Throughput", area: "Line", name: "Throughput", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
-    { id: "Line/SpeedSP", area: "Line", name: "SpeedSP", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
-
-    { id: "Infeed/Running", area: "Infeed", name: "Running", type: "bool" },
-    { id: "Infeed/Speed", area: "Infeed", name: "Speed", type: "number", unit: "m/min", format: (v) => v.toFixed(1) },
-    { id: "Infeed/Jam", area: "Infeed", name: "Jam", type: "bool" },
-    { id: "Infeed/Photoeye", area: "Infeed", name: "Photoeye", type: "bool" },
-    { id: "Infeed/Starved", area: "Infeed", name: "Starved", type: "bool" },
-
-    { id: "Cartoner/Running", area: "Cartoner", name: "Running", type: "bool" },
-    { id: "Cartoner/Speed", area: "Cartoner", name: "Speed", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
-    { id: "Cartoner/Jam", area: "Cartoner", name: "Jam", type: "bool" },
-    { id: "Cartoner/CartonsPerMin", area: "Cartoner", name: "CartonsPerMin", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
-    { id: "Cartoner/FaultCode", area: "Cartoner", name: "FaultCode", type: "number", format: (v) => String(v) },
-
-    { id: "Checkweigher/Running", area: "Checkweigher", name: "Running", type: "bool" },
-    { id: "Checkweigher/WeightKg", area: "Checkweigher", name: "WeightKg", type: "number", unit: "kg", format: (v) => v.toFixed(3) },
-    { id: "Checkweigher/InSpec", area: "Checkweigher", name: "InSpec", type: "bool" },
-    { id: "Checkweigher/UnderCount", area: "Checkweigher", name: "UnderCount", type: "number", format: (v) => String(Math.round(v)) },
-    { id: "Checkweigher/OverCount", area: "Checkweigher", name: "OverCount", type: "number", format: (v) => String(Math.round(v)) },
-
-    { id: "Reject/Count", area: "Reject", name: "Count", type: "number", format: (v) => String(Math.round(v)) },
-    { id: "Reject/Active", area: "Reject", name: "Active", type: "bool" },
-    { id: "Reject/Divert", area: "Reject", name: "Divert", type: "bool" },
-
-    { id: "CasePacker/Running", area: "CasePacker", name: "Running", type: "bool" },
-    { id: "CasePacker/Speed", area: "CasePacker", name: "Speed", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
-    { id: "CasePacker/CasesPerMin", area: "CasePacker", name: "CasesPerMin", type: "number", unit: "cpm", format: (v) => v.toFixed(1) },
-    { id: "CasePacker/Jam", area: "CasePacker", name: "Jam", type: "bool" },
-
-    { id: "Palletizer/Running", area: "Palletizer", name: "Running", type: "bool" },
-    { id: "Palletizer/Layers", area: "Palletizer", name: "Layers", type: "number", format: (v) => String(Math.round(v)) },
-    { id: "Palletizer/PalletsDone", area: "Palletizer", name: "PalletsDone", type: "number", format: (v) => String(Math.round(v)) },
-    { id: "Palletizer/Jam", area: "Palletizer", name: "Jam", type: "bool" },
-
-    { id: "Outfeed/Running", area: "Outfeed", name: "Running", type: "bool" },
-    { id: "Outfeed/Occupied", area: "Outfeed", name: "Occupied", type: "bool" },
-    { id: "Outfeed/Photoeye", area: "Outfeed", name: "Photoeye", type: "bool" },
+  /** Offline placeholder lines — one Status tag each. */
+  const OFFLINE_LINES = [
+    { id: "Line1", label: "Line 1" },
+    { id: "Line2", label: "Line 2" },
   ];
 
-  const pathOf = (id) => `${PROVIDER}${LINE}/${id}`;
+  /** Equipment folders under live Line3 (Reject nests under Checkweigher). */
+  const EQUIPMENT = [
+    { id: "Infeed", label: "Infeed", pid: "CV-301", kind: "conveyor" },
+    { id: "Cartoner", label: "Cartoner", pid: "CT-310", kind: "machine" },
+    { id: "Checkweigher", label: "Checkweigher", pid: "WT-320", kind: "scale" },
+    { id: "CasePacker", label: "CasePacker", pid: "CP-330", kind: "machine" },
+    { id: "Palletizer", label: "Palletizer", pid: "PL-340", kind: "machine" },
+    { id: "Outfeed", label: "Outfeed", pid: "CV-350", kind: "conveyor" },
+  ];
+
+  /** @type {TagDef[]} — ids are relative to Packaging/Line3/ */
+  const LINE3_TAGS = [
+    { id: "Running", name: "Running", type: "bool", live: true },
+    { id: "Mode", name: "Mode", type: "string", live: true },
+    { id: "OEE", name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1), live: true },
+    { id: "Throughput", name: "Throughput", type: "number", unit: "cpm", format: (v) => String(Math.round(v)), live: true },
+    { id: "SpeedSP", name: "SpeedSP", type: "number", unit: "cpm", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Infeed/Running", name: "Running", type: "bool", live: true },
+    { id: "Infeed/Speed", name: "Speed", type: "number", unit: "m/min", format: (v) => v.toFixed(1), live: true },
+    { id: "Infeed/Jam", name: "Jam", type: "bool", live: true },
+    { id: "Infeed/Photoeye", name: "Photoeye", type: "bool", live: true },
+    { id: "Infeed/Starved", name: "Starved", type: "bool", live: true },
+
+    { id: "Cartoner/Running", name: "Running", type: "bool", live: true },
+    { id: "Cartoner/Speed", name: "Speed", type: "number", unit: "cpm", format: (v) => String(Math.round(v)), live: true },
+    { id: "Cartoner/Jam", name: "Jam", type: "bool", live: true },
+    { id: "Cartoner/CartonsPerMin", name: "CartonsPerMin", type: "number", unit: "cpm", format: (v) => String(Math.round(v)), live: true },
+    { id: "Cartoner/FaultCode", name: "FaultCode", type: "number", format: (v) => String(v), live: true },
+
+    { id: "Checkweigher/Running", name: "Running", type: "bool", live: true },
+    { id: "Checkweigher/WeightKg", name: "WeightKg", type: "number", unit: "kg", format: (v) => v.toFixed(3), live: true },
+    { id: "Checkweigher/InSpec", name: "InSpec", type: "bool", live: true },
+    { id: "Checkweigher/UnderCount", name: "UnderCount", type: "number", format: (v) => String(Math.round(v)), live: true },
+    { id: "Checkweigher/OverCount", name: "OverCount", type: "number", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Checkweigher/Reject/Count", name: "Count", type: "number", format: (v) => String(Math.round(v)), live: true },
+    { id: "Checkweigher/Reject/Active", name: "Active", type: "bool", live: true },
+    { id: "Checkweigher/Reject/Divert", name: "Divert", type: "bool", live: true },
+
+    { id: "CasePacker/Running", name: "Running", type: "bool", live: true },
+    { id: "CasePacker/Speed", name: "Speed", type: "number", unit: "cpm", format: (v) => String(Math.round(v)), live: true },
+    { id: "CasePacker/CasesPerMin", name: "CasesPerMin", type: "number", unit: "cpm", format: (v) => v.toFixed(1), live: true },
+    { id: "CasePacker/Jam", name: "Jam", type: "bool", live: true },
+
+    { id: "Palletizer/Running", name: "Running", type: "bool", live: true },
+    { id: "Palletizer/Layers", name: "Layers", type: "number", format: (v) => String(Math.round(v)), live: true },
+    { id: "Palletizer/PalletsDone", name: "PalletsDone", type: "number", format: (v) => String(Math.round(v)), live: true },
+    { id: "Palletizer/Jam", name: "Jam", type: "bool", live: true },
+
+    { id: "Outfeed/Running", name: "Running", type: "bool", live: true },
+    { id: "Outfeed/Occupied", name: "Occupied", type: "bool", live: true },
+    { id: "Outfeed/Photoeye", name: "Photoeye", type: "bool", live: true },
+  ];
+
+  const TAG_BY_ID = Object.fromEntries(LINE3_TAGS.map((t) => [t.id, t]));
+
+  const pathOf = (rel) => `${PROVIDER}${AREA}/${LIVE_LINE}/${rel}`;
+
+  /** Default open folders in the nested tree (node keys). */
+  const DEFAULT_OPEN = [
+    "Packaging",
+    "Packaging/Line3",
+    "Packaging/Line3/Cartoner",
+    "Packaging/Line3/Checkweigher",
+  ];
 
   function defaultState() {
     return {
@@ -100,9 +107,9 @@
       underCount: 3,
       overCount: 1,
       palletsDone: 47,
-      selectedTag: "Line/OEE",
+      selectedTag: "OEE",
       alarms: /** @type {Alarm[]} */ ([]),
-      openAreas: ["Line", "Cartoner", "Checkweigher"],
+      openNodes: DEFAULT_OPEN.slice(),
     };
   }
 
@@ -113,20 +120,19 @@
    *   message: string,
    *   severity: "critical"|"warning",
    *   acked: boolean,
-   *   ts: number,
-   *   sticky?: boolean
+   *   ts: number
    * }} Alarm
    */
 
   /** @type {ReturnType<typeof defaultState>} */
   let state = loadState();
 
-  /** Live computed tag values + quality for this tick */
   /** @type {Record<string, { value: any, quality: Quality }>} */
   let live = {};
 
   let tick = 0;
   let timer = null;
+  let treeBuilt = false;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function loadState() {
@@ -139,7 +145,8 @@
         ...base,
         ...parsed,
         alarms: Array.isArray(parsed.alarms) ? parsed.alarms : [],
-        openAreas: Array.isArray(parsed.openAreas) ? parsed.openAreas : base.openAreas,
+        openNodes: Array.isArray(parsed.openNodes) ? parsed.openNodes : base.openNodes,
+        selectedTag: TAG_BY_ID[parsed.selectedTag] ? parsed.selectedTag : base.selectedTag,
       };
     } catch (e) {
       return defaultState();
@@ -149,11 +156,15 @@
   function saveState() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) { /* ignore quota / private mode */ }
+    } catch (e) { /* ignore */ }
   }
 
   function drift(base, amp, phase) {
     return base + Math.sin((tick + phase) / 4.2) * amp + (Math.random() - 0.5) * amp * 0.15;
+  }
+
+  function clamp(n, lo, hi) {
+    return Math.min(hi, Math.max(lo, n));
   }
 
   function computeLive() {
@@ -177,13 +188,12 @@
     const photoOut = lineOk && Math.random() > 0.25;
     const rejectActive = !lineOk ? false : Math.random() < 0.04;
 
-    /** @type {Record<string, { value: any, quality: Quality }>} */
-    const next = {
-      "Line/Running": { value: lineOk, quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
-      "Line/Mode": { value: jam ? "FAULT" : starved ? "STARVED" : "AUTO", quality: jam ? "Bad" : "Good" },
-      "Line/OEE": { value: clamp(oee, 0, 100), quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
-      "Line/Throughput": { value: Math.max(0, throughput), quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
-      "Line/SpeedSP": { value: speedSp, quality: "Good" },
+    live = {
+      Running: { value: lineOk, quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
+      Mode: { value: jam ? "FAULT" : starved ? "STARVED" : "AUTO", quality: jam ? "Bad" : "Good" },
+      OEE: { value: clamp(oee, 0, 100), quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
+      Throughput: { value: Math.max(0, throughput), quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
+      SpeedSP: { value: speedSp, quality: "Good" },
 
       "Infeed/Running": { value: !starved, quality: starved ? "Uncertain" : "Good" },
       "Infeed/Speed": { value: Math.max(0, infeedSpeed), quality: starved ? "Uncertain" : "Good" },
@@ -203,9 +213,9 @@
       "Checkweigher/UnderCount": { value: state.underCount, quality: "Good" },
       "Checkweigher/OverCount": { value: state.overCount, quality: "Good" },
 
-      "Reject/Count": { value: state.rejectCount, quality: "Good" },
-      "Reject/Active": { value: rejectActive, quality: rejectActive ? "Uncertain" : "Good" },
-      "Reject/Divert": { value: rejectActive, quality: rejectActive ? "Uncertain" : "Good" },
+      "Checkweigher/Reject/Count": { value: state.rejectCount, quality: "Good" },
+      "Checkweigher/Reject/Active": { value: rejectActive, quality: rejectActive ? "Uncertain" : "Good" },
+      "Checkweigher/Reject/Divert": { value: rejectActive, quality: rejectActive ? "Uncertain" : "Good" },
 
       "CasePacker/Running": { value: !jam && !starved, quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
       "CasePacker/Speed": { value: Math.max(0, caseSpeed * 4), quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
@@ -222,12 +232,7 @@
       "Outfeed/Photoeye": { value: photoOut, quality: jam ? "Stale" : "Good" },
     };
 
-    live = next;
     syncScenarioAlarms();
-  }
-
-  function clamp(n, lo, hi) {
-    return Math.min(hi, Math.max(lo, n));
   }
 
   function syncScenarioAlarms() {
@@ -238,7 +243,6 @@
         path: pathOf("Cartoner/Jam"),
         message: "Cartoner jam — infeed accumulated, downstream waiting",
         severity: /** @type {const} */ ("critical"),
-        sticky: true,
       });
     }
     if (state.scenario === "starved") {
@@ -247,22 +251,13 @@
         path: pathOf("Infeed/Starved"),
         message: "Infeed starved — no product detected at photoeye",
         severity: /** @type {const} */ ("warning"),
-        sticky: true,
       });
     }
-
     const byId = new Map(state.alarms.map((a) => [a.id, a]));
-    const next = [];
-    for (const w of want) {
+    state.alarms = want.map((w) => {
       const prev = byId.get(w.id);
-      next.push({
-        ...w,
-        acked: prev ? prev.acked : false,
-        ts: prev ? prev.ts : Date.now(),
-      });
-    }
-    // Keep non-sticky historical acked? We only keep active scenario alarms for clarity.
-    state.alarms = next;
+      return { ...w, acked: prev ? prev.acked : false, ts: prev ? prev.ts : Date.now() };
+    });
   }
 
   function formatValue(def, value) {
@@ -282,65 +277,125 @@
       .replace(/"/g, "&quot;");
   }
 
-  /* ---------------- Render ---------------- */
+  function equipState(id) {
+    const jam = state.scenario === "jam" && !state.cartonerJamCleared;
+    const starved = state.scenario === "starved";
+    if (id === "Cartoner" && jam) return "fault";
+    if (id === "Infeed" && starved) return "warn";
+    if (jam) {
+      if (id === "Infeed") return "warn";
+      if (id === "Checkweigher" || id === "Outfeed" || id === "Palletizer") return "idle";
+      return "fault";
+    }
+    if (starved) return "warn";
+    return "run";
+  }
 
-  let treeBuilt = false;
+  /* ---------------- Tag tree ---------------- */
+
+  function tagsUnder(prefix) {
+    if (!prefix) {
+      return LINE3_TAGS.filter((t) => !t.id.includes("/"));
+    }
+    const p = prefix.endsWith("/") ? prefix : prefix + "/";
+    return LINE3_TAGS.filter((t) => {
+      if (!t.id.startsWith(p)) return false;
+      const rest = t.id.slice(p.length);
+      return !rest.includes("/");
+    });
+  }
+
+  function renderTagButton(relId, def) {
+    const lv = live[relId] || { value: "—", quality: "Stale" };
+    const sel = relId === state.selectedTag ? " is-selected" : "";
+    return `<li>
+      <button type="button" class="plant-tag${sel}" data-tag="${escapeHtml(relId)}" data-q="${escapeHtml(lv.quality)}" aria-pressed="${relId === state.selectedTag}">
+        <span class="plant-q-dot-inline" aria-hidden="true"></span>
+        <span class="plant-tag__name">${escapeHtml(def.name)}</span>
+        <span class="plant-tag__val">${escapeHtml(formatValue(def, lv.value))}</span>
+        <span class="plant-q plant-q--${escapeHtml(lv.quality.toLowerCase())}">${escapeHtml(lv.quality)}</span>
+      </button>
+    </li>`;
+  }
+
+  function renderFolder(nodeKey, label, innerHtml, extraClass) {
+    const open = state.openNodes.includes(nodeKey);
+    return `<li class="${extraClass || ""}">
+      <details data-node="${escapeHtml(nodeKey)}" ${open ? "open" : ""}>
+        <summary>
+          <span class="plant-tree__chev" aria-hidden="true">▼</span>
+          <span class="plant-tree__label">${escapeHtml(label)}</span>
+        </summary>
+        <ul>${innerHtml}</ul>
+      </details>
+    </li>`;
+  }
+
+  function renderEquipFolder(equipId) {
+    const nodeKey = `Packaging/${LIVE_LINE}/${equipId}`;
+    let body = tagsUnder(equipId).map((t) => renderTagButton(t.id, t)).join("");
+    if (equipId === "Checkweigher") {
+      const rejectTags = tagsUnder("Checkweigher/Reject")
+        .map((t) => renderTagButton(t.id, t))
+        .join("");
+      body += renderFolder(`${nodeKey}/Reject`, "Reject", rejectTags);
+    }
+    return renderFolder(nodeKey, equipId, body);
+  }
+
+  function renderLine3Folder() {
+    const nodeKey = `Packaging/${LIVE_LINE}`;
+    const lineTags = tagsUnder("").map((t) => renderTagButton(t.id, t)).join("");
+    const equips = EQUIPMENT.map((e) => renderEquipFolder(e.id)).join("");
+    return renderFolder(nodeKey, "Line3", lineTags + equips, "plant-tree__line plant-tree__line--live");
+  }
+
+  function renderOfflineLine(line) {
+    const nodeKey = `Packaging/${line.id}`;
+    const body = `<li>
+      <button type="button" class="plant-tag plant-tag--offline" data-tag="" data-q="Stale" disabled title="Offline placeholder">
+        <span class="plant-q-dot-inline" aria-hidden="true"></span>
+        <span class="plant-tag__name">Status</span>
+        <span class="plant-tag__val">Offline</span>
+        <span class="plant-q plant-q--stale">Stale</span>
+      </button>
+    </li>`;
+    return renderFolder(nodeKey, line.id, body, "plant-tree__line plant-tree__line--offline");
+  }
 
   function buildTree() {
     const root = document.getElementById("plant-tree");
     if (!root) return;
-    const open = new Set(state.openAreas);
 
-    root.innerHTML = AREAS.map((area) => {
-      const tags = TAG_DEFS.filter((t) => t.area === area);
-      const isOpen = open.has(area);
-      const rows = tags
-        .map((def) => {
-          return `<li>
-            <button type="button" class="plant-tag" data-tag="${escapeHtml(def.id)}" data-q="Stale" aria-pressed="false">
-              <span class="plant-q-dot-inline" aria-hidden="true"></span>
-              <span class="plant-tag__name">${escapeHtml(def.name)}</span>
-              <span class="plant-tag__val">—</span>
-              <span class="plant-q plant-q--stale">Stale</span>
-            </button>
-          </li>`;
-        })
-        .join("");
+    const lines =
+      OFFLINE_LINES.map(renderOfflineLine).join("") + renderLine3Folder();
 
-      return `<li>
-        <details data-area="${escapeHtml(area)}" ${isOpen ? "open" : ""}>
-          <summary>
-            <span class="plant-tree__chev" aria-hidden="true">▼</span>
-            <span>${escapeHtml(area)}</span>
-            <span class="plant-tree__count">${tags.length}</span>
-          </summary>
-          <ul>${rows}</ul>
-        </details>
-      </li>`;
-    }).join("");
+    root.innerHTML = renderFolder("Packaging", "Packaging", lines, "plant-tree__area");
     treeBuilt = true;
     updateTreeValues();
+
+    const headPath = document.getElementById("plant-tree-path");
+    if (headPath) headPath.textContent = `${PROVIDER}${AREA}`;
   }
 
   function updateTreeValues() {
     const root = document.getElementById("plant-tree");
     if (!root) return;
-    const selected = state.selectedTag;
-    root.querySelectorAll(".plant-tag").forEach((btn) => {
+    root.querySelectorAll(".plant-tag[data-tag]").forEach((btn) => {
       const id = btn.getAttribute("data-tag");
-      const def = TAG_DEFS.find((t) => t.id === id);
+      if (!id) return;
+      const def = TAG_BY_ID[id];
       const lv = live[id] || { value: "—", quality: "Stale" };
       if (!def) return;
-      const q = lv.quality;
-      btn.dataset.q = q;
-      btn.classList.toggle("is-selected", id === selected);
-      btn.setAttribute("aria-pressed", id === selected ? "true" : "false");
+      btn.dataset.q = lv.quality;
+      btn.classList.toggle("is-selected", id === state.selectedTag);
+      btn.setAttribute("aria-pressed", id === state.selectedTag ? "true" : "false");
       const valEl = btn.querySelector(".plant-tag__val");
       const qEl = btn.querySelector(".plant-q");
       if (valEl) valEl.textContent = formatValue(def, lv.value);
       if (qEl) {
-        qEl.textContent = q;
-        qEl.className = `plant-q plant-q--${q.toLowerCase()}`;
+        qEl.textContent = lv.quality;
+        qEl.className = `plant-q plant-q--${lv.quality.toLowerCase()}`;
       }
     });
   }
@@ -350,72 +405,133 @@
     else updateTreeValues();
   }
 
-  function stageState(id) {
-    const jam = state.scenario === "jam" && !state.cartonerJamCleared;
-    const starved = state.scenario === "starved";
-    if (id === "Cartoner" && jam) return { state: "fault", badge: "Jam", stat: "Fault 41" };
-    if (id === "Infeed" && starved) return { state: "warn", badge: "Starved", stat: formatLive("Infeed/Speed") };
-    if (jam) {
-      if (id === "Infeed") return { state: "warn", badge: "Hold", stat: formatLive("Infeed/Speed") };
-      if (id === "Checkweigher" || id === "Outfeed" || id === "Palletizer") {
-        return { state: "idle", badge: "Wait", stat: "Stale" };
-      }
-      return { state: "fault", badge: "Down", stat: "0" };
+  /* ---------------- P&ID ---------------- */
+
+  function balloon(cx, cy, top, bot, tagId, qClass) {
+    const selected = tagId === state.selectedTag ? " is-selected" : "";
+    return `
+      <g class="pid-balloon${selected} ${qClass}" data-tag="${escapeHtml(tagId)}" role="button" tabindex="0" aria-label="${escapeHtml(top + " " + bot)}">
+        <line class="pid-leader" x1="${cx}" y1="${cy + 18}" x2="${cx}" y2="${cy + 36}" />
+        <circle class="pid-balloon__ring" cx="${cx}" cy="${cy}" r="18" />
+        <line class="pid-balloon__split" x1="${cx - 18}" y1="${cy}" x2="${cx + 18}" y2="${cy}" />
+        <text class="pid-balloon__top" x="${cx}" y="${cy - 4}" text-anchor="middle">${escapeHtml(top)}</text>
+        <text class="pid-balloon__bot" x="${cx}" y="${cy + 11}" text-anchor="middle">${escapeHtml(bot)}</text>
+      </g>`;
+  }
+
+  function equipBlock(x, y, w, h, eq, st) {
+    const tagId = `${eq.id}/Running`;
+    const selected = state.selectedTag.startsWith(eq.id + "/") || state.selectedTag === eq.id
+      ? " is-selected" : "";
+    let body;
+    if (eq.kind === "conveyor") {
+      body = `
+        <rect class="pid-equip__body" x="${x}" y="${y + 8}" width="${w}" height="${h - 16}" rx="3" />
+        <circle class="pid-equip__roller" cx="${x + 10}" cy="${y + h / 2}" r="7" />
+        <circle class="pid-equip__roller" cx="${x + w - 10}" cy="${y + h / 2}" r="7" />
+        <line class="pid-equip__belt" x1="${x + 10}" y1="${y + 12}" x2="${x + w - 10}" y2="${y + 12}" />
+        <line class="pid-equip__belt" x1="${x + 10}" y1="${y + h - 12}" x2="${x + w - 10}" y2="${y + h - 12}" />`;
+    } else if (eq.kind === "scale") {
+      body = `
+        <rect class="pid-equip__body" x="${x}" y="${y}" width="${w}" height="${h}" rx="2" />
+        <line class="pid-equip__detail" x1="${x + 8}" y1="${y + h - 10}" x2="${x + w - 8}" y2="${y + h - 10}" />
+        <line class="pid-equip__detail" x1="${x + w / 2}" y1="${y + 8}" x2="${x + w / 2}" y2="${y + h - 10}" />
+        <rect class="pid-equip__platen" x="${x + 14}" y="${y + 10}" width="${w - 28}" height="10" rx="1" />`;
+    } else {
+      body = `
+        <rect class="pid-equip__body" x="${x}" y="${y}" width="${w}" height="${h}" rx="2" />
+        <rect class="pid-equip__detail" x="${x + 6}" y="${y + 8}" width="${w - 12}" height="${h - 16}" rx="1" />`;
     }
-    if (starved) {
-      if (id === "Infeed") return { state: "warn", badge: "Starved", stat: formatLive("Infeed/Speed") };
-      return { state: "warn", badge: "Slow", stat: formatLive(id === "Cartoner" ? "Cartoner/Speed" : id === "CasePacker" ? "CasePacker/CasesPerMin" : id === "Palletizer" ? "Palletizer/Layers" : "Outfeed/Occupied") };
-    }
-    const runningKey = `${id}/Running`;
-    const running = live[runningKey] ? live[runningKey].value : true;
-    if (!running) return { state: "idle", badge: "Idle", stat: "—" };
-    const statKey =
-      id === "Infeed" ? "Infeed/Speed" :
-      id === "Cartoner" ? "Cartoner/CartonsPerMin" :
-      id === "Checkweigher" ? "Checkweigher/WeightKg" :
-      id === "CasePacker" ? "CasePacker/CasesPerMin" :
-      id === "Palletizer" ? "Palletizer/Layers" :
-      "Outfeed/Occupied";
-    return { state: "run", badge: "Run", stat: formatLive(statKey) };
+    return `
+      <g class="pid-equip pid-equip--${st}${selected}" data-equip="${escapeHtml(eq.id)}" data-tag="${escapeHtml(tagId)}" role="button" tabindex="0">
+        ${body}
+        <text class="pid-equip__pid" x="${x + w / 2}" y="${y + h / 2 - 2}" text-anchor="middle">${escapeHtml(eq.pid)}</text>
+        <text class="pid-equip__name" x="${x + w / 2}" y="${y + h / 2 + 12}" text-anchor="middle">${escapeHtml(eq.label)}</text>
+      </g>`;
+  }
+
+  function qClassFor(tagId) {
+    const q = (live[tagId] || {}).quality || "Stale";
+    return `pid-q--${q.toLowerCase()}`;
   }
 
   function formatLive(id) {
-    const def = TAG_DEFS.find((t) => t.id === id);
+    const def = TAG_BY_ID[id];
     const lv = live[id];
     if (!def || !lv) return "—";
     return formatValue(def, lv.value);
   }
 
-  function renderMimic() {
-    const line = document.getElementById("plant-line");
-    const stagesEl = document.getElementById("plant-stages");
-    const rejectEl = document.getElementById("plant-reject");
-    if (!stagesEl) return;
+  function renderPid() {
+    const host = document.getElementById("plant-pid");
+    if (!host) return;
 
     const jam = state.scenario === "jam" && !state.cartonerJamCleared;
     const starved = state.scenario === "starved";
+    const flowClass = jam ? "is-fault" : starved ? "is-warn" : "is-running";
 
-    if (line) {
-      line.classList.toggle("is-running", !jam && !starved && !reducedMotion);
-      line.classList.toggle("is-fault", jam);
-      line.classList.toggle("is-warn", starved && !jam);
-    }
+    // Layout coordinates (viewBox 0 0 920 360)
+    const y = 168;
+    const h = 56;
+    const w = 88;
+    const xs = [40, 180, 320, 480, 620, 760];
+    const rejectX = xs[2] + w / 2;
+    const rejectY = 280;
 
-    stagesEl.innerHTML = STAGES.map((s) => {
-      const st = stageState(s.id);
-      return `<div class="plant-stage" data-stage="${escapeHtml(s.id)}" data-state="${st.state}">
-        <div class="plant-stage__node">
-          <div class="plant-stage__name">${escapeHtml(s.label)}</div>
-          <div class="plant-stage__stat">${escapeHtml(st.stat)}</div>
-        </div>
-        <span class="plant-stage__badge">${escapeHtml(st.badge)}</span>
-      </div>`;
+    const nozzles = xs.map((x, i) => {
+      if (i === xs.length - 1) return "";
+      const x1 = x + w;
+      const x2 = xs[i + 1];
+      return `<line class="pid-pipe" x1="${x1}" y1="${y + h / 2}" x2="${x2}" y2="${y + h / 2}" />`;
     }).join("");
 
-    if (rejectEl) {
-      rejectEl.textContent = `Reject · ${Math.round(live["Reject/Count"]?.value ?? state.rejectCount)}`;
-    }
+    const flowAnim = (!jam && !starved && !reducedMotion)
+      ? `<line class="pid-pipe-flow" x1="40" y1="${y + h / 2}" x2="848" y2="${y + h / 2}" />`
+      : "";
 
+    const equips = EQUIPMENT.map((eq, i) =>
+      equipBlock(xs[i], y, w, h, eq, equipState(eq.id))
+    ).join("");
+
+    const balloons = [
+      balloon(xs[0] + w / 2, 78, "SI", "301", "Infeed/Speed", qClassFor("Infeed/Speed")),
+      balloon(xs[0] + w / 2 - 36, 118, "XS", "301", "Infeed/Photoeye", qClassFor("Infeed/Photoeye")),
+      balloon(xs[1] + w / 2, 78, "SC", "310", "Cartoner/Speed", qClassFor("Cartoner/Speed")),
+      balloon(xs[1] + w / 2 + 40, 118, "YA", "310", "Cartoner/Jam", qClassFor("Cartoner/Jam")),
+      balloon(xs[2] + w / 2, 78, "WT", "320", "Checkweigher/WeightKg", qClassFor("Checkweigher/WeightKg")),
+      balloon(xs[3] + w / 2, 78, "SC", "330", "CasePacker/CasesPerMin", qClassFor("CasePacker/CasesPerMin")),
+      balloon(xs[4] + w / 2, 78, "CI", "340", "Palletizer/Layers", qClassFor("Palletizer/Layers")),
+      balloon(xs[5] + w / 2, 78, "XS", "350", "Outfeed/Photoeye", qClassFor("Outfeed/Photoeye")),
+    ].join("");
+
+    const rejectActive = !!(live["Checkweigher/Reject/Active"] || {}).value;
+    const rejectSel = state.selectedTag.startsWith("Checkweigher/Reject") ? " is-selected" : "";
+
+    host.innerHTML = `
+      <svg class="pid-svg ${flowClass}" viewBox="0 0 920 360" role="img" aria-label="Line 3 packaging P and ID">
+        <title>Packaging Line 3 — P&amp;ID</title>
+        <text class="pid-title" x="16" y="28">Packaging / Line3</text>
+        <text class="pid-subtitle" x="16" y="46">Process flow · instrument balloons select tags</text>
+
+        ${nozzles}
+        ${flowAnim}
+        ${equips}
+        ${balloons}
+
+        <!-- Reject divert -->
+        <line class="pid-pipe pid-pipe--divert" x1="${rejectX}" y1="${y + h}" x2="${rejectX}" y2="${rejectY - 18}" />
+        <g class="pid-reject${rejectSel}${rejectActive ? " is-active" : ""}" data-tag="Checkweigher/Reject/Count" role="button" tabindex="0">
+          <polygon class="pid-reject__body" points="${rejectX - 28},${rejectY - 14} ${rejectX + 28},${rejectY - 14} ${rejectX + 22},${rejectY + 18} ${rejectX - 22},${rejectY + 18}" />
+          <text class="pid-reject__pid" x="${rejectX}" y="${rejectY - 1}" text-anchor="middle">RJ-321</text>
+          <text class="pid-reject__name" x="${rejectX}" y="${rejectY + 12}" text-anchor="middle">Reject · ${Math.round(live["Checkweigher/Reject/Count"]?.value ?? state.rejectCount)}</text>
+        </g>
+        ${balloon(rejectX + 52, rejectY - 8, "XI", "321", "Checkweigher/Reject/Divert", qClassFor("Checkweigher/Reject/Divert"))}
+      </svg>`;
+  }
+
+  function renderKpis() {
+    const jam = state.scenario === "jam" && !state.cartonerJamCleared;
+    const starved = state.scenario === "starved";
     const setKpi = (id, text, tone) => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -423,36 +539,46 @@
       if (tone) el.setAttribute("data-tone", tone);
       else el.removeAttribute("data-tone");
     };
-
-    const oee = live["Line/OEE"]?.value ?? 0;
+    const oee = live.OEE?.value ?? 0;
     setKpi("kpi-oee", `${oee.toFixed(1)}%`, jam ? "bad" : starved ? "warn" : oee >= 80 ? "good" : "warn");
-    setKpi("kpi-thru", String(Math.round(live["Line/Throughput"]?.value ?? 0)), jam ? "bad" : starved ? "warn" : "good");
-    setKpi("kpi-mode", String(live["Line/Mode"]?.value ?? "—"), jam ? "bad" : starved ? "warn" : "good");
-    setKpi("kpi-reject", String(Math.round(live["Reject/Count"]?.value ?? 0)), "warn");
+    setKpi("kpi-thru", String(Math.round(live.Throughput?.value ?? 0)), jam ? "bad" : starved ? "warn" : "good");
+    setKpi("kpi-mode", String(live.Mode?.value ?? "—"), jam ? "bad" : starved ? "warn" : "good");
+    setKpi("kpi-reject", String(Math.round(live["Checkweigher/Reject/Count"]?.value ?? 0)), "warn");
 
-    // Scenario button active states
     document.querySelectorAll("[data-scenario]").forEach((btn) => {
       const sc = btn.getAttribute("data-scenario");
       btn.classList.toggle("is-active", state.scenario === sc);
     });
+
+    const scanDot = document.getElementById("plant-scan-dot");
+    const scanLabel = document.getElementById("plant-scan-label");
+    if (scanDot && scanLabel) {
+      scanDot.classList.remove("is-fault", "is-warn");
+      if (jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
+      else if (starved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
+      else { scanLabel.textContent = "Scanning"; }
+    }
   }
 
   function renderDetail() {
     const el = document.getElementById("plant-detail");
     if (!el) return;
-    const def = TAG_DEFS.find((t) => t.id === state.selectedTag);
+    const def = TAG_BY_ID[state.selectedTag];
     const lv = live[state.selectedTag];
     if (!def || !lv) {
-      el.innerHTML = `<p>Select a tag in the browser.</p>`;
+      el.innerHTML = `<p>Select a tag in the browser or on the P&amp;ID.</p>`;
       return;
     }
+    const folder = state.selectedTag.includes("/")
+      ? state.selectedTag.split("/").slice(0, -1).join(" / ")
+      : "Line3";
     el.innerHTML = `
       <div class="plant-detail__path">${escapeHtml(pathOf(def.id))}</div>
       <dl class="plant-detail__grid">
         <dt>Value</dt><dd>${escapeHtml(formatValue(def, lv.value))}</dd>
         <dt>Quality</dt><dd><span class="plant-q plant-q--${escapeHtml(lv.quality.toLowerCase())}">${escapeHtml(lv.quality)}</span></dd>
         <dt>Type</dt><dd>${escapeHtml(def.type)}${def.unit ? ` · ${escapeHtml(def.unit)}` : ""}</dd>
-        <dt>Area</dt><dd>${escapeHtml(def.area)}</dd>
+        <dt>Node</dt><dd>${escapeHtml(folder)}</dd>
       </dl>`;
   }
 
@@ -460,24 +586,7 @@
     const list = document.getElementById("plant-alarms");
     const count = document.getElementById("plant-alarm-count");
     if (!list) return;
-
-    const unacked = state.alarms.filter((a) => !a.acked).length;
     if (count) count.textContent = String(state.alarms.length);
-
-    const scanDot = document.getElementById("plant-scan-dot");
-    const scanLabel = document.getElementById("plant-scan-label");
-    if (scanDot && scanLabel) {
-      scanDot.classList.remove("is-fault", "is-warn");
-      if (state.scenario === "jam" && !state.cartonerJamCleared) {
-        scanDot.classList.add("is-fault");
-        scanLabel.textContent = "Fault";
-      } else if (state.scenario === "starved") {
-        scanDot.classList.add("is-warn");
-        scanLabel.textContent = "Starved";
-      } else {
-        scanLabel.textContent = "Scanning";
-      }
-    }
 
     if (!state.alarms.length) {
       list.innerHTML = `<li class="plant-alarms-empty">No active alarms · line healthy</li>`;
@@ -503,8 +612,16 @@
         </li>`;
       })
       .join("");
+  }
 
-    void unacked;
+  function updateAlarmTimes() {
+    const sorted = state.alarms.slice().sort((x, y) => Number(x.acked) - Number(y.acked) || y.ts - x.ts);
+    document.querySelectorAll("#plant-alarms .plant-alarm").forEach((el, i) => {
+      const a = sorted[i];
+      if (!a) return;
+      const t = el.querySelector(".plant-alarm__top span:last-child");
+      if (t) t.textContent = timeAgo(a.ts);
+    });
   }
 
   function timeAgo(ts) {
@@ -517,20 +634,11 @@
   function renderAll(opts) {
     const forceAlarms = !opts || opts.alarms !== false;
     renderTree();
-    renderMimic();
+    renderPid();
+    renderKpis();
     renderDetail();
     if (forceAlarms || tick % 5 === 0 || tick <= 1) renderAlarms();
     else updateAlarmTimes();
-  }
-
-  function updateAlarmTimes() {
-    const sorted = state.alarms.slice().sort((x, y) => Number(x.acked) - Number(y.acked) || y.ts - x.ts);
-    document.querySelectorAll("#plant-alarms .plant-alarm").forEach((el, i) => {
-      const a = sorted[i];
-      if (!a) return;
-      const t = el.querySelector(".plant-alarm__top span:last-child");
-      if (t) t.textContent = timeAgo(a.ts);
-    });
   }
 
   /* ---------------- Actions ---------------- */
@@ -574,7 +682,6 @@
   function clearCartonerJam() {
     if (state.scenario === "jam") {
       state.cartonerJamCleared = true;
-      // Clearing jam locally — if scenario still jam but cleared, treat as recovered cartoner
       state.scenario = null;
       state.alarms = state.alarms.filter((a) => a.id !== "alm-cartoner-jam");
     }
@@ -593,9 +700,23 @@
   }
 
   function selectTag(id) {
+    if (!id || !TAG_BY_ID[id]) return;
     state.selectedTag = id;
+    // Ensure ancestors open
+    const parts = id.split("/");
+    const nodes = ["Packaging", `Packaging/${LIVE_LINE}`];
+    let acc = `Packaging/${LIVE_LINE}`;
+    for (let i = 0; i < parts.length - 1; i++) {
+      acc += "/" + parts[i];
+      nodes.push(acc);
+    }
+    const open = new Set(state.openNodes);
+    nodes.forEach((n) => open.add(n));
+    state.openNodes = [...open];
     saveState();
-    updateTreeValues();
+    treeBuilt = false;
+    renderTree();
+    renderPid();
     renderDetail();
   }
 
@@ -604,32 +725,40 @@
   function wire() {
     document.getElementById("plant-tree")?.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-tag]");
-      if (btn) {
-        selectTag(btn.getAttribute("data-tag"));
-        return;
-      }
+      if (btn && btn.getAttribute("data-tag")) selectTag(btn.getAttribute("data-tag"));
     });
 
     document.getElementById("plant-tree")?.addEventListener("toggle", (e) => {
       const det = e.target;
       if (!(det instanceof HTMLDetailsElement)) return;
-      const area = det.getAttribute("data-area");
-      if (!area) return;
-      const open = new Set(state.openAreas);
-      if (det.open) open.add(area);
-      else open.delete(area);
-      state.openAreas = [...open];
+      const node = det.getAttribute("data-node");
+      if (!node) return;
+      const open = new Set(state.openNodes);
+      if (det.open) open.add(node);
+      else open.delete(node);
+      state.openNodes = [...open];
       saveState();
     }, true);
+
+    document.getElementById("plant-pid")?.addEventListener("click", (e) => {
+      const hit = e.target.closest("[data-tag]");
+      if (hit && hit.getAttribute("data-tag")) selectTag(hit.getAttribute("data-tag"));
+    });
+
+    document.getElementById("plant-pid")?.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const hit = e.target.closest("[data-tag]");
+      if (hit && hit.getAttribute("data-tag")) {
+        e.preventDefault();
+        selectTag(hit.getAttribute("data-tag"));
+      }
+    });
 
     document.querySelector(".plant-toolbar")?.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-action], [data-scenario]");
       if (!btn) return;
       const sc = btn.getAttribute("data-scenario");
-      if (sc) {
-        setScenario(sc);
-        return;
-      }
+      if (sc) { setScenario(sc); return; }
       const action = btn.getAttribute("data-action");
       if (action === "ack-all") ackAll();
       else if (action === "reset-reject") resetReject();
@@ -639,15 +768,13 @@
 
     document.getElementById("plant-alarms")?.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-ack]");
-      if (!btn) return;
-      ackOne(btn.getAttribute("data-ack"));
+      if (btn) ackOne(btn.getAttribute("data-ack"));
     });
   }
 
   function tickOnce() {
     tick += 1;
     computeLive();
-    // Persist counters that drift
     saveState();
     renderAll({ alarms: false });
   }
@@ -656,8 +783,7 @@
     const el = document.getElementById("plant-clock");
     const paint = () => {
       if (!el) return;
-      const d = new Date();
-      el.textContent = d.toLocaleTimeString(undefined, { hour12: false });
+      el.textContent = new Date().toLocaleTimeString(undefined, { hour12: false });
     };
     paint();
     setInterval(paint, 1000);
