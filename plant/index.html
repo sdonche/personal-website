@@ -6,31 +6,31 @@
   <!-- partial:plant-head-boot -->
   <script>
     document.documentElement.classList.add('js');
-    // Packaging Line HMI is Floor-only — no Desk chrome, no mode switch.
+    // Heuvelland plant HMI is Floor-only — no Desk chrome, no mode switch.
     document.documentElement.setAttribute('data-mode', 'floor');
   </script>
 <!-- /partial:plant-head-boot -->
   <meta name="theme-color" content="#020617" />
-  <meta name="description" content="Packaging Line HMI — a simulated Line 3 at samdonche@edge. Tag browser, packaging P&amp;ID, and operator alarms you can poke." />
+  <meta name="description" content="Heuvelland chocolate plant HMI — simulated Packaging Line 3 at samdonche@edge. Tag browser, P&amp;ID, and operator alarms you can poke." />
   <meta name="author" content="Sam Donche" />
-  <title>Packaging Line HMI — Line 3 · Sam Donche</title>
+  <title>Heuvelland · Packaging Line 3 · Sam Donche</title>
 
   <link rel="canonical" href="https://samdonche.com/plant/" />
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Sam Donche" />
-  <meta property="og:title" content="Packaging Line HMI — Line 3" />
-  <meta property="og:description" content="Simulated packaging-line HMI: tag browser, P&amp;ID, OPC qualities, and operator actions on Line 3." />
+  <meta property="og:title" content="Heuvelland · Chocolate plant HMI" />
+  <meta property="og:description" content="Simulated chocolate-bar plant: Packaging Line 3 P&amp;ID, tag browser, OPC qualities, and operator scenarios." />
   <meta property="og:url" content="https://samdonche.com/plant/" />
   <meta property="og:locale" content="en_US" />
   <meta property="og:image" content="https://samdonche.com/assets/img/og/plant.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Packaging Line HMI — Line 3 · Sam Donche" />
+  <meta property="og:image:alt" content="Heuvelland chocolate plant HMI · Sam Donche" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Packaging Line HMI — Line 3" />
-  <meta name="twitter:description" content="Simulated packaging-line HMI: tag browser, P&amp;ID, OPC qualities, and operator actions on Line 3." />
+  <meta name="twitter:title" content="Heuvelland · Chocolate plant HMI" />
+  <meta name="twitter:description" content="Simulated chocolate-bar plant: Packaging Line 3 P&amp;ID, tag browser, OPC qualities, and operator scenarios." />
   <meta name="twitter:image" content="https://samdonche.com/assets/img/og/plant.jpg" />
 
   <script type="application/ld+json">
@@ -39,8 +39,8 @@
     "@graph": [
       {
         "@type": "WebApplication",
-        "name": "Packaging Line HMI",
-        "description": "Simulated packaging line with tag browser, P&ID, and operator alarms.",
+        "name": "Heuvelland chocolate plant HMI",
+        "description": "Simulated chocolate-bar plant with Packaging Line 3 P&ID, tag browser, and operator alarms.",
         "url": "https://samdonche.com/plant/",
         "applicationCategory": "DemoApplication",
         "operatingSystem": "Any",
@@ -50,7 +50,7 @@
         "@type": "BreadcrumbList",
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Packaging Line HMI", "item": "https://samdonche.com/plant/" }
+          { "@type": "ListItem", "position": 2, "name": "Heuvelland plant HMI", "item": "https://samdonche.com/plant/" }
         ]
       }
     ]
@@ -70,7 +70,7 @@
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=c826c2f54a" />
   <link rel="stylesheet" href="../assets/css/styles.css?v=3de7925a3a" />
 <!-- /partial:head-assets -->
-  <link rel="stylesheet" href="../assets/css/plant.css?v=2a697588c4" />
+  <link rel="stylesheet" href="../assets/css/plant.css?v=3e18d7b701" />
 </head>
 
 <body class="plant-page bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -87,15 +87,18 @@
   <!-- Slim site chrome — escape hatch home; HMI owns the rest -->
   <header class="plant-site-bar fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
     <div class="max-w-[1600px] mx-auto px-3 sm:px-4 h-12 flex items-center justify-between gap-3">
-      <a href="../" class="flex items-center gap-2 group shrink-0 min-w-0" aria-label="Home">
-        <span class="relative inline-flex h-2.5 w-2.5 shrink-0">
-          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
-          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
-        </span>
-        <span class="font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors truncate">
-          sam.donche<span class="text-brand-400">@</span>edge
-        </span>
-      </a>
+      <div class="flex items-center gap-2.5 min-w-0">
+        <a href="../" class="flex items-center gap-2 group shrink-0 min-w-0" aria-label="Home">
+          <span class="relative inline-flex h-2.5 w-2.5 shrink-0">
+            <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+            <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+          </span>
+          <span class="font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors truncate">
+            sam.donche<span class="text-brand-400">@</span>edge
+          </span>
+        </a>
+        <span class="plant-sim-badge" title="Simulated demoware — not a live plant">SIM</span>
+      </div>
       <a href="../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← Sam Donche</a>
     </div>
   </header>
@@ -103,36 +106,70 @@
 
   <div class="plant-shell">
     <div id="plant-noscript" class="plant-noscript">
-      Packaging Line HMI needs JavaScript for the live tag scan.
+      Heuvelland plant HMI needs JavaScript for the live tag scan.
     </div>
 
     <div id="plant-app" class="plant-hmi" hidden>
       <header class="plant-hmi__header">
         <div class="plant-hmi__title">
-          <h1>samdonche@edge · Line 3</h1>
-          <span class="plant-sim-badge" title="Simulated demoware — not a live plant">SIM</span>
+          <h1>Heuvelland · Packaging · Line 3</h1>
         </div>
         <div class="plant-hmi__meta">
-          <span class="plant-q-legend" aria-label="Quality legend">
-            <span><i class="plant-q-dot plant-q-dot--good" aria-hidden="true"></i>Good</span>
-            <span><i class="plant-q-dot plant-q-dot--uncertain" aria-hidden="true"></i>Uncertain</span>
-            <span><i class="plant-q-dot plant-q-dot--bad" aria-hidden="true"></i>Bad</span>
-            <span><i class="plant-q-dot plant-q-dot--stale" aria-hidden="true"></i>Stale</span>
-          </span>
-          <span class="plant-scan">
+          <span class="plant-scan" title="Area runtime state">
             <span id="plant-scan-dot" class="plant-scan__dot" aria-hidden="true"></span>
-            <span id="plant-scan-label">Scanning</span>
+            <span id="plant-scan-label">Line healthy</span>
           </span>
+          <button type="button" id="plant-header-alarms" class="plant-header-alarms" hidden title="Jump to alarm list">
+            <span id="plant-header-alarm-count">0</span> alarms
+          </button>
           <span id="plant-clock" aria-live="off">--:--:--</span>
         </div>
+        <nav class="plant-area-nav" role="tablist" aria-label="Plant areas">
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="overview" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5" height="5" rx="0.5"/><rect x="9.5" y="1.5" width="5" height="5" rx="0.5"/><rect x="1.5" y="9.5" width="5" height="5" rx="0.5"/><rect x="9.5" y="9.5" width="5" height="5" rx="0.5"/></svg>
+            <span class="plant-area-nav__label">Overview</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="mixing" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 4.5h9v8.5a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V4.5z"/><path d="M5 4.5V3a3 3 0 0 1 6 0v1.5"/><path d="M8 7.5v4M6.2 9.5h3.6"/></svg>
+            <span class="plant-area-nav__label">Mixing</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="refining" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="4" cy="8" r="2.2"/><circle cx="8" cy="8" r="2.2"/><circle cx="12" cy="8" r="2.2"/><path d="M1.5 8h1M13.5 8h1"/></svg>
+            <span class="plant-area-nav__label">Refining</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="conching" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><ellipse cx="8" cy="10" rx="5" ry="3.5"/><path d="M3 10c0-3 2.2-5.5 5-5.5s5 2.5 5 5.5"/><path d="M8 4.5V3M6 6.5c1.2-1 2.8-1 4 0"/></svg>
+            <span class="plant-area-nav__label">Conching</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="tempering" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 2.5h2v7.2a2.5 2.5 0 1 1-2 0V2.5z"/><path d="M8 8.5v2"/><path d="M10.5 3.5h1.5M10.5 5.5h1.5M10.5 7.5h1.5"/></svg>
+            <span class="plant-area-nav__label">Tempering</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="moulding" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="4" width="12" height="8" rx="1"/><path d="M5 4v8M8 4v8M11 4v8"/></svg>
+            <span class="plant-area-nav__label">Moulding</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn is-active" role="tab" data-drawing="packaging" aria-selected="true">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 5.5 8 2.5l5.5 3v7l-5.5 3-5.5-3v-7z"/><path d="M8 2.5v13M2.5 5.5 8 8.5l5.5-3"/></svg>
+            <span class="plant-area-nav__label">Packaging</span>
+          </button>
+        </nav>
       </header>
 
       <div class="plant-body">
         <!-- Tag browser -->
         <aside class="plant-pane plant-pane--tree" aria-label="Tag browser">
-          <div class="plant-pane__head">
-            <span>Tag browser</span>
-            <span id="plant-tree-path" class="text-slate-600">[edge]Packaging</span>
+          <div class="plant-pane__head plant-pane__head--tree">
+            <div class="plant-pane__head-row">
+              <span>Tag browser</span>
+              <span id="plant-tree-path" class="text-slate-600">[edge]Heuvelland</span>
+            </div>
+            <span class="plant-q-legend" aria-label="OPC quality legend">
+              <span><i class="plant-q-dot plant-q-dot--good" aria-hidden="true"></i>Good</span>
+              <span><i class="plant-q-dot plant-q-dot--uncertain" aria-hidden="true"></i>Uncertain</span>
+              <span><i class="plant-q-dot plant-q-dot--bad" aria-hidden="true"></i>Bad</span>
+              <span><i class="plant-q-dot plant-q-dot--stale" aria-hidden="true"></i>Stale</span>
+            </span>
           </div>
           <div class="plant-pane__body">
             <ul id="plant-tree" class="plant-tree"></ul>
@@ -142,29 +179,81 @@
         <!-- Mimic -->
         <section class="plant-pane plant-mimic" aria-label="Line P and ID">
           <div class="plant-toolbar" role="toolbar" aria-label="Operator actions">
-            <button type="button" class="plant-btn" data-scenario="jam">Jam</button>
-            <button type="button" class="plant-btn" data-scenario="starved">Starved</button>
-            <button type="button" class="plant-btn plant-btn--accent" data-scenario="recover">Recover</button>
+            <div class="plant-toolbar__group" data-toolbar-area="overview" role="group" aria-label="Plant overview" hidden>
+              <span class="plant-toolbar__label">Plant</span>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-action="recover-all" title="Clear all area faults">Recover all</button>
+            </div>
+            <div class="plant-toolbar__group" data-toolbar-area="packaging" role="group" aria-label="Packaging scenarios">
+              <span class="plant-toolbar__label">Scenario</span>
+              <button type="button" class="plant-btn plant-btn--jam" data-scenario="jam" title="Cartoner jam fault">Jam</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-scenario="starved" title="Infeed starved">Starved</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-scenario="recover" title="Return packaging line to healthy AUTO">Recover</button>
+            </div>
+            <div class="plant-toolbar__group" data-toolbar-area="mixing" role="group" aria-label="Mixing scenarios" hidden>
+              <span class="plant-toolbar__label">Scenario</span>
+              <button type="button" class="plant-btn plant-btn--jam" data-mix-scenario="overtemp" title="Jacket overtemperature">Overtemp</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-mix-scenario="valve" title="Cocoa liquor valve stuck closed">Valve fault</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-mix-scenario="recover" title="Clear mixing faults">Recover</button>
+            </div>
+            <div class="plant-toolbar__group" data-toolbar-area="tempering" role="group" aria-label="Tempering scenarios" hidden>
+              <span class="plant-toolbar__label">Scenario</span>
+              <button type="button" class="plant-btn plant-btn--jam" data-temper-scenario="warm" title="Temper zones too warm (heat/cool/reheat)">Zone warm</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-temper-scenario="belt" title="Temper screw drive stopped">Drive stop</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-temper-scenario="recover" title="Clear tempering faults">Recover</button>
+            </div>
+            <div class="plant-toolbar__group" data-toolbar-area="refining" role="group" aria-label="Refining scenarios" hidden>
+              <span class="plant-toolbar__label">Scenario</span>
+              <button type="button" class="plant-btn plant-btn--jam" data-refine-scenario="pressure" title="Hydraulic / roll pressure collapse">Pressure</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-refine-scenario="particle" title="Particle size out of spec">Particle</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-refine-scenario="recover" title="Clear refining faults">Recover</button>
+            </div>
+            <div class="plant-toolbar__group" data-toolbar-area="conching" role="group" aria-label="Conching scenarios" hidden>
+              <span class="plant-toolbar__label">Scenario</span>
+              <button type="button" class="plant-btn plant-btn--jam" data-conche-scenario="overtemp" title="Conche mass overtemperature">Overtemp</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-conche-scenario="agitator" title="Agitator stall">Agitator</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-conche-scenario="recover" title="Clear conching faults">Recover</button>
+            </div>
+            <div class="plant-toolbar__group" data-toolbar-area="moulding" role="group" aria-label="Moulding scenarios" hidden>
+              <span class="plant-toolbar__label">Scenario</span>
+              <button type="button" class="plant-btn plant-btn--jam" data-mould-scenario="jam" title="Moulder jam — cycles stopped">Jam</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-mould-scenario="cool" title="Cooling air too warm">Cool air</button>
+              <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-mould-scenario="recover" title="Clear moulding faults">Recover</button>
+            </div>
             <span class="plant-toolbar__sep" aria-hidden="true"></span>
             <button type="button" class="plant-btn" data-action="ack-all">Ack all</button>
-            <button type="button" class="plant-btn" data-action="reset-reject">Reset reject</button>
-            <button type="button" class="plant-btn" data-action="clear-jam">Clear cartoner jam</button>
+            <button type="button" class="plant-btn" data-action="reset-reject" data-toolbar-packaging-only>Reset reject</button>
+            <button type="button" class="plant-btn" data-action="clear-jam" data-toolbar-packaging-only>Clear cartoner jam</button>
             <span class="plant-toolbar__sep" aria-hidden="true"></span>
             <button type="button" class="plant-btn plant-btn--ghost" data-action="reset-line">Reset line</button>
           </div>
 
+          <nav id="plant-batch-trail" class="plant-batch-trail" aria-label="Batch trail through the line">
+            <button type="button" class="plant-batch-trail__id" id="plant-batch-id" title="Select BatchId tag">BATCH —</button>
+            <span class="plant-batch-trail__label" title="Where the current batch is on the line — not the open drawing">Batch position</span>
+            <ol class="plant-batch-trail__steps" id="plant-batch-steps">
+              <li><button type="button" data-batch-step="mixing">Mixing</button></li>
+              <li><button type="button" data-batch-step="refining">Refining</button></li>
+              <li><button type="button" data-batch-step="conching">Conching</button></li>
+              <li><button type="button" data-batch-step="tempering">Tempering</button></li>
+              <li><button type="button" data-batch-step="moulding">Moulding</button></li>
+              <li><button type="button" data-batch-step="packaging">Packaging</button></li>
+            </ol>
+          </nav>
+
+          <div id="plant-pid-alarm" class="plant-pid-alarm" hidden role="status" aria-live="polite"></div>
+
           <div class="plant-mimic__canvas">
             <div class="plant-status" aria-label="Line status">
-              <span class="plant-status__item">OEE <strong id="kpi-oee">—</strong></span>
+              <span class="plant-status__item"><span id="kpi-a-label">OEE</span> <strong id="kpi-a">—</strong></span>
               <span class="plant-status__sep" aria-hidden="true">·</span>
-              <span class="plant-status__item">Thru <strong id="kpi-thru">—</strong></span>
+              <span class="plant-status__item"><span id="kpi-b-label">Thru</span> <strong id="kpi-b">—</strong></span>
               <span class="plant-status__sep" aria-hidden="true">·</span>
-              <span class="plant-status__item">Mode <strong id="kpi-mode">—</strong></span>
+              <span class="plant-status__item"><span id="kpi-c-label">Mode</span> <strong id="kpi-c">—</strong></span>
               <span class="plant-status__sep" aria-hidden="true">·</span>
-              <span class="plant-status__item">Rejects <strong id="kpi-reject">—</strong></span>
+              <span class="plant-status__item"><span id="kpi-d-label">Rejects</span> <strong id="kpi-d">—</strong></span>
             </div>
 
-            <div id="plant-pid" class="plant-pid" aria-label="Line 3 P and ID"></div>
+            <div id="plant-pid" class="plant-pid" aria-label="Process P and ID"></div>
           </div>
 
           <div id="plant-detail" class="plant-detail" aria-live="polite"></div>
@@ -176,6 +265,17 @@
             <span>Alarms</span>
             <span class="plant-alarm-count"><span id="plant-alarm-count">0</span> active</span>
           </div>
+          <div class="plant-alarm-tools" role="toolbar" aria-label="Alarm filters">
+            <div class="plant-alarm-tools__row" role="group" aria-label="Alarm view">
+              <button type="button" class="plant-btn plant-btn--ghost is-active" data-alarm-pane="active">Active</button>
+              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-pane="history">History</button>
+            </div>
+            <div class="plant-alarm-tools__row" role="group" aria-label="Severity filter">
+              <button type="button" class="plant-btn plant-btn--ghost is-active" data-alarm-filter="all">All</button>
+              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="critical">Crit</button>
+              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="warning">Warn</button>
+            </div>
+          </div>
           <div class="plant-pane__body">
             <ul id="plant-alarms" class="plant-alarms"></ul>
           </div>
@@ -185,7 +285,7 @@
   </div>
 
 <!-- partial:plant-scripts -->
-  <script src="../assets/js/plant.js?v=ea6bf3e267" defer></script>
+  <script type="module" src="../assets/js/plant.js?v=3d958a0c04"></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../assets/js/goatcounter.js"></script>
 <!-- /partial:plant-scripts -->
 </body>

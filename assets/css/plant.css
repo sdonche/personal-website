@@ -27,6 +27,18 @@
   flex-direction: column;
 }
 
+@media (min-width: 1024px) {
+  .plant-page {
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .plant-shell {
+    height: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+  }
+}
+
 .plant-hmi {
   flex: 1;
   display: flex;
@@ -36,21 +48,25 @@
 }
 
 .plant-hmi__header {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 0.5rem 1rem;
   align-items: center;
-  gap: 0.75rem 1.25rem;
-  padding: 0.65rem 0.85rem;
+  padding: 0.5rem 0.85rem 0.55rem;
   border-bottom: 1px solid var(--plant-stroke);
   background: rgba(2, 6, 23, 0.55);
+  flex-shrink: 0;
 }
 
 .plant-hmi__title {
   display: flex;
   align-items: baseline;
   gap: 0.55rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   min-width: 0;
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .plant-hmi__title h1 {
@@ -60,6 +76,119 @@
   font-weight: 500;
   letter-spacing: 0.04em;
   color: rgb(226 232 240);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 22rem;
+}
+
+.plant-hmi__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem 1rem;
+  grid-column: 2;
+  grid-row: 1;
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(100 116 139);
+}
+
+.plant-area-nav {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0;
+  border: 1px solid var(--plant-stroke);
+  background: rgba(2, 6, 23, 0.45);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.plant-area-nav__btn {
+  appearance: none;
+  border: 0;
+  border-right: 1px solid rgba(51, 65, 85, 0.65);
+  border-radius: 0;
+  background: transparent;
+  color: rgb(148 163 184);
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.42rem 0.7rem;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex: 1 1 0;
+  min-width: max-content;
+}
+
+.plant-area-nav__btn:last-child {
+  border-right: 0;
+}
+
+.plant-area-nav__btn:hover {
+  color: var(--color-brand-300);
+  background: rgba(34, 211, 238, 0.06);
+}
+
+.plant-area-nav__btn:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.plant-area-nav__btn.is-active {
+  color: rgb(226 232 240);
+  background: rgba(34, 211, 238, 0.14);
+}
+
+.plant-area-nav__icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+.plant-area-nav__btn.is-active .plant-area-nav__icon {
+  opacity: 1;
+}
+
+.plant-area-nav__label {
+  line-height: 1;
+}
+
+@media (max-width: 720px) {
+  .plant-hmi__header {
+    grid-template-columns: 1fr;
+  }
+  .plant-hmi__meta {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+  .plant-area-nav {
+    grid-row: 3;
+  }
 }
 
 .plant-sim-badge {
@@ -73,19 +202,11 @@
   padding: 0.15rem 0.4rem;
   border-radius: 3px;
   line-height: 1.2;
+  flex-shrink: 0;
 }
 
-.plant-hmi__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.65rem 1rem;
-  margin-left: auto;
-  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
-  font-size: 0.625rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgb(100 116 139);
+.plant-site-bar .plant-sim-badge {
+  opacity: 0.92;
 }
 
 .plant-hmi__meta .plant-scan {
@@ -93,6 +214,28 @@
   align-items: center;
   gap: 0.4rem;
   color: rgb(148 163 184);
+}
+
+.plant-header-alarms {
+  appearance: none;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(248, 113, 113, 0.08);
+  color: rgb(252 165 165);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.plant-header-alarms:hover {
+  border-color: rgba(248, 113, 113, 0.75);
+  color: rgb(254 202 202);
+}
+.plant-header-alarms:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 1px;
 }
 
 .plant-scan__dot {
@@ -123,19 +266,21 @@
 }
 
 .plant-q-legend {
-  display: none;
-  gap: 0.65rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.65rem;
   align-items: center;
-}
-
-@media (min-width: 900px) {
-  .plant-q-legend { display: inline-flex; }
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(100 116 139);
 }
 
 .plant-q-legend span {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.28rem;
 }
 
 .plant-q-dot {
@@ -190,6 +335,24 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgb(148 163 184);
+}
+
+.plant-pane__head--tree {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+}
+
+.plant-pane__head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.plant-pane__head--tree .plant-q-legend {
+  padding-top: 0.15rem;
+  border-top: 1px solid rgba(51, 65, 85, 0.55);
 }
 
 .plant-pane__body {
@@ -347,7 +510,75 @@
   color: rgb(203 213 225);
 }
 
-.plant-tree__line--offline > details > summary {
+.plant-tree__site > details > summary {
+  color: rgb(226 232 240);
+  font-weight: 600;
+}
+.plant-tree__site--live > details > summary .plant-tree__label::after {
+  content: "LIVE";
+  margin-left: 0.45rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--plant-good);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.plant-tree__site--offline > details > summary .plant-tree__label::after {
+  content: "OFFLINE";
+  margin-left: 0.45rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--plant-stale);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.plant-tree__site--offline.plant-tree__site--spark > details > summary .plant-tree__label::after {
+  content: "FLAP";
+  color: var(--plant-uncertain);
+  border-color: rgba(251, 191, 36, 0.45);
+}
+.plant-tree__site--offline.plant-tree__site--spark > details > summary {
+  color: rgb(226 232 240);
+  font-weight: 600;
+}
+.plant-tree__site--offline > details > summary {
+  color: rgb(100 116 139);
+  font-weight: 500;
+}
+.plant-tree__edge > details > summary {
+  color: rgb(226 232 240);
+  font-weight: 600;
+}
+.plant-tree__area > details > summary {
+  color: rgb(203 213 225);
+}
+.plant-tree__area--live > details > summary .plant-tree__label::after {
+  content: "LIVE";
+  margin-left: 0.45rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--plant-good);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.plant-tree__area--stub > details > summary .plant-tree__label::after {
+  content: "OFFLINE";
+  margin-left: 0.45rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--plant-stale);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.plant-tree__area--stub > details > summary {
   color: rgb(100 116 139);
 }
 .plant-tree__line--live > details > summary .plant-tree__label::after {
@@ -393,9 +624,119 @@
 .plant-toolbar {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.4rem;
   padding: 0.55rem 0.75rem;
   border-bottom: 1px solid var(--plant-stroke);
+}
+
+.plant-batch-trail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid var(--plant-stroke);
+  background: rgba(2, 6, 23, 0.45);
+}
+.plant-batch-trail__id {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: rgb(165 243 252);
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 0;
+}
+.plant-batch-trail__id:hover {
+  color: var(--color-brand-300, #67e8f9);
+}
+.plant-batch-trail__label {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(100 116 139);
+}
+.plant-batch-trail__steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.plant-batch-trail__steps li {
+  display: inline-flex;
+  align-items: center;
+}
+.plant-batch-trail__steps li + li::before {
+  content: "→";
+  margin: 0 0.28rem;
+  color: rgb(71 85 105);
+  font-size: 0.65rem;
+}
+.plant-batch-trail__steps button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: rgb(100 116 139);
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 0.1rem 0.15rem;
+}
+.plant-batch-trail__steps li.is-done button {
+  color: rgb(110 231 183);
+}
+.plant-batch-trail__steps li.is-here button {
+  color: rgb(165 243 252);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+.plant-batch-trail__steps button.is-active {
+  color: var(--color-brand-300, #67e8f9);
+}
+.plant-batch-trail__steps button:hover {
+  color: rgb(226 232 240);
+}
+
+.plant-pid-alarm {
+  margin: 0.35rem 0.75rem 0;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: rgba(127, 29, 29, 0.25);
+  color: rgb(254 202 202);
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+}
+.plant-pid-alarm[data-severity="warning"] {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(120, 53, 15, 0.28);
+  color: rgb(253 230 138);
+}
+
+.plant-toolbar__group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.plant-toolbar__label {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(100 116 139);
+  margin-right: 0.1rem;
 }
 
 .plant-btn {
@@ -423,10 +764,62 @@
   outline-offset: 2px;
 }
 
-.plant-btn.is-active {
-  border-color: rgba(248, 113, 113, 0.5);
+/* Scenario tones: fault / warn / healthy — idle hint + stronger when active */
+.plant-btn--jam {
+  border-color: rgba(248, 113, 113, 0.38);
   color: #fecaca;
-  background: rgba(248, 113, 113, 0.1);
+}
+.plant-btn--jam:hover {
+  border-color: rgba(248, 113, 113, 0.65);
+  color: #fee2e2;
+}
+.plant-btn--jam.is-active {
+  border-color: rgba(248, 113, 113, 0.85);
+  color: #fecaca;
+  background: rgba(248, 113, 113, 0.14);
+}
+
+.plant-btn--starved {
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fde68a;
+}
+.plant-btn--starved:hover {
+  border-color: rgba(251, 191, 36, 0.7);
+  color: #fef3c7;
+}
+.plant-btn--starved.is-active {
+  border-color: rgba(251, 191, 36, 0.9);
+  color: #fde68a;
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.plant-btn--recover {
+  border-color: rgba(52, 211, 153, 0.4);
+  color: rgb(167 243 208);
+}
+.plant-btn--recover:hover {
+  border-color: rgba(52, 211, 153, 0.7);
+  color: rgb(209 250 229);
+}
+.plant-btn--recover.is-active {
+  border-color: rgba(52, 211, 153, 0.85);
+  color: rgb(167 243 208);
+  background: rgba(52, 211, 153, 0.12);
+}
+/* Idle recover stays quiet; drop ghost when a local fault makes recover the next action. */
+.plant-btn--recover.plant-btn--ghost {
+  border-color: rgba(71, 85, 105, 0.85);
+  color: rgb(148 163 184);
+  background: transparent;
+}
+.plant-btn--recover.plant-btn--ghost:hover {
+  border-color: rgba(52, 211, 153, 0.45);
+  color: rgb(167 243 208);
+}
+.plant-btn--recover:not(.plant-btn--ghost) {
+  border-color: rgba(52, 211, 153, 0.75);
+  color: rgb(167 243 208);
+  background: rgba(52, 211, 153, 0.1);
 }
 
 .plant-btn--ghost {
@@ -441,6 +834,7 @@
 .plant-toolbar__sep {
   width: 1px;
   align-self: stretch;
+  min-height: 1.4rem;
   background: rgb(51 65 85);
   margin: 0 0.15rem;
 }
@@ -484,18 +878,23 @@
 
 .plant-pid {
   flex: 1;
-  min-height: 16rem;
-  overflow: auto;
+  min-height: 0;
+  overflow: hidden;
   border: 0;
   border-radius: 0;
   background: rgba(2, 6, 23, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pid-svg {
   display: block;
   width: 100%;
-  min-width: 56rem;
-  height: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
 }
 
@@ -570,12 +969,263 @@
   stroke: none;
 }
 
+/* Mixing tank + on/off valves */
+.pid-tank {
+  cursor: pointer;
+}
+.pid-tank__shell {
+  fill: rgba(2, 6, 23, 0.92);
+  stroke: #94a3b8;
+  stroke-width: 1.75;
+}
+.pid-tank__jacket {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.45);
+  stroke-width: 1.25;
+  stroke-dasharray: 4 3;
+}
+.pid-tank__level {
+  fill: rgba(180, 120, 60, 0.45);
+  stroke: none;
+  transition: y 0.4s ease, height 0.4s ease;
+}
+.pid-tank__agitator {
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+}
+.pid-tank__hub {
+  fill: rgba(15, 23, 42, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.4;
+}
+.pid-tank.is-selected .pid-tank__shell,
+.pid-tank.is-hover .pid-tank__shell {
+  stroke: var(--color-brand-300);
+}
+
+.pid-mix-valve {
+  cursor: pointer;
+}
+.pid-mix-valve__body {
+  fill: rgba(2, 6, 23, 0.95);
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+}
+.pid-mix-valve.is-fault .pid-mix-valve__body {
+  fill: rgba(248, 113, 113, 0.2);
+  stroke: #f87171;
+}
+
+.pid-tank.is-fault .pid-tank__shell {
+  stroke: #f87171;
+}
+.pid-tank.is-warn .pid-tank__shell {
+  stroke: #fbbf24;
+}
+.pid-tank.is-fault .pid-tank__level {
+  fill: rgba(248, 113, 113, 0.35);
+}
+
+.pid-tunnel {
+  cursor: pointer;
+}
+.pid-tunnel__shell {
+  fill: rgba(2, 6, 23, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.75;
+}
+.pid-tunnel__zone {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.35);
+  stroke-width: 1;
+}
+.pid-tunnel__zone-label {
+  fill: rgb(148 163 184);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+.pid-tunnel__zone-sub {
+  fill: rgb(100 116 139);
+  font-size: 7px;
+  letter-spacing: 0.04em;
+}
+.pid-tunnel__screw {
+  stroke: #94a3b8;
+  stroke-width: 2.25;
+}
+.pid-tunnel__screw-flight {
+  stroke: rgba(148, 163, 184, 0.55);
+  stroke-width: 1.25;
+}
+.pid-tunnel.is-selected .pid-tunnel__shell,
+.pid-tunnel.is-hover .pid-tunnel__shell {
+  stroke: var(--color-brand-300);
+}
+.pid-tunnel.is-fault .pid-tunnel__shell {
+  stroke: #f87171;
+}
+.pid-tunnel.is-warn .pid-tunnel__shell {
+  stroke: #fbbf24;
+}
+.pid-tunnel__zone.is-warm {
+  fill: rgba(248, 113, 113, 0.12);
+}
+.pid-tunnel__screw.is-stopped {
+  stroke: #fbbf24;
+  stroke-dasharray: none;
+}
+.pid-tunnel__screw.is-stopped + .pid-tunnel__screw-flight,
+.pid-tunnel:has(.pid-tunnel__screw.is-stopped) .pid-tunnel__screw-flight {
+  stroke: rgba(251, 191, 36, 0.55);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pid-svg.is-running .pid-tunnel__screw:not(.is-stopped) {
+    animation: pid-screw 1.6s linear infinite;
+  }
+}
+
+@keyframes pid-screw {
+  from { stroke-dashoffset: 0; stroke-dasharray: 10 8; }
+  to { stroke-dashoffset: -36; stroke-dasharray: 10 8; }
+}
+
+/* Refining five-roll + moulding machine */
+.pid-refiner,
+.pid-moulder {
+  cursor: pointer;
+}
+.pid-refiner__shell,
+.pid-moulder__shell {
+  fill: rgba(2, 6, 23, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.75;
+}
+.pid-refiner__roll {
+  fill: rgba(15, 23, 42, 0.95);
+  stroke: rgba(148, 163, 184, 0.55);
+  stroke-width: 1.25;
+}
+.pid-moulder__cavity {
+  fill: rgba(15, 23, 42, 0.85);
+  stroke: rgba(148, 163, 184, 0.5);
+  stroke-width: 1.1;
+}
+.pid-refiner.is-selected .pid-refiner__shell,
+.pid-refiner.is-hover .pid-refiner__shell,
+.pid-moulder.is-selected .pid-moulder__shell,
+.pid-moulder.is-hover .pid-moulder__shell {
+  stroke: var(--color-brand-300);
+}
+.pid-refiner.is-fault .pid-refiner__shell,
+.pid-moulder.is-fault .pid-moulder__shell,
+.pid-tank.is-alarm .pid-tank__shell,
+.pid-refiner.is-alarm .pid-refiner__shell,
+.pid-moulder.is-alarm .pid-moulder__shell,
+.pid-tunnel.is-alarm .pid-tunnel__shell,
+.pid-equip.is-alarm .pid-equip__body {
+  stroke: #f87171;
+}
+.pid-refiner.is-warn .pid-refiner__shell,
+.pid-moulder.is-warn .pid-moulder__shell {
+  stroke: #fbbf24;
+}
+
+.pid-cooling {
+  cursor: pointer;
+}
+.pid-cooling.is-warn .pid-pipe {
+  stroke: #fbbf24;
+}
+.pid-cooling.is-warn .pid-flow-label,
+.pid-cooling.is-fault .pid-flow-label {
+  fill: #fbbf24;
+}
+.pid-cooling.is-selected .pid-flow-label {
+  fill: var(--color-brand-300);
+}
+.pid-cooling.is-alarm .pid-pipe {
+  stroke: #f87171;
+}
+
+.pid-bars-out {
+  cursor: pointer;
+}
+.pid-bars-out__belt {
+  fill: rgba(2, 6, 23, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+}
+.pid-bars-out__roller {
+  fill: rgba(15, 23, 42, 0.95);
+  stroke: #94a3b8;
+  stroke-width: 1.25;
+}
+.pid-bars-out__hatch {
+  stroke: rgba(148, 163, 184, 0.55);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+.pid-bars-out.is-selected .pid-bars-out__belt {
+  stroke: var(--color-brand-300);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pid-tank.is-alarm .pid-tank__shell,
+  .pid-refiner.is-alarm .pid-refiner__shell,
+  .pid-moulder.is-alarm .pid-moulder__shell,
+  .pid-tunnel.is-alarm .pid-tunnel__shell,
+  .pid-equip.is-alarm .pid-equip__body,
+  .pid-mix-valve.is-alarm .pid-mix-valve__body {
+    animation: pid-alarm-pulse 1.1s ease-in-out infinite;
+  }
+}
+
+@keyframes pid-alarm-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.pid-mix-valve.is-open .pid-mix-valve__body {
+  fill: rgba(110, 231, 183, 0.12);
+  stroke: #6ee7b7;
+}
+
 .pid-pipe-flow {
   stroke: rgba(148, 163, 184, 0.35);
   stroke-width: 1.5;
   stroke-dasharray: 6 10;
   fill: none;
   pointer-events: none;
+}
+
+.pid-batch {
+  cursor: pointer;
+}
+.pid-batch__k {
+  fill: rgb(100 116 139);
+  font-size: 8px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.08em;
+}
+.pid-batch__v {
+  fill: rgb(165 243 252);
+  font-size: 11px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 600;
+}
+.pid-batch.is-selected .pid-batch__v {
+  fill: var(--color-brand-300, #67e8f9);
+}
+
+.pid-pump__body {
+  fill: rgba(2, 6, 23, 0.95);
+  stroke: #94a3b8;
+  stroke-width: 1.4;
+}
+.pid-pump__tri {
+  fill: #94a3b8;
+  stroke: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -748,7 +1398,7 @@
 
 .plant-detail {
   border-top: 1px solid var(--plant-stroke);
-  padding: 0.4rem 0.75rem;
+  padding: 0.45rem 0.75rem;
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
   font-size: 0.68rem;
   color: rgb(148 163 184);
@@ -759,36 +1409,185 @@
   color: rgb(100 116 139);
 }
 
-.plant-detail__compact {
+.plant-faceplate {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 1rem;
+  align-items: stretch;
+  gap: 0.55rem 1rem;
   justify-content: space-between;
 }
 
-.plant-detail__path {
-  color: var(--color-brand-300);
-  word-break: break-all;
+.plant-faceplate__main {
   min-width: 0;
-  flex: 1 1 14rem;
+  flex: 1 1 16rem;
+  display: grid;
+  gap: 0.35rem;
 }
 
-.plant-detail__chips {
+.plant-faceplate__path {
+  margin: 0;
+  color: var(--color-brand-300);
+  word-break: break-all;
+  font-size: 0.62rem;
+}
+
+.plant-faceplate__row {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem 0.55rem;
 }
 
-.plant-detail__val {
+.plant-faceplate__val {
   color: rgb(226 232 240);
   font-weight: 500;
+  font-size: 0.85rem;
 }
 
-.plant-detail__muted {
+.plant-faceplate__meta {
   color: rgb(100 116 139);
   font-size: 0.62rem;
+}
+
+.plant-faceplate__write {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+}
+
+.plant-faceplate__write-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: rgb(148 163 184);
+  font-size: 0.62rem;
+}
+
+.plant-faceplate__input {
+  width: 4.5rem;
+  border: 1px solid var(--plant-stroke);
+  background: rgba(2, 6, 23, 0.7);
+  color: rgb(226 232 240);
+  font: inherit;
+  font-size: 0.68rem;
+  padding: 0.2rem 0.35rem;
+}
+
+.plant-faceplate__unit {
+  color: rgb(100 116 139);
+}
+
+.plant-faceplate__trend {
+  flex: 0 0 8.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.plant-sparkline {
+  width: 100%;
+  height: 2rem;
+  display: block;
+}
+
+.plant-sparkline__line {
+  stroke: var(--color-brand-300, #7dd3fc);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.plant-sparkline__empty {
+  fill: rgb(100 116 139);
+  font-size: 8px;
+}
+
+/* Overview P&ID */
+.pid-overview__box {
+  fill: rgba(2, 6, 23, 0.9);
+  stroke: #64748b;
+  stroke-width: 1.5;
+}
+
+.pid-overview__area {
+  cursor: pointer;
+}
+
+.pid-overview__area:focus-visible .pid-overview__box,
+.pid-overview__area:hover .pid-overview__box {
+  stroke: #94a3b8;
+}
+
+.pid-overview__label {
+  fill: #e2e8f0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.pid-overview__health {
+  fill: #94a3b8;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
+
+.pid-overview__hint {
+  fill: #64748b;
+  font-size: 7px;
+  letter-spacing: 0.14em;
+  pointer-events: none;
+}
+
+.pid-overview__area.is-run .pid-overview__box {
+  stroke: #34d399;
+}
+
+.pid-overview__area.is-run .pid-overview__health {
+  fill: #34d399;
+}
+
+.pid-overview__area.is-warn .pid-overview__box,
+.pid-overview__area.is-hold .pid-overview__box,
+.pid-overview__area.is-starved .pid-overview__box {
+  stroke: #fbbf24;
+}
+
+.pid-overview__area.is-warn .pid-overview__health,
+.pid-overview__area.is-hold .pid-overview__health,
+.pid-overview__area.is-starved .pid-overview__health {
+  fill: #fbbf24;
+}
+
+.pid-overview__finish {
+  fill: #94a3b8;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+.plant-faceplate__note {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: rgb(148 163 184);
+}
+
+.pid-overview__area.is-fault .pid-overview__box {
+  stroke: #f87171;
+}
+
+.pid-overview__area.is-fault .pid-overview__health {
+  fill: #f87171;
+}
+
+.pid-overview__area.is-batch .pid-overview__box {
+  fill: rgba(14, 116, 144, 0.35);
+  stroke-width: 2;
+}
+
+.pid-overview__area.is-batch .pid-overview__hint {
+  fill: #7dd3fc;
 }
 
 .plant-noscript {
@@ -800,6 +1599,30 @@
 }
 
 /* ---- Alarms ---- */
+.plant-alarm-tools {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.4rem 0.55rem 0.15rem;
+  border-bottom: 1px solid var(--plant-stroke);
+}
+
+.plant-alarm-tools__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+.plant-alarm-tools .plant-btn {
+  font-size: 0.55rem;
+  padding: 0.15rem 0.4rem;
+}
+
+.plant-alarm-tools .plant-btn.is-active {
+  color: rgb(226 232 240);
+  border-color: rgba(125, 211, 252, 0.45);
+  background: rgba(14, 116, 144, 0.25);
+}
+
 .plant-alarms {
   list-style: none;
   margin: 0;
@@ -813,6 +1636,12 @@
   border-radius: 0.35rem;
   padding: 0.5rem 0.55rem;
   background: rgba(2, 6, 23, 0.45);
+  cursor: pointer;
+}
+
+.plant-alarm:focus-visible {
+  outline: 1px solid rgba(125, 211, 252, 0.7);
+  outline-offset: 1px;
 }
 
 .plant-alarm[data-sev="critical"] {
@@ -829,11 +1658,20 @@
   opacity: 0.55;
 }
 
+.plant-alarm--history {
+  cursor: pointer;
+  opacity: 0.75;
+  border-style: dashed;
+}
+
 .plant-alarm__top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.4rem;
+}
+
+.plant-alarm__top .font-mono {
+  margin-left: auto;
 }
 
 .plant-alarm__sev {
@@ -846,6 +1684,28 @@
 
 .plant-alarm[data-sev="warning"] .plant-alarm__sev {
   color: var(--plant-uncertain);
+}
+
+.plant-alarm__firstout {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0f172a;
+  background: #f87171;
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+}
+
+.plant-alarm__badge {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(148 163 184);
+  border: 1px solid var(--plant-stroke);
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
 }
 
 .plant-alarm__msg {
