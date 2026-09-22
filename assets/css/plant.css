@@ -27,6 +27,18 @@
   flex-direction: column;
 }
 
+@media (min-width: 1024px) {
+  .plant-page {
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .plant-shell {
+    height: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+  }
+}
+
 .plant-hmi {
   flex: 1;
   display: flex;
@@ -554,22 +566,23 @@
 
 .plant-pid {
   flex: 1;
-  min-height: 16rem;
+  min-height: 0;
   overflow: hidden;
   border: 0;
   border-radius: 0;
   background: rgba(2, 6, 23, 0.35);
   display: flex;
-  align-items: stretch;
-  justify-content: stretch;
+  align-items: center;
+  justify-content: center;
 }
 
 .pid-svg {
   display: block;
   width: 100%;
   height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   min-width: 0;
-  min-height: 16rem;
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
 }
 
