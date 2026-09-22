@@ -40,7 +40,7 @@ Plant.renderKpis = function renderKpis() {
     const mode = Plant.plantModeSummary();
     const anyFault = Plant.PLANT_AREAS.some((a) => Plant.areaHealth(a.drawing) === "fault");
     const anyWarn = Plant.PLANT_AREAS.some((a) => areaHeld(a.drawing));
-    setLabel("kpi-a-label", "Line3 OEE");
+    setLabel("kpi-a-label", "Pkg OEE");
     setLabel("kpi-b-label", "Batch");
     setLabel("kpi-c-label", "Alarms");
     setLabel("kpi-d-label", "Mode");
@@ -229,7 +229,7 @@ Plant.renderKpis = function renderKpis() {
     conching: "Heuvelland · Conching",
     tempering: "Heuvelland · Tempering",
     moulding: "Heuvelland · Moulding",
-    packaging: "Heuvelland · Line 3",
+    packaging: "Heuvelland · Packaging · Line 3",
   };
   const title = document.querySelector(".plant-hmi__title h1");
   if (title) title.textContent = titleMap[drawing] || titleMap.packaging;

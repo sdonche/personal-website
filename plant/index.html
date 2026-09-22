@@ -70,7 +70,7 @@
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=c826c2f54a" />
   <link rel="stylesheet" href="../assets/css/styles.css?v=7b7a106a9c" />
 <!-- /partial:head-assets -->
-  <link rel="stylesheet" href="../assets/css/plant.css?v=a4e41f5c3d" />
+  <link rel="stylesheet" href="../assets/css/plant.css?v=3e18d7b701" />
 </head>
 
 <body class="plant-page bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -112,17 +112,8 @@
     <div id="plant-app" class="plant-hmi" hidden>
       <header class="plant-hmi__header">
         <div class="plant-hmi__title">
-          <h1>Heuvelland · Line 3</h1>
+          <h1>Heuvelland · Packaging · Line 3</h1>
         </div>
-        <nav class="plant-area-nav" role="tablist" aria-label="Plant areas">
-          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="overview" aria-selected="false">Overview</button>
-          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="mixing" aria-selected="false">Mixing</button>
-          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="refining" aria-selected="false">Refining</button>
-          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="conching" aria-selected="false">Conching</button>
-          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="tempering" aria-selected="false">Tempering</button>
-          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="moulding" aria-selected="false">Moulding</button>
-          <button type="button" class="plant-area-nav__btn is-active" role="tab" data-drawing="packaging" aria-selected="true">Packaging</button>
-        </nav>
         <div class="plant-hmi__meta">
           <span class="plant-scan" title="Area runtime state">
             <span id="plant-scan-dot" class="plant-scan__dot" aria-hidden="true"></span>
@@ -133,6 +124,36 @@
           </button>
           <span id="plant-clock" aria-live="off">--:--:--</span>
         </div>
+        <nav class="plant-area-nav" role="tablist" aria-label="Plant areas">
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="overview" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5" height="5" rx="0.5"/><rect x="9.5" y="1.5" width="5" height="5" rx="0.5"/><rect x="1.5" y="9.5" width="5" height="5" rx="0.5"/><rect x="9.5" y="9.5" width="5" height="5" rx="0.5"/></svg>
+            <span class="plant-area-nav__label">Overview</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="mixing" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 4.5h9v8.5a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V4.5z"/><path d="M5 4.5V3a3 3 0 0 1 6 0v1.5"/><path d="M8 7.5v4M6.2 9.5h3.6"/></svg>
+            <span class="plant-area-nav__label">Mixing</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="refining" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="4" cy="8" r="2.2"/><circle cx="8" cy="8" r="2.2"/><circle cx="12" cy="8" r="2.2"/><path d="M1.5 8h1M13.5 8h1"/></svg>
+            <span class="plant-area-nav__label">Refining</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="conching" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><ellipse cx="8" cy="10" rx="5" ry="3.5"/><path d="M3 10c0-3 2.2-5.5 5-5.5s5 2.5 5 5.5"/><path d="M8 4.5V3M6 6.5c1.2-1 2.8-1 4 0"/></svg>
+            <span class="plant-area-nav__label">Conching</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="tempering" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M7 2.5h2v7.2a2.5 2.5 0 1 1-2 0V2.5z"/><path d="M8 8.5v2"/><path d="M10.5 3.5h1.5M10.5 5.5h1.5M10.5 7.5h1.5"/></svg>
+            <span class="plant-area-nav__label">Tempering</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn" role="tab" data-drawing="moulding" aria-selected="false">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="4" width="12" height="8" rx="1"/><path d="M5 4v8M8 4v8M11 4v8"/></svg>
+            <span class="plant-area-nav__label">Moulding</span>
+          </button>
+          <button type="button" class="plant-area-nav__btn is-active" role="tab" data-drawing="packaging" aria-selected="true">
+            <svg class="plant-area-nav__icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 5.5 8 2.5l5.5 3v7l-5.5 3-5.5-3v-7z"/><path d="M8 2.5v13M2.5 5.5 8 8.5l5.5-3"/></svg>
+            <span class="plant-area-nav__label">Packaging</span>
+          </button>
+        </nav>
       </header>
 
       <div class="plant-body">
@@ -264,7 +285,7 @@
   </div>
 
 <!-- partial:plant-scripts -->
-  <script type="module" src="../assets/js/plant.js?v=564e3af0ed"></script>
+  <script type="module" src="../assets/js/plant.js?v=3d958a0c04"></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../assets/js/goatcounter.js"></script>
 <!-- /partial:plant-scripts -->
 </body>
