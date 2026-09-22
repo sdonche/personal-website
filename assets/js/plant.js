@@ -133,6 +133,8 @@
   let tick = 0;
   let timer = null;
   let treeBuilt = false;
+  let pidBuilt = false;
+  let pidHover = null; // { tagId?, equip? }
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function loadState() {
@@ -447,21 +449,33 @@
     };
   }
 
-  function balloon(cx, cy, top, bot, tagId, anchorX, anchorY) {
+  function equipKeyForTag(tagId) {
+    if (!tagId) return null;
+    if (tagId.startsWith("Checkweigher/Reject")) return "Reject";
+    if (!tagId.includes("/")) return null;
+    return tagId.split("/")[0];
+  }
+
+  function balloon(cx, cy, top, bot, tagId, anchorX, anchorY, equipKey) {
     const q = (live[tagId] || {}).quality || "Stale";
     const qClass = `pid-q--${q.toLowerCase()}`;
     const selected = tagId === state.selectedTag ? " is-selected" : "";
     const val = liveReadout(tagId);
     const ax = anchorX != null ? anchorX : cx;
     const ay = anchorY != null ? anchorY : cy + 42;
+    const railY = Math.min(cy + 26, ay - 6);
+    const leader = Math.abs(ax - cx) < 0.5
+      ? `M ${cx} ${cy + 17} V ${ay}`
+      : `M ${cx} ${cy + 17} V ${railY} H ${ax} V ${ay}`;
+    const ek = equipKey || equipKeyForTag(tagId) || "";
     return `
-      <g class="pid-balloon${selected} ${qClass}" data-tag="${escapeHtml(tagId)}" role="button" tabindex="0" aria-label="${escapeHtml(top + "-" + bot + " " + val)}">
-        <line class="pid-leader" x1="${cx}" y1="${cy + 17}" x2="${ax}" y2="${ay}" />
+      <g class="pid-balloon${selected} ${qClass}" data-tag="${escapeHtml(tagId)}" data-equip="${escapeHtml(ek)}" role="button" tabindex="0" aria-label="${escapeHtml(top + "-" + bot + " " + val)}">
+        <path class="pid-leader" d="${leader}" fill="none" />
         <circle class="pid-balloon__ring" cx="${cx}" cy="${cy}" r="17" />
         <line class="pid-balloon__split" x1="${cx - 17}" y1="${cy}" x2="${cx + 17}" y2="${cy}" />
         <text class="pid-balloon__top" x="${cx}" y="${cy - 4}" text-anchor="middle">${escapeHtml(top)}</text>
         <text class="pid-balloon__bot" x="${cx}" y="${cy + 11}" text-anchor="middle">${escapeHtml(bot)}</text>
-        ${val ? `<text class="pid-balloon__val" x="${cx + 22}" y="${cy + 4}" text-anchor="start">${escapeHtml(val)}</text>` : ""}
+        <text class="pid-balloon__val" data-pid-val="${escapeHtml(tagId)}" x="${cx + 22}" y="${cy + 4}" text-anchor="start">${escapeHtml(val)}</text>
       </g>`;
   }
 
@@ -519,7 +533,7 @@
   function divertValve(cx, cyTop, cyBot, active, selected) {
     const mid = (cyTop + cyBot) / 2;
     return `
-      <g class="pid-valve${selected}${active ? " is-active" : ""}" data-tag="Checkweigher/Reject/Divert" role="button" tabindex="0" aria-label="Reject divert valve RJ-321">
+      <g class="pid-valve${selected}${active ? " is-active" : ""}" data-tag="Checkweigher/Reject/Divert" data-equip="Reject" role="button" tabindex="0" aria-label="Reject divert valve RJ-321">
         <line class="pid-pipe pid-pipe--divert" x1="${cx}" y1="${cyTop}" x2="${cx}" y2="${mid - 10}" />
         <polygon class="pid-valve__body" points="${cx},${mid - 10} ${cx - 11},${mid + 10} ${cx + 11},${mid + 10}" />
         <line class="pid-pipe pid-pipe--divert" x1="${cx}" y1="${mid + 10}" x2="${cx}" y2="${cyBot}" />
@@ -527,20 +541,15 @@
       </g>`;
   }
 
-  function renderPid() {
+  function buildPid() {
     const host = document.getElementById("plant-pid");
     if (!host) return;
-
-    const jam = state.scenario === "jam" && !state.cartonerJamCleared;
-    const starved = state.scenario === "starved";
-    const flowClass = jam ? "is-fault" : starved ? "is-warn" : "is-running";
 
     const vbW = 960;
     const vbH = 420;
     const y = 178;
     const h = 58;
     const w = 92;
-    // Spacing chosen so port.right[i] → port.left[i+1] has a clear ~46px pipe run
     const xs = [64, 202, 340, 496, 634, 772];
 
     const layout = EQUIPMENT.map((eq, i) => {
@@ -581,29 +590,21 @@
       ${flange(last.ports.right, midY)}
       ${flowArrow(outletX1 - 2, midY)}`;
 
-    const flowAnim = (!jam && !starved && !reducedMotion)
-      ? `<line class="pid-pipe-flow" x1="${inletX0}" y1="${midY}" x2="${outletX1}" y2="${midY}" />`
-      : "";
-
     const equips = layout.map((n) =>
-      equipBlock(n.x, n.y, n.w, n.h, n.eq, equipState(n.eq.id))
+      equipBlock(n.x, n.y, n.w, n.h, n.eq, "run")
     ).join("");
 
     const cart = layout[1];
     const balloons = [
-      balloon(layout[0].ports.cx, 86, "SI", "301", "Infeed/Speed", layout[0].ports.cx, layout[0].ports.top),
-      balloon(cart.ports.cx - 26, 86, "SC", "310", "Cartoner/Speed", cart.ports.cx - 14, cart.ports.top),
-      balloon(cart.ports.cx + 26, 86, "YA", "310", "Cartoner/Jam", cart.ports.cx + 14, cart.ports.top),
-      balloon(weigh.ports.cx, 86, "WT", "320", "Checkweigher/WeightKg", weigh.ports.cx, weigh.ports.top),
-      balloon(rejectX + 54, (valveTop + valveBot) / 2, "XI", "321", "Checkweigher/Reject/Divert", rejectX + 12, (valveTop + valveBot) / 2),
+      balloon(layout[0].ports.cx, 86, "SI", "301", "Infeed/Speed", layout[0].ports.cx, layout[0].ports.top, "Infeed"),
+      balloon(cart.ports.cx - 26, 86, "SC", "310", "Cartoner/Speed", cart.ports.cx - 14, cart.ports.top, "Cartoner"),
+      balloon(cart.ports.cx + 26, 86, "YA", "310", "Cartoner/Jam", cart.ports.cx + 14, cart.ports.top, "Cartoner"),
+      balloon(weigh.ports.cx, 86, "WT", "320", "Checkweigher/WeightKg", weigh.ports.cx, weigh.ports.top, "Checkweigher"),
+      balloon(rejectX + 54, (valveTop + valveBot) / 2, "XI", "321", "Checkweigher/Reject/Divert", rejectX + 12, (valveTop + valveBot) / 2, "Reject"),
     ].join("");
 
-    const rejectActive = !!(live["Checkweigher/Reject/Active"] || {}).value;
-    const rejectSel = state.selectedTag.startsWith("Checkweigher/Reject") ? " is-selected" : "";
-    const rejectCount = Math.round(live["Checkweigher/Reject/Count"]?.value ?? state.rejectCount);
-
     host.innerHTML = `
-      <svg class="pid-svg ${flowClass}" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Line 3 packaging P and ID">
+      <svg class="pid-svg is-running" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Line 3 packaging P and ID">
         <title>Packaging Line 3 — P&amp;ID</title>
 
         <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
@@ -628,17 +629,98 @@
         ${inlet}
         ${pipes}
         ${outlet}
-        ${flowAnim}
+        <line class="pid-pipe-flow" data-pid-flow x1="${inletX0}" y1="${midY}" x2="${outletX1}" y2="${midY}" />
 
-        ${divertValve(rejectX, valveTop, valveBot, rejectActive, rejectSel)}
-        <g class="pid-bin${rejectSel}" data-tag="Checkweigher/Reject/Count" role="button" tabindex="0">
+        ${divertValve(rejectX, valveTop, valveBot, false, false)}
+        <g class="pid-bin" data-tag="Checkweigher/Reject/Count" data-equip="Reject" role="button" tabindex="0">
           <path class="pid-bin__body" d="M${rejectX - 26},${binTop} L${rejectX + 26},${binTop} L${rejectX + 20},${binTop + 30} L${rejectX - 20},${binTop + 30} Z" />
           <text class="pid-bin__label" x="${rejectX}" y="${binTop + 18}" text-anchor="middle">REJECT</text>
-          <text class="pid-bin__count" x="${rejectX}" y="${binTop + 44}" text-anchor="middle">${rejectCount}</text>
+          <text class="pid-bin__count" data-pid-reject-count x="${rejectX}" y="${binTop + 44}" text-anchor="middle">0</text>
         </g>
 
         ${balloons}
       </svg>`;
+
+    pidBuilt = true;
+  }
+
+  function clearPidHover() {
+    document.querySelectorAll(".is-hover").forEach((el) => el.classList.remove("is-hover"));
+    pidHover = null;
+  }
+
+  function applyPidHover(tagId, equip) {
+    clearPidHover();
+    const ek = equip || equipKeyForTag(tagId);
+    pidHover = { tagId: tagId || null, equip: ek || null };
+    if (ek) {
+      document.querySelectorAll(`#plant-pid [data-equip="${ek}"]`).forEach((el) => el.classList.add("is-hover"));
+    }
+    if (tagId) {
+      document.querySelectorAll(`#plant-pid [data-tag="${CSS.escape(tagId)}"]`).forEach((el) => el.classList.add("is-hover"));
+      document.querySelectorAll(`#plant-tree .plant-tag[data-tag="${CSS.escape(tagId)}"]`).forEach((el) => el.classList.add("is-hover"));
+    }
+  }
+
+  function paintPid() {
+    const host = document.getElementById("plant-pid");
+    if (!host) return;
+    if (!pidBuilt) buildPid();
+
+    const jam = state.scenario === "jam" && !state.cartonerJamCleared;
+    const starved = state.scenario === "starved";
+    const svg = host.querySelector(".pid-svg");
+    if (!svg) return;
+
+    svg.classList.remove("is-running", "is-fault", "is-warn");
+    svg.classList.add(jam ? "is-fault" : starved ? "is-warn" : "is-running");
+
+    const flow = svg.querySelector("[data-pid-flow]");
+    if (flow) flow.style.display = (!jam && !starved && !reducedMotion) ? "" : "none";
+
+    EQUIPMENT.forEach((eq) => {
+      const g = svg.querySelector(`.pid-equip[data-equip="${eq.id}"]`);
+      if (!g) return;
+      const st = equipState(eq.id);
+      g.classList.remove("pid-equip--run", "pid-equip--fault", "pid-equip--warn", "pid-equip--idle", "is-selected", "is-hover");
+      g.classList.add(`pid-equip--${st}`);
+      if (state.selectedTag.startsWith(eq.id + "/") || state.selectedTag === `${eq.id}/Running`) {
+        g.classList.add("is-selected");
+      }
+    });
+
+    svg.querySelectorAll(".pid-balloon").forEach((g) => {
+      const tagId = g.getAttribute("data-tag");
+      const q = (live[tagId] || {}).quality || "Stale";
+      g.classList.remove("pid-q--good", "pid-q--uncertain", "pid-q--bad", "pid-q--stale", "is-selected", "is-hover");
+      g.classList.add(`pid-q--${q.toLowerCase()}`);
+      if (tagId === state.selectedTag) g.classList.add("is-selected");
+      const valEl = g.querySelector("[data-pid-val]");
+      if (valEl) valEl.textContent = liveReadout(tagId);
+    });
+
+    const rejectActive = !!(live["Checkweigher/Reject/Active"] || {}).value;
+    const rejectSel = state.selectedTag.startsWith("Checkweigher/Reject");
+    const valve = svg.querySelector(".pid-valve");
+    const bin = svg.querySelector(".pid-bin");
+    if (valve) {
+      valve.classList.toggle("is-active", rejectActive);
+      valve.classList.toggle("is-selected", rejectSel);
+      valve.classList.remove("is-hover");
+    }
+    if (bin) {
+      bin.classList.toggle("is-selected", rejectSel);
+      bin.classList.remove("is-hover");
+      const count = bin.querySelector("[data-pid-reject-count]");
+      if (count) count.textContent = String(Math.round(live["Checkweigher/Reject/Count"]?.value ?? state.rejectCount));
+    }
+
+    // re-apply hover if any
+    if (pidHover) applyPidHover(pidHover.tagId, pidHover.equip);
+  }
+
+  function renderPid() {
+    paintPid();
   }
 
   function renderKpis() {
@@ -678,20 +760,21 @@
     const def = TAG_BY_ID[state.selectedTag];
     const lv = live[state.selectedTag];
     if (!def || !lv) {
-      el.innerHTML = `<p>Select a tag in the browser or on the P&amp;ID.</p>`;
+      el.innerHTML = `<p class="plant-detail__empty">Select a tag in the browser or on the P&amp;ID.</p>`;
       return;
     }
     const folder = state.selectedTag.includes("/")
       ? state.selectedTag.split("/").slice(0, -1).join(" / ")
       : "Line3";
     el.innerHTML = `
-      <div class="plant-detail__path">${escapeHtml(pathOf(def.id))}</div>
-      <dl class="plant-detail__grid">
-        <dt>Value</dt><dd>${escapeHtml(formatValue(def, lv.value))}</dd>
-        <dt>Quality</dt><dd><span class="plant-q plant-q--${escapeHtml(lv.quality.toLowerCase())}">${escapeHtml(lv.quality)}</span></dd>
-        <dt>Type</dt><dd>${escapeHtml(def.type)}${def.unit ? ` · ${escapeHtml(def.unit)}` : ""}</dd>
-        <dt>Node</dt><dd>${escapeHtml(folder)}</dd>
-      </dl>`;
+      <div class="plant-detail__compact">
+        <span class="plant-detail__path" title="${escapeHtml(pathOf(def.id))}">${escapeHtml(pathOf(def.id))}</span>
+        <span class="plant-detail__chips">
+          <strong class="plant-detail__val">${escapeHtml(formatValue(def, lv.value))}</strong>
+          <span class="plant-q plant-q--${escapeHtml(lv.quality.toLowerCase())}">${escapeHtml(lv.quality)}</span>
+          <span class="plant-detail__muted">${escapeHtml(def.type)}${def.unit ? ` · ${escapeHtml(def.unit)}` : ""} · ${escapeHtml(folder)}</span>
+        </span>
+      </div>`;
   }
 
   function renderAlarms() {
@@ -807,6 +890,8 @@
     saveState();
     tick = 0;
     treeBuilt = false;
+    pidBuilt = false;
+    clearPidHover();
     computeLive();
     renderAll();
   }
@@ -828,19 +913,20 @@
     saveState();
     treeBuilt = false;
     renderTree();
-    renderPid();
+    paintPid();
     renderDetail();
   }
 
   /* ---------------- Wire ---------------- */
 
   function wire() {
-    document.getElementById("plant-tree")?.addEventListener("click", (e) => {
+    const tree = document.getElementById("plant-tree");
+    tree?.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-tag]");
       if (btn && btn.getAttribute("data-tag")) selectTag(btn.getAttribute("data-tag"));
     });
 
-    document.getElementById("plant-tree")?.addEventListener("toggle", (e) => {
+    tree?.addEventListener("toggle", (e) => {
       const det = e.target;
       if (!(det instanceof HTMLDetailsElement)) return;
       const node = det.getAttribute("data-node");
@@ -852,18 +938,38 @@
       saveState();
     }, true);
 
-    document.getElementById("plant-pid")?.addEventListener("click", (e) => {
+    tree?.addEventListener("pointerover", (e) => {
+      const btn = e.target.closest(".plant-tag[data-tag]");
+      if (!btn) return;
+      const id = btn.getAttribute("data-tag");
+      if (id) applyPidHover(id, equipKeyForTag(id));
+    });
+    tree?.addEventListener("pointerout", (e) => {
+      if (!e.relatedTarget || !tree.contains(e.relatedTarget)) clearPidHover();
+    });
+
+    const pid = document.getElementById("plant-pid");
+    pid?.addEventListener("click", (e) => {
       const hit = e.target.closest("[data-tag]");
       if (hit && hit.getAttribute("data-tag")) selectTag(hit.getAttribute("data-tag"));
     });
 
-    document.getElementById("plant-pid")?.addEventListener("keydown", (e) => {
+    pid?.addEventListener("keydown", (e) => {
       if (e.key !== "Enter" && e.key !== " ") return;
       const hit = e.target.closest("[data-tag]");
       if (hit && hit.getAttribute("data-tag")) {
         e.preventDefault();
         selectTag(hit.getAttribute("data-tag"));
       }
+    });
+
+    pid?.addEventListener("pointerover", (e) => {
+      const hit = e.target.closest("[data-tag], [data-equip]");
+      if (!hit) return;
+      applyPidHover(hit.getAttribute("data-tag"), hit.getAttribute("data-equip"));
+    });
+    pid?.addEventListener("pointerout", (e) => {
+      if (!e.relatedTarget || !pid.contains(e.relatedTarget)) clearPidHover();
     });
 
     document.querySelector(".plant-toolbar")?.addEventListener("click", (e) => {

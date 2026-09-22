@@ -680,6 +680,7 @@
 .pid-leader {
   stroke: #64748b;
   stroke-width: 1.1;
+  fill: none;
 }
 
 .pid-balloon.is-selected .pid-balloon__ring {
@@ -694,6 +695,21 @@
 .pid-q--good .pid-balloon__val { fill: #6ee7b7; }
 .pid-q--uncertain .pid-balloon__val { fill: #fcd34d; }
 .pid-q--bad .pid-balloon__val { fill: #fca5a5; }
+
+.pid-equip.is-hover .pid-equip__body,
+.pid-valve.is-hover .pid-valve__body,
+.pid-bin.is-hover .pid-bin__body {
+  stroke: var(--color-brand-300);
+  stroke-width: 2;
+}
+.pid-balloon.is-hover .pid-balloon__ring {
+  stroke: var(--color-brand-300);
+  stroke-width: 1.85;
+}
+.plant-tag.is-hover {
+  background: rgba(34, 211, 238, 0.1);
+  color: rgb(241 245 249);
+}
 
 .pid-valve { cursor: pointer; }
 .pid-valve__body {
@@ -732,26 +748,48 @@
 
 .plant-detail {
   border-top: 1px solid var(--plant-stroke);
-  padding: 0.65rem 0.85rem 0.85rem;
+  padding: 0.4rem 0.75rem;
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: rgb(148 163 184);
+}
+
+.plant-detail__empty {
+  margin: 0;
+  color: rgb(100 116 139);
+}
+
+.plant-detail__compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 1rem;
+  justify-content: space-between;
 }
 
 .plant-detail__path {
   color: var(--color-brand-300);
   word-break: break-all;
+  min-width: 0;
+  flex: 1 1 14rem;
 }
 
-.plant-detail__grid {
-  margin-top: 0.45rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.2rem 0.75rem;
+.plant-detail__chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
 }
 
-.plant-detail__grid dt { color: rgb(100 116 139); }
-.plant-detail__grid dd { margin: 0; color: rgb(226 232 240); }
+.plant-detail__val {
+  color: rgb(226 232 240);
+  font-weight: 500;
+}
+
+.plant-detail__muted {
+  color: rgb(100 116 139);
+  font-size: 0.62rem;
+}
 
 .plant-noscript {
   padding: 2rem 1rem;
