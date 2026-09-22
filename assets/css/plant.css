@@ -393,9 +393,26 @@
 .plant-toolbar {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.4rem;
   padding: 0.55rem 0.75rem;
   border-bottom: 1px solid var(--plant-stroke);
+}
+
+.plant-toolbar__group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.plant-toolbar__label {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(100 116 139);
+  margin-right: 0.1rem;
 }
 
 .plant-btn {
@@ -423,10 +440,47 @@
   outline-offset: 2px;
 }
 
-.plant-btn.is-active {
-  border-color: rgba(248, 113, 113, 0.5);
+/* Scenario tones: fault / warn / healthy — idle hint + stronger when active */
+.plant-btn--jam {
+  border-color: rgba(248, 113, 113, 0.38);
   color: #fecaca;
-  background: rgba(248, 113, 113, 0.1);
+}
+.plant-btn--jam:hover {
+  border-color: rgba(248, 113, 113, 0.65);
+  color: #fee2e2;
+}
+.plant-btn--jam.is-active {
+  border-color: rgba(248, 113, 113, 0.85);
+  color: #fecaca;
+  background: rgba(248, 113, 113, 0.14);
+}
+
+.plant-btn--starved {
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fde68a;
+}
+.plant-btn--starved:hover {
+  border-color: rgba(251, 191, 36, 0.7);
+  color: #fef3c7;
+}
+.plant-btn--starved.is-active {
+  border-color: rgba(251, 191, 36, 0.9);
+  color: #fde68a;
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.plant-btn--recover {
+  border-color: rgba(52, 211, 153, 0.4);
+  color: rgb(167 243 208);
+}
+.plant-btn--recover:hover {
+  border-color: rgba(52, 211, 153, 0.7);
+  color: rgb(209 250 229);
+}
+.plant-btn--recover.is-active {
+  border-color: rgba(52, 211, 153, 0.85);
+  color: rgb(167 243 208);
+  background: rgba(52, 211, 153, 0.12);
 }
 
 .plant-btn--ghost {
@@ -441,6 +495,7 @@
 .plant-toolbar__sep {
   width: 1px;
   align-self: stretch;
+  min-height: 1.4rem;
   background: rgb(51 65 85);
   margin: 0 0.15rem;
 }

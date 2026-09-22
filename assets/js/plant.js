@@ -1,13 +1,14 @@
 /* =============================================================
-   plant.js — Plant Live View (/plant/)
-   Nested tag browser (Packaging / Line#) + P&ID mimic.
+   plant.js — Packaging Line HMI (/plant/)
+   Nested tag browser (Packaging / Line#) + Line3 P&ID mimic.
+   Line1/Line2: live tags only (no drawing yet).
    State persists in localStorage until "Reset line".
    ============================================================= */
 
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "samdonche.plant.v2";
+  const STORAGE_KEY = "samdonche.plant.v3";
   const TICK_MS = 1000;
   const PROVIDER = "[edge]";
   const AREA = "Packaging";
@@ -26,10 +27,24 @@
    * }} TagDef
    */
 
-  /** Offline placeholder lines — one Status tag each. */
-  const OFFLINE_LINES = [
-    { id: "Line1", label: "Line 1" },
-    { id: "Line2", label: "Line 2" },
+  /** Sibling lines — live tags, no P&ID yet (center pane stays Line3). */
+  const STUB_LINES = [
+    { id: "Line1", speedSp: 95, oeeBase: 81.5, thruBase: 92, phase: 11 },
+    { id: "Line2", speedSp: 108, oeeBase: 76.2, thruBase: 101, phase: 23 },
+  ];
+
+  /** Thin tag set for stub lines (ids relative to the line). */
+  const STUB_LINE_TAGS = [
+    { id: "Running", name: "Running", type: "bool", live: true },
+    { id: "Mode", name: "Mode", type: "string", live: true },
+    { id: "OEE", name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1), live: true },
+    { id: "Throughput", name: "Throughput", type: "number", unit: "cpm", format: (v) => String(Math.round(v)), live: true },
+    { id: "SpeedSP", name: "SpeedSP", type: "number", unit: "cpm", format: (v) => String(Math.round(v)), live: true },
+    { id: "Infeed/Running", name: "Running", type: "bool", live: true },
+    { id: "Infeed/Speed", name: "Speed", type: "number", unit: "m/min", format: (v) => v.toFixed(1), live: true },
+    { id: "Infeed/Photoeye", name: "Photoeye", type: "bool", live: true },
+    { id: "Outfeed/Running", name: "Running", type: "bool", live: true },
+    { id: "Outfeed/Occupied", name: "Occupied", type: "bool", live: true },
   ];
 
   /** Equipment folders under live Line3 (Reject nests under Checkweigher). */
@@ -87,9 +102,22 @@
     { id: "Outfeed/Photoeye", name: "Photoeye", type: "bool", live: true },
   ];
 
-  const TAG_BY_ID = Object.fromEntries(LINE3_TAGS.map((t) => [t.id, t]));
+  /** Prefixed stub tags: Line1/OEE, Line2/Infeed/Speed, … */
+  const STUB_TAGS = STUB_LINES.flatMap((line) =>
+    STUB_LINE_TAGS.map((t) => ({ ...t, id: `${line.id}/${t.id}` }))
+  );
 
-  const pathOf = (rel) => `${PROVIDER}${AREA}/${LIVE_LINE}/${rel}`;
+  const ALL_TAGS = LINE3_TAGS.concat(STUB_TAGS);
+  const TAG_BY_ID = Object.fromEntries(ALL_TAGS.map((t) => [t.id, t]));
+
+  function isStubTag(rel) {
+    return rel.startsWith("Line1/") || rel.startsWith("Line2/");
+  }
+
+  function pathOf(rel) {
+    if (isStubTag(rel)) return `${PROVIDER}${AREA}/${rel}`;
+    return `${PROVIDER}${AREA}/${LIVE_LINE}/${rel}`;
+  }
 
   /** Default open folders in the nested tree (node keys). */
   const DEFAULT_OPEN = [
@@ -234,6 +262,26 @@
       "Outfeed/Photoeye": { value: photoOut, quality: jam ? "Stale" : "Good" },
     };
 
+    /* Sibling lines: independent healthy drift (scenarios only hit Line3). */
+    STUB_LINES.forEach((line) => {
+      const oee = clamp(drift(line.oeeBase, 1.4, line.phase), 0, 100);
+      const thru = Math.max(0, drift(line.thruBase, 2.2, line.phase + 2));
+      const infeed = Math.max(0, drift(24 + line.phase * 0.1, 1.4, line.phase + 4));
+      const photo = Math.random() > 0.18;
+      const occ = Math.random() > 0.3;
+      const p = `${line.id}/`;
+      live[`${p}Running`] = { value: true, quality: "Good" };
+      live[`${p}Mode`] = { value: "AUTO", quality: "Good" };
+      live[`${p}OEE`] = { value: oee, quality: "Good" };
+      live[`${p}Throughput`] = { value: thru, quality: "Good" };
+      live[`${p}SpeedSP`] = { value: line.speedSp, quality: "Good" };
+      live[`${p}Infeed/Running`] = { value: true, quality: "Good" };
+      live[`${p}Infeed/Speed`] = { value: infeed, quality: "Good" };
+      live[`${p}Infeed/Photoeye`] = { value: photo, quality: "Good" };
+      live[`${p}Outfeed/Running`] = { value: true, quality: "Good" };
+      live[`${p}Outfeed/Occupied`] = { value: occ, quality: "Good" };
+    });
+
     syncScenarioAlarms();
   }
 
@@ -295,15 +343,35 @@
 
   /* ---------------- Tag tree ---------------- */
 
-  function tagsUnder(prefix) {
+  function tagsUnder(tagList, prefix) {
     if (!prefix) {
-      return LINE3_TAGS.filter((t) => !t.id.includes("/"));
+      return tagList.filter((t) => !t.id.includes("/"));
     }
     const p = prefix.endsWith("/") ? prefix : prefix + "/";
-    return LINE3_TAGS.filter((t) => {
+    return tagList.filter((t) => {
       if (!t.id.startsWith(p)) return false;
       const rest = t.id.slice(p.length);
       return !rest.includes("/");
+    });
+  }
+
+  function stubTagsRelative(lineId) {
+    const p = lineId + "/";
+    return STUB_TAGS.filter((t) => t.id.startsWith(p)).map((t) => ({
+      ...t,
+      rel: t.id.slice(p.length),
+    }));
+  }
+
+  function tagsUnderStub(lineId, equipPrefix) {
+    const rels = stubTagsRelative(lineId);
+    if (!equipPrefix) {
+      return rels.filter((t) => !t.rel.includes("/"));
+    }
+    const p = equipPrefix.endsWith("/") ? equipPrefix : equipPrefix + "/";
+    return rels.filter((t) => {
+      if (!t.rel.startsWith(p)) return false;
+      return !t.rel.slice(p.length).includes("/");
     });
   }
 
@@ -335,9 +403,9 @@
 
   function renderEquipFolder(equipId) {
     const nodeKey = `Packaging/${LIVE_LINE}/${equipId}`;
-    let body = tagsUnder(equipId).map((t) => renderTagButton(t.id, t)).join("");
+    let body = tagsUnder(LINE3_TAGS, equipId).map((t) => renderTagButton(t.id, t)).join("");
     if (equipId === "Checkweigher") {
-      const rejectTags = tagsUnder("Checkweigher/Reject")
+      const rejectTags = tagsUnder(LINE3_TAGS, "Checkweigher/Reject")
         .map((t) => renderTagButton(t.id, t))
         .join("");
       body += renderFolder(`${nodeKey}/Reject`, "Reject", rejectTags);
@@ -347,22 +415,23 @@
 
   function renderLine3Folder() {
     const nodeKey = `Packaging/${LIVE_LINE}`;
-    const lineTags = tagsUnder("").map((t) => renderTagButton(t.id, t)).join("");
+    const lineTags = tagsUnder(LINE3_TAGS, "").map((t) => renderTagButton(t.id, t)).join("");
     const equips = EQUIPMENT.map((e) => renderEquipFolder(e.id)).join("");
     return renderFolder(nodeKey, "Line3", lineTags + equips, "plant-tree__line plant-tree__line--live");
   }
 
-  function renderOfflineLine(line) {
+  function renderStubLineFolder(line) {
     const nodeKey = `Packaging/${line.id}`;
-    const body = `<li>
-      <button type="button" class="plant-tag plant-tag--offline" data-tag="" data-q="Stale" disabled title="Offline placeholder">
-        <span class="plant-q-dot-inline" aria-hidden="true"></span>
-        <span class="plant-tag__name">Status</span>
-        <span class="plant-tag__val">Offline</span>
-        <span class="plant-q plant-q--stale">Stale</span>
-      </button>
-    </li>`;
-    return renderFolder(nodeKey, line.id, body, "plant-tree__line plant-tree__line--offline");
+    const lineTags = tagsUnderStub(line.id, "")
+      .map((t) => renderTagButton(t.id, t))
+      .join("");
+    const equips = ["Infeed", "Outfeed"].map((equipId) => {
+      const body = tagsUnderStub(line.id, equipId)
+        .map((t) => renderTagButton(t.id, t))
+        .join("");
+      return renderFolder(`${nodeKey}/${equipId}`, equipId, body);
+    }).join("");
+    return renderFolder(nodeKey, line.id, lineTags + equips, "plant-tree__line plant-tree__line--live");
   }
 
   function buildTree() {
@@ -370,7 +439,7 @@
     if (!root) return;
 
     const lines =
-      OFFLINE_LINES.map(renderOfflineLine).join("") + renderLine3Folder();
+      STUB_LINES.map(renderStubLineFolder).join("") + renderLine3Folder();
 
     root.innerHTML = renderFolder("Packaging", "Packaging", lines, "plant-tree__area");
     treeBuilt = true;
@@ -451,9 +520,11 @@
 
   function equipKeyForTag(tagId) {
     if (!tagId) return null;
-    if (tagId.startsWith("Checkweigher/Reject")) return "Reject";
-    if (!tagId.includes("/")) return null;
-    return tagId.split("/")[0];
+    let id = tagId;
+    if (isStubTag(tagId)) id = tagId.split("/").slice(1).join("/");
+    if (id.startsWith("Checkweigher/Reject")) return "Reject";
+    if (!id.includes("/")) return null;
+    return id.split("/")[0];
   }
 
   function balloon(cx, cy, top, bot, tagId, anchorX, anchorY, equipKey) {
@@ -745,7 +816,8 @@
 
     document.querySelectorAll("[data-scenario]").forEach((btn) => {
       const sc = btn.getAttribute("data-scenario");
-      btn.classList.toggle("is-active", state.scenario === sc);
+      const active = sc === "recover" ? state.scenario === null : state.scenario === sc;
+      btn.classList.toggle("is-active", active);
     });
 
     const scanDot = document.getElementById("plant-scan-dot");
@@ -767,9 +839,15 @@
       el.innerHTML = `<p class="plant-detail__empty">Select a tag in the browser or on the P&amp;ID.</p>`;
       return;
     }
-    const folder = state.selectedTag.includes("/")
-      ? state.selectedTag.split("/").slice(0, -1).join(" / ")
-      : "Line3";
+    const folder = (() => {
+      if (isStubTag(state.selectedTag)) {
+        const parts = state.selectedTag.split("/");
+        return parts.length > 2 ? parts.slice(0, -1).join(" / ") : parts[0];
+      }
+      return state.selectedTag.includes("/")
+        ? state.selectedTag.split("/").slice(0, -1).join(" / ")
+        : "Line3";
+    })();
     el.innerHTML = `
       <div class="plant-detail__compact">
         <span class="plant-detail__path" title="${escapeHtml(pathOf(def.id))}">${escapeHtml(pathOf(def.id))}</span>
@@ -903,16 +981,24 @@
   function selectTag(id) {
     if (!id || !TAG_BY_ID[id]) return;
     state.selectedTag = id;
-    // Ensure ancestors open
-    const parts = id.split("/");
-    const nodes = ["Packaging", `Packaging/${LIVE_LINE}`];
-    let acc = `Packaging/${LIVE_LINE}`;
-    for (let i = 0; i < parts.length - 1; i++) {
-      acc += "/" + parts[i];
-      nodes.push(acc);
-    }
     const open = new Set(state.openNodes);
-    nodes.forEach((n) => open.add(n));
+    open.add("Packaging");
+    if (isStubTag(id)) {
+      const parts = id.split("/");
+      let acc = "Packaging";
+      for (let i = 0; i < parts.length - 1; i++) {
+        acc += "/" + parts[i];
+        open.add(acc);
+      }
+    } else {
+      open.add(`Packaging/${LIVE_LINE}`);
+      const parts = id.split("/");
+      let acc = `Packaging/${LIVE_LINE}`;
+      for (let i = 0; i < parts.length - 1; i++) {
+        acc += "/" + parts[i];
+        open.add(acc);
+      }
+    }
     state.openNodes = [...open];
     saveState();
     treeBuilt = false;
@@ -946,6 +1032,10 @@
       const btn = e.target.closest(".plant-tag[data-tag]");
       if (!btn) return;
       const id = btn.getAttribute("data-tag");
+      if (!id || isStubTag(id)) {
+        clearPidHover();
+        return;
+      }
       if (id) applyPidHover(id, equipKeyForTag(id));
     });
     tree?.addEventListener("pointerout", (e) => {
