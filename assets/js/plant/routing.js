@@ -42,11 +42,15 @@ Plant.applyHashState = function applyHashState(opts) {
   let faultChanged = false;
   if (drawing !== "overview") {
     const meta = Plant.DRAWING_FAULTS[drawing];
-    if (meta && fault && meta.values.includes(fault)) {
-      if (Plant.state[meta.field] !== fault) {
-        Plant.setDrawingFault(drawing, fault);
+    let resolvedFault = fault;
+    if (drawing === "tempering" && fault) {
+      resolvedFault = Plant.normalizeTemperScenario(fault) || fault;
+    }
+    if (meta && resolvedFault && meta.values.includes(resolvedFault)) {
+      if (Plant.state[meta.field] !== resolvedFault) {
+        Plant.setDrawingFault(drawing, resolvedFault);
         faultChanged = true;
-      } else if (drawing === "packaging" && fault === "jam" && Plant.state.cartonerJamCleared) {
+      } else if (drawing === "packaging" && resolvedFault === "jam" && Plant.state.cartonerJamCleared) {
         /* Deep-link re-arms a jam even if the operator had cleared it this session. */
         Plant.state.cartonerJamCleared = false;
         faultChanged = true;

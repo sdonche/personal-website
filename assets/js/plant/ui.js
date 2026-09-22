@@ -25,7 +25,7 @@ Plant.renderKpis = function renderKpis() {
   };
 
   const temperWarm = Plant.state.temperScenario === "warm";
-  const temperBelt = Plant.state.temperScenario === "belt";
+  const temperDrive = Plant.isTemperDrive();
   const feedStarved = Plant.isFeedStarved();
   const overview = drawing === "overview";
   const areaHeld = (d) => {
@@ -103,8 +103,8 @@ Plant.renderKpis = function renderKpis() {
     setLabel("kpi-d-label", "Mode");
     setKpi("kpi-a", `${z1.toFixed(1)}°C`, temperWarm ? "bad" : "good");
     setKpi("kpi-b", `${z3.toFixed(1)}°C`, temperWarm ? "bad" : "good");
-    setKpi("kpi-c", `${screw.toFixed(1)} rpm`, temperBelt ? "bad" : temperStarve ? "warn" : "good");
-    setKpi("kpi-d", String(Plant.live["Tempering/Mode"]?.value ?? "—"), temperWarm ? "bad" : temperBelt || temperStarve ? "warn" : "good");
+    setKpi("kpi-c", `${screw.toFixed(1)} rpm`, temperDrive ? "bad" : temperStarve ? "warn" : "good");
+    setKpi("kpi-d", String(Plant.live["Tempering/Mode"]?.value ?? "—"), temperWarm ? "bad" : temperDrive || temperStarve ? "warn" : "good");
   } else if (moulding) {
     const cycles = Plant.live["Moulding/Moulder1/CyclesPerMin"]?.value ?? 0;
     const mouldTemp = Plant.live["Moulding/Moulder1/MouldTempC"]?.value ?? 0;
@@ -182,6 +182,9 @@ Plant.renderKpis = function renderKpis() {
     const temperUpstream = (Plant.live["Tempering/Mode"]?.value ?? "") === "STARVED" && Plant.state.temperScenario === null;
     if (sc === "recover") {
       paintRecover(btn, Plant.state.temperScenario != null, { blocked: temperUpstream });
+      btn.title = temperUpstream
+        ? "Upstream hold — clear root cause first"
+        : "Clear tempering faults";
       return;
     }
     btn.classList.toggle("is-active", Plant.state.temperScenario === sc);
@@ -191,6 +194,9 @@ Plant.renderKpis = function renderKpis() {
     const refineUpstream = (Plant.live["Refining/Mode"]?.value ?? "") === "STARVED" && Plant.state.refineScenario === null;
     if (sc === "recover") {
       paintRecover(btn, Plant.state.refineScenario != null, { blocked: refineUpstream });
+      btn.title = refineUpstream
+        ? "Upstream hold — clear root cause first"
+        : "Clear refining faults";
       return;
     }
     btn.classList.toggle("is-active", Plant.state.refineScenario === sc);
@@ -200,6 +206,9 @@ Plant.renderKpis = function renderKpis() {
     const concheUpstream = (Plant.live["Conching/Mode"]?.value ?? "") === "STARVED" && Plant.state.concheScenario === null;
     if (sc === "recover") {
       paintRecover(btn, Plant.state.concheScenario != null, { blocked: concheUpstream });
+      btn.title = concheUpstream
+        ? "Upstream hold — clear root cause first"
+        : "Clear conching faults";
       return;
     }
     btn.classList.toggle("is-active", Plant.state.concheScenario === sc);
@@ -209,6 +218,9 @@ Plant.renderKpis = function renderKpis() {
     const mouldUpstream = (Plant.live["Moulding/Mode"]?.value ?? "") === "STARVED" && Plant.state.mouldScenario === null;
     if (sc === "recover") {
       paintRecover(btn, Plant.state.mouldScenario != null, { blocked: mouldUpstream });
+      btn.title = mouldUpstream
+        ? "Upstream hold — clear root cause first"
+        : "Clear moulding faults";
       return;
     }
     btn.classList.toggle("is-active", Plant.state.mouldScenario === sc);
@@ -231,8 +243,10 @@ Plant.renderKpis = function renderKpis() {
     moulding: "Heuvelland · Moulding",
     packaging: "Heuvelland · Packaging · Line 3",
   };
+  const pageTitle = titleMap[drawing] || titleMap.packaging;
   const title = document.querySelector(".plant-hmi__title h1");
-  if (title) title.textContent = titleMap[drawing] || titleMap.packaging;
+  if (title) title.textContent = pageTitle;
+  Plant.updateShareMeta(pageTitle);
 
   document.querySelectorAll(".plant-area-nav__btn[data-drawing]").forEach((btn) => {
     const d = btn.getAttribute("data-drawing");
@@ -252,7 +266,7 @@ Plant.renderKpis = function renderKpis() {
     else if (conching && Plant.state.concheScenario === "overtemp") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Overtemp"; }
     else if (conching && Plant.state.concheScenario === "agitator") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Agitator"; }
     else if (tempering && temperWarm) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Zone warm"; }
-    else if (tempering && temperBelt) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Drive stop"; }
+    else if (tempering && temperDrive) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Drive stop"; }
     else if (moulding && Plant.state.mouldScenario === "jam") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Jam"; }
     else if (moulding && Plant.state.mouldScenario === "cool") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Cool air"; }
     else if (packaging && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
@@ -263,6 +277,9 @@ Plant.renderKpis = function renderKpis() {
       if (anyFault) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Plant fault"; }
       else if (anyWarn) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Plant hold"; }
       else scanLabel.textContent = "Line healthy";
+    } else if (Plant.areaHealth(drawing) === "starved") {
+      scanDot.classList.add("is-warn");
+      scanLabel.textContent = "Starved";
     } else {
       scanLabel.textContent = "Line healthy";
     }

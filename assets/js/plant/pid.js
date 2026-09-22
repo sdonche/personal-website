@@ -221,7 +221,7 @@ Plant.buildPackagingPid = function buildPackagingPid() {
         <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
         <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
         <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
-        <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Packaging / Line3</text>
+        <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Packaging / Line 3</text>
         <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
       </g>
 
@@ -872,7 +872,7 @@ Plant.paintPid = function paintPid() {
   const mixValve = Plant.state.mixScenario === "valve";
 
   const temperWarm = Plant.state.temperScenario === "warm";
-  const temperBelt = Plant.state.temperScenario === "belt";
+  const temperDrive = Plant.isTemperDrive();
   const refinePressure = Plant.state.refineScenario === "pressure";
   const refineParticle = Plant.state.refineScenario === "particle";
   const concheOver = Plant.state.concheScenario === "overtemp";
@@ -886,7 +886,7 @@ Plant.paintPid = function paintPid() {
 
   svg.classList.remove("is-running", "is-fault", "is-warn");
   if (mixing) svg.classList.add(mixOver ? "is-fault" : mixValve ? "is-warn" : "is-running");
-  else if (tempering) svg.classList.add(temperWarm ? "is-fault" : temperBelt || temperStarved ? "is-warn" : "is-running");
+  else if (tempering) svg.classList.add(temperWarm ? "is-fault" : temperDrive || temperStarved ? "is-warn" : "is-running");
   else if (refining) svg.classList.add(refinePressure ? "is-fault" : refineParticle || refineStarved ? "is-warn" : "is-running");
   else if (conching) svg.classList.add(concheOver ? "is-fault" : concheAgit || concheStarved ? "is-warn" : "is-running");
   else if (moulding) svg.classList.add(mouldJam ? "is-fault" : mouldCool || mouldStarved ? "is-warn" : "is-running");
@@ -895,7 +895,7 @@ Plant.paintPid = function paintPid() {
   const flowShow = (() => {
     if (Plant.reducedMotion) return false;
     if (mixing) return !mixOver && !mixValve;
-    if (tempering) return !temperWarm && !temperBelt && !temperStarved;
+    if (tempering) return !temperWarm && !temperDrive && !temperStarved;
     if (refining) return !refinePressure && !refineParticle && !refineStarved;
     if (conching) return !concheOver && !concheAgit && !concheStarved;
     if (moulding) return !mouldJam && !mouldCool && !mouldStarved;
@@ -947,13 +947,13 @@ Plant.paintPid = function paintPid() {
       tunnel.classList.remove("is-selected", "is-hover", "is-fault", "is-warn", "is-alarm");
       if (Plant.state.selectedTag.startsWith("Tempering/Temper1")) tunnel.classList.add("is-selected");
       if (temperWarm) tunnel.classList.add("is-fault");
-      else if (temperBelt || temperStarved) tunnel.classList.add("is-warn");
+      else if (temperDrive || temperStarved) tunnel.classList.add("is-warn");
     }
     svg.querySelectorAll(".pid-tunnel__zone").forEach((z) => {
       z.classList.toggle("is-warm", temperWarm);
     });
     const screw = svg.querySelector(".pid-tunnel__screw");
-    if (screw) screw.classList.toggle("is-stopped", temperBelt);
+    if (screw) screw.classList.toggle("is-stopped", temperDrive);
     svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
       const tagId = g.getAttribute("data-tag");
       const open = !!(Plant.live[tagId] || {}).value;

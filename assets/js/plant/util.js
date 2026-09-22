@@ -99,13 +99,21 @@ Plant.isMixFault = function isMixFault() {
   return Plant.state.mixScenario === "overtemp" || Plant.state.mixScenario === "valve";
 }
 
-/**
- * Upstream mass-path hold that starves Packaging feed
- * (and mid-line areas further downstream).
- */
+/** Normalize temper scenario ids (`belt` legacy → `drive`). */
+Plant.normalizeTemperScenario = function normalizeTemperScenario(v) {
+  if (v === "warm") return "warm";
+  if (v === "drive" || v === "belt") return "drive";
+  return null;
+}
+
+Plant.isTemperDrive = function isTemperDrive() {
+  return Plant.state.temperScenario === "drive";
+}
+
+/** Upstream mass-path hold that starves Packaging feed (and mid-line areas further downstream). */
 Plant.isUpstreamHold = function isUpstreamHold() {
   return Plant.isMixFault()
-    || Plant.state.temperScenario === "belt"
+    || Plant.isTemperDrive()
     || Plant.state.temperScenario === "warm"
     || Plant.state.refineScenario === "pressure"
     || Plant.state.refineScenario === "particle"
@@ -154,10 +162,30 @@ Plant.setDrawingFault = function setDrawingFault(drawing, fault) {
     if (drawing === "packaging") Plant.state.cartonerJamCleared = false;
     return true;
   }
-  if (!meta.values.includes(fault)) return false;
-  Plant.state[meta.field] = fault;
+  let resolved = fault;
+  if (drawing === "tempering") resolved = Plant.normalizeTemperScenario(fault) || fault;
+  if (!meta.values.includes(resolved)) return false;
+  Plant.state[meta.field] = resolved;
   if (drawing === "packaging") Plant.state.cartonerJamCleared = false;
   return true;
+}
+
+/** Keep document title + OG/Twitter tags in sync with the active area. */
+Plant.updateShareMeta = function updateShareMeta(pageTitle) {
+  const label = pageTitle || "Heuvelland · Chocolate plant HMI";
+  document.title = `${label} · Sam Donche`;
+  const setMeta = (sel, attr, value) => {
+    const el = document.querySelector(sel);
+    if (el) el.setAttribute(attr, value);
+  };
+  setMeta('meta[property="og:title"]', "content", label);
+  setMeta('meta[name="twitter:title"]', "content", label);
+  setMeta('meta[property="og:image:alt"]', "content", `${label} · Sam Donche`);
+}
+
+/** Display label for live line id (`Line3` → `Line 3`). */
+Plant.liveLineLabel = function liveLineLabel() {
+  return String(Plant.LIVE_LINE).replace(/(\D)(\d)/g, "$1 $2");
 }
 
 /** Area health for overview sheet: run | fault | hold | starved */
@@ -168,7 +196,7 @@ Plant.areaHealth = function areaHealth(drawing) {
     mixing: { overtemp: true, valve: false },
     refining: { pressure: true, particle: false },
     conching: { overtemp: true, agitator: false },
-    tempering: { warm: true, belt: false },
+    tempering: { warm: true, drive: false },
     moulding: { jam: true, cool: false },
   };
   if (fault) {
@@ -181,7 +209,7 @@ Plant.areaHealth = function areaHealth(drawing) {
   const refineParticle = Plant.state.refineScenario === "particle";
   const concheOver = Plant.state.concheScenario === "overtemp";
   const concheAgit = Plant.state.concheScenario === "agitator";
-  const temperBelt = Plant.state.temperScenario === "belt";
+  const temperDrive = Plant.isTemperDrive();
   const temperWarm = Plant.state.temperScenario === "warm";
   if (drawing === "packaging" && Plant.isUpstreamHold()) return "starved";
   if (drawing === "refining" && mixFault) return "starved";
@@ -190,7 +218,7 @@ Plant.areaHealth = function areaHealth(drawing) {
     return "starved";
   }
   if (drawing === "moulding" && (
-    mixFault || temperBelt || temperWarm || refinePressure || refineParticle || concheOver || concheAgit
+    mixFault || temperDrive || temperWarm || refinePressure || refineParticle || concheOver || concheAgit
   )) return "starved";
   return "run";
 }
@@ -233,10 +261,62 @@ Plant.sparklineSvg = function sparklineSvg(samples) {
   return `<svg class="plant-sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polyline class="plant-sparkline__line" points="${pts}" fill="none" /></svg>`;
 }
 
+/** Cascade / consequence alarms — lose FO ties to root-cause alarms. */
+Plant.isCascadeAlarm = function isCascadeAlarm(id) {
+  return /^alm-pack-/.test(id) || /-upstream$/.test(id);
+}
+
+/**
+ * First-out: oldest unacked. Equal ts → critical before warning,
+ * then root-cause before cascade, then id for stability.
+ */
 Plant.firstOutAlarmId = function firstOutAlarmId(alarms) {
   const unacked = alarms.filter((a) => !a.acked);
   if (!unacked.length) return null;
-  return unacked.slice().sort((a, b) => a.ts - b.ts)[0].id;
+  const sevRank = (s) => (s === "critical" ? 0 : 1);
+  const cascadeRank = (id) => (Plant.isCascadeAlarm(id) ? 1 : 0);
+  return unacked.slice().sort((a, b) => {
+    if (a.ts !== b.ts) return a.ts - b.ts;
+    if (sevRank(a.severity) !== sevRank(b.severity)) return sevRank(a.severity) - sevRank(b.severity);
+    if (cascadeRank(a.id) !== cascadeRank(b.id)) return cascadeRank(a.id) - cascadeRank(b.id);
+    return String(a.id).localeCompare(String(b.id));
+  })[0].id;
+}
+
+/** Resolve alarm → drawing/tag jump (scenario-aware pack-* roots). */
+Plant.alarmNavTarget = function alarmNavTarget(alarm) {
+  if (!alarm) return null;
+  if (alarm.navTag || alarm.navDrawing) {
+    return { navDrawing: alarm.navDrawing || null, navTag: alarm.navTag || null };
+  }
+  const id = alarm.id;
+  if (id === "alm-pack-temper") {
+    if (Plant.state.temperScenario === "warm") {
+      return { navDrawing: "tempering", navTag: "Tempering/Temper1/Zone1TempC" };
+    }
+    return { navDrawing: "tempering", navTag: "Tempering/Temper1/ScrewRpm" };
+  }
+  if (id === "alm-pack-mould") {
+    if (Plant.state.mouldScenario === "cool") {
+      return { navDrawing: "moulding", navTag: "Moulding/Cooling/AirTempC" };
+    }
+    return { navDrawing: "moulding", navTag: "Moulding/Moulder1/CyclesPerMin" };
+  }
+  if (id === "alm-pack-refine") {
+    if (Plant.state.refineScenario === "particle") {
+      return { navDrawing: "refining", navTag: "Refining/Refiner1/ParticleUm" };
+    }
+    return { navDrawing: "refining", navTag: "Refining/Hydraulic/PressureBar" };
+  }
+  if (id === "alm-pack-conche") {
+    if (Plant.state.concheScenario === "agitator") {
+      return { navDrawing: "conching", navTag: "Conching/Conche1/AgitatorRpm" };
+    }
+    return { navDrawing: "conching", navTag: "Conching/Conche1/TempC" };
+  }
+  const meta = Plant.ALARM_PID[id];
+  if (!meta) return null;
+  return { navDrawing: meta.navDrawing || null, navTag: meta.navTag || null };
 }
 
 Plant.tagFromAlarmPath = function tagFromAlarmPath(path) {
