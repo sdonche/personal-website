@@ -320,16 +320,7 @@
   const DEFAULT_OPEN = [
     EDGE_ROOT,
     SITE,
-    MIXING_ROOT,
-    `${MIXING_ROOT}/Mixer1`,
-    REFINING_ROOT,
-    `${REFINING_ROOT}/Refiner1`,
-    CONCHING_ROOT,
-    `${CONCHING_ROOT}/Conche1`,
-    TEMPERING_ROOT,
-    `${TEMPERING_ROOT}/Temper1`,
-    MOULDING_ROOT,
-    `${MOULDING_ROOT}/Moulder1`,
+    /* Land on Packaging drawing — keep other areas collapsed so sister sites stay in view. */
     AREA_ROOT,
     `${AREA_ROOT}/Line3`,
     `${AREA_ROOT}/Line3/Cartoner`,
