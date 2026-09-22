@@ -514,18 +514,19 @@
     return `${Math.floor(s / 60)}m`;
   }
 
-  function renderAll() {
+  function renderAll(opts) {
+    const forceAlarms = !opts || opts.alarms !== false;
     renderTree();
     renderMimic();
     renderDetail();
-    // Alarms: full paint on action; light refresh for timestamps
-    if (tick % 5 === 0 || tick <= 1) renderAlarms();
+    if (forceAlarms || tick % 5 === 0 || tick <= 1) renderAlarms();
     else updateAlarmTimes();
   }
 
   function updateAlarmTimes() {
+    const sorted = state.alarms.slice().sort((x, y) => Number(x.acked) - Number(y.acked) || y.ts - x.ts);
     document.querySelectorAll("#plant-alarms .plant-alarm").forEach((el, i) => {
-      const a = state.alarms.slice().sort((x, y) => Number(x.acked) - Number(y.acked) || y.ts - x.ts)[i];
+      const a = sorted[i];
       if (!a) return;
       const t = el.querySelector(".plant-alarm__top span:last-child");
       if (t) t.textContent = timeAgo(a.ts);
