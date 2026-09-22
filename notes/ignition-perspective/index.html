@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- partial:head-boot -->
+  <script>
+    document.documentElement.classList.add('js');
+    try {
+      if (localStorage.getItem('samdonche.nav.rail') === '1') {
+        document.documentElement.classList.add('nav-rail');
+      }
+      var params = new URLSearchParams(location.search);
+      var mode = params.get('mode');
+      // Canonical: desk | floor. Legacy: site/briefing → desk, operator → floor.
+      if (mode === 'briefing' || mode === 'site') mode = 'desk';
+      if (mode === 'operator') mode = 'floor';
+      if (mode === 'desk' || mode === 'floor') {
+        localStorage.setItem('samdonche.mode', mode);
+      } else {
+        mode = localStorage.getItem('samdonche.mode');
+        if (mode === 'briefing' || mode === 'site') mode = 'desk';
+        if (mode === 'operator') mode = 'floor';
+      }
+      if (mode !== 'floor') mode = 'desk';
+      document.documentElement.setAttribute('data-mode', mode);
+    } catch (e) {
+      document.documentElement.setAttribute('data-mode', 'desk');
+    }
+  </script>
+<!-- /partial:head-boot -->
+  <meta name="theme-color" content="#020617" />
+  <meta name="description" content="Free Apache-2.0 Perspective components for Ignition 8.3: scheduling board, calendar, editable grid, pan-and-zoom, branching diagram, and the admin family Vision had." />
+  <meta name="author" content="Sam Donche" />
+  <title>Fourteen Perspective components the platform never shipped — Sam Donche</title>
+
+  <link rel="canonical" href="https://samdonche.com/notes/ignition-perspective/" />
+  <link rel="alternate" type="application/atom+xml" title="Sam Donche — Notes" href="../feed.xml" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Sam Donche" />
+  <meta property="og:title" content="Fourteen Perspective components the platform never shipped" />
+  <meta property="og:description" content="Scheduling, grids, pan-and-zoom and admin components as a free Perspective module." />
+  <meta property="og:url" content="https://samdonche.com/notes/ignition-perspective/" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://samdonche.com/assets/img/og/ignition-perspective.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Fourteen Perspective components the platform never shipped — Sam Donche" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Fourteen Perspective components the platform never shipped" />
+  <meta name="twitter:description" content="Scheduling, grids, pan-and-zoom and admin components as a free Perspective module." />
+  <meta name="twitter:image" content="https://samdonche.com/assets/img/og/ignition-perspective.jpg" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "Fourteen Perspective components the platform never shipped",
+        "description": "Free Apache-2.0 Perspective components for Ignition 8.3: scheduling board, calendar, editable grid, pan-and-zoom, branching diagram, and the admin family Vision had.",
+        "image": "https://samdonche.com/assets/img/og/ignition-perspective.jpg",
+        "datePublished": "2026-09-22",
+        "dateModified": "2026-09-22",
+        "inLanguage": "en",
+        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "publisher": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "mainEntityOfPage": "https://samdonche.com/notes/ignition-perspective/",
+        "keywords": "Ignition, Perspective, components, Resource Timeline, Data Grid, open source, Mustry"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Notes", "item": "https://samdonche.com/notes/" },
+          { "@type": "ListItem", "position": 3, "name": "Fourteen Perspective components the platform never shipped", "item": "https://samdonche.com/notes/ignition-perspective/" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- partial:favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Cpath d='M9 11 L14 16 L9 21' fill='none' stroke='%2322d3ee' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='16' y='18.7' width='7.5' height='2.6' rx='1.3' fill='%2322d3ee'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/apple-touch-icon.png" />
+<!-- /partial:favicon -->
+
+<!-- partial:head-assets -->
+  <link rel="preload" href="../../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../../assets/css/fonts.css?v=0f6b5ce264" />
+  <link rel="stylesheet" href="../../assets/css/tailwind.css?v=c826c2f54a" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=3de7925a3a" />
+<!-- /partial:head-assets -->
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans antialiased">
+
+<!-- partial:site-bg -->
+  <div aria-hidden="true" class="fixed inset-0 -z-10 bg-slate-950">
+    <div class="absolute inset-0 grid-bg opacity-[0.35]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(52,211,153,0.05),_transparent_50%)]"></div>
+  </div>
+<!-- /partial:site-bg -->
+
+<!-- partial:subpage-topbar -->
+<!-- Top bar -->
+  <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <a href="../../" class="flex items-center gap-2 group shrink-0" aria-label="Home">
+        <span class="relative inline-flex h-2.5 w-2.5">
+          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+        </span>
+        <span class="brand-mark brand-mark--floor font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
+          sam.donche<span class="brand-mark__host"><span class="text-brand-400">@</span>edge</span>
+        </span>
+        <span class="brand-mark brand-mark--desk text-sm sm:text-base font-semibold tracking-tight text-slate-100 group-hover:text-brand-300 transition-colors">
+          Sam Donche
+        </span>
+      </a>
+      <div class="flex items-center gap-1.5 sm:gap-3 min-w-0">
+        <div class="mode-switch shrink-0" role="group" aria-label="Presentation mode">
+          <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
+          <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
+        </div>
+        <a href="../" class="subpage-back font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← notes</a>
+        <button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      </div>
+    </div>
+  </header>
+<!-- /partial:subpage-topbar -->
+
+  <div class="lg:pl-64">
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-24">
+    <article>
+      <div class="hero-enter">
+        <p class="section-eyebrow">// Notes</p>
+        <h1 class="section-title">Fourteen Perspective components the platform never shipped.</h1>
+        <p class="mt-4 font-mono text-xs tracking-wider text-slate-500">
+          2026-09-22 <span class="text-slate-700">·</span> 6 min read <span class="text-slate-700">·</span> Ignition
+        </p>
+      </div>
+
+      <div class="note-prose reveal mt-10">
+
+        <p>
+          Calendar views become iframes. Admin screens shove operators back into gateway config.
+          Touch panels fight the double-keyboard problem. Editable grids get rebuilt per project and
+          drift. I have watched the same four fights on more Perspective jobs than I care to count.
+        </p>
+        <p>
+          <a href="https://mustrysolutions.com/ignition-modules/perspective-components" target="_blank" rel="noopener">Perspective Components</a>
+          is fourteen free Apache-2.0 components under one palette category. Drag, bind, stay inside
+          Perspective scripting, theming and security. No trial. No activation key.
+        </p>
+
+        <div class="note-gallery" aria-label="Perspective component clips">
+          <figure class="note-gallery__card has-clip" tabindex="0">
+            <div class="note-gallery__media">
+              <img src="../../assets/img/notes/poster-timeline.jpg" alt="Resource Timeline" width="480" height="300" loading="lazy" />
+              <img class="note-gallery__clip" src="../../assets/img/notes/clips/clip-timeline.webp" alt="" loading="lazy" />
+              <span class="note-gallery__badge" aria-hidden="true">▶</span>
+            </div>
+            <figcaption class="note-gallery__cap"><b>Resource Timeline</b><span>drag to reassign</span></figcaption>
+          </figure>
+          <figure class="note-gallery__card has-clip" tabindex="0">
+            <div class="note-gallery__media">
+              <img src="../../assets/img/notes/poster-grid.jpg" alt="Editable Data Grid" width="480" height="300" loading="lazy" />
+              <img class="note-gallery__clip" src="../../assets/img/notes/clips/clip-grid.webp" alt="" loading="lazy" />
+              <span class="note-gallery__badge" aria-hidden="true">▶</span>
+            </div>
+            <figcaption class="note-gallery__cap"><b>Editable Data Grid</b><span>typed editing</span></figcaption>
+          </figure>
+          <figure class="note-gallery__card has-clip" tabindex="0">
+            <div class="note-gallery__media">
+              <img src="../../assets/img/notes/poster-panzoom.jpg" alt="Pan and Zoom View" width="480" height="300" loading="lazy" />
+              <img class="note-gallery__clip" src="../../assets/img/notes/clips/clip-panzoom.webp" alt="" loading="lazy" />
+              <span class="note-gallery__badge" aria-hidden="true">▶</span>
+            </div>
+            <figcaption class="note-gallery__cap"><b>Pan &amp; Zoom View</b><span>plant floor mapped</span></figcaption>
+          </figure>
+        </div>
+
+        <h2>What is in the palette</h2>
+        <ul>
+          <li><strong>Scheduling.</strong> Resource Timeline and Calendar / Scheduler with drag, resize and recurrence.</li>
+          <li><strong>Data entry.</strong> Editable Data Grid, Date/Time Range Picker with live rolling windows, Color Picker, On-Screen Keyboard.</li>
+          <li><strong>Views.</strong> Pan &amp; Zoom View, Branching Diagram for lineage and routing.</li>
+          <li><strong>Editors.</strong> Rich Text and Code / JSON editors.</li>
+          <li><strong>Admin family.</strong> Schedule, Roster, User and Holiday managers. The pieces Vision had and Perspective never got.</li>
+        </ul>
+        <p>
+          Components fire events. They do not rewrite your bound data behind your back. Colours follow
+          the active Perspective theme. UI text ships in seven languages, with per-string overrides
+          when you need them.
+        </p>
+
+        <h2>Free, with a floor</h2>
+        <p>
+          Not a paid SKU. Not a Vision port either. Ignition&nbsp;8.3.6+. If you need professional
+          support or a component that is not in the set, talk to Mustry.
+        </p>
+
+      </div>
+
+      <div class="mt-12 rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 reveal">
+        <p class="text-slate-300 leading-relaxed">Signed .modl on GitHub or the product page. No licence key.</p>
+        <a href="https://mustrysolutions.com/ignition-modules/perspective-components" target="_blank" rel="noopener" class="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-md bg-brand-400 text-slate-950 font-semibold hover:bg-brand-300 transition">
+          Perspective Components on Mustry
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+            <nav class="mt-12 reveal" aria-label="Related reading">
+        <p class="section-eyebrow">// Related</p>
+        <ul class="mt-4 grid gap-3">
+          <li>
+            <a href="../ignition-modules/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Ignition modules for the gaps the platform leaves</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="../ignition-doom/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Yes, your Ignition gateway can run Doom</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="../ignition-dark-mode/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">A dark Ignition Designer from one menu item</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://mustrysolutions.com/ignition-modules" target="_blank" rel="noopener" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">All Ignition modules on mustrysolutions.com</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">External ↗</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <p class="mt-10 font-mono text-xs">
+        <a href="../" class="text-slate-500 hover:text-brand-300 transition-colors">← all notes</a>
+      </p>
+
+    </article>
+  </main>
+  </div>
+
+<!-- partial:subpage-footer -->
+  <footer class="border-t border-slate-800/60 lg:pl-64">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-500">
+      <p class="font-mono text-xs">&copy; <span id="year"></span> Sam Donche</p>
+    </div>
+  </footer>
+<!-- /partial:subpage-footer -->
+
+<!-- partial:site-scripts -->
+  <script src="../../assets/js/eggs.js?v=e05e8c5e22" defer></script>
+  <script src="../../assets/js/script.js?v=914b99f4fc" defer></script>
+  <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../../assets/js/goatcounter.js"></script>
+<!-- /partial:site-scripts -->
+</body>
+</html>

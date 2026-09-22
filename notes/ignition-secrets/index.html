@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- partial:head-boot -->
+  <script>
+    document.documentElement.classList.add('js');
+    try {
+      if (localStorage.getItem('samdonche.nav.rail') === '1') {
+        document.documentElement.classList.add('nav-rail');
+      }
+      var params = new URLSearchParams(location.search);
+      var mode = params.get('mode');
+      // Canonical: desk | floor. Legacy: site/briefing → desk, operator → floor.
+      if (mode === 'briefing' || mode === 'site') mode = 'desk';
+      if (mode === 'operator') mode = 'floor';
+      if (mode === 'desk' || mode === 'floor') {
+        localStorage.setItem('samdonche.mode', mode);
+      } else {
+        mode = localStorage.getItem('samdonche.mode');
+        if (mode === 'briefing' || mode === 'site') mode = 'desk';
+        if (mode === 'operator') mode = 'floor';
+      }
+      if (mode !== 'floor') mode = 'desk';
+      document.documentElement.setAttribute('data-mode', mode);
+    } catch (e) {
+      document.documentElement.setAttribute('data-mode', 'desk');
+    }
+  </script>
+<!-- /partial:head-boot -->
+  <meta name="theme-color" content="#020617" />
+  <meta name="description" content="Ignition gateways still hold database passwords, OPC accounts and script secrets. Why that breaks rotation and audits, and how a native secret-provider module resolves them from Vault, Azure, AWS or Google instead." />
+  <meta name="author" content="Sam Donche" />
+  <title>Ignition credentials belong in your secrets manager — Sam Donche</title>
+
+  <link rel="canonical" href="https://samdonche.com/notes/ignition-secrets/" />
+  <link rel="alternate" type="application/atom+xml" title="Sam Donche — Notes" href="../feed.xml" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Sam Donche" />
+  <meta property="og:title" content="Ignition credentials belong in your secrets manager" />
+  <meta property="og:description" content="Stop copying database passwords into every gateway. Resolve them from Vault, Azure Key Vault, AWS or Google at the moment of use." />
+  <meta property="og:url" content="https://samdonche.com/notes/ignition-secrets/" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://samdonche.com/assets/img/og/ignition-secrets.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Ignition credentials belong in your secrets manager — Sam Donche" />
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Ignition credentials belong in your secrets manager" />
+  <meta name="twitter:description" content="Stop copying database passwords into every gateway. Resolve them from Vault, Azure, AWS or Google at the moment of use." />
+  <meta name="twitter:image" content="https://samdonche.com/assets/img/og/ignition-secrets.jpg" />
+
+  <!-- Structured data: Article + breadcrumb -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "Ignition credentials belong in your secrets manager",
+        "description": "Ignition gateways still hold database passwords, OPC accounts and script secrets. Why that breaks rotation and audits, and how a native secret-provider module resolves them from Vault, Azure, AWS or Google instead.",
+        "image": "https://samdonche.com/assets/img/og/ignition-secrets.jpg",
+        "datePublished": "2026-09-22",
+        "dateModified": "2026-09-22",
+        "inLanguage": "en",
+        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "publisher": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "mainEntityOfPage": "https://samdonche.com/notes/ignition-secrets/",
+        "keywords": "Ignition, secrets, HashiCorp Vault, Azure Key Vault, AWS Secrets Manager, Google Secret Manager, credential rotation, NIS2, IEC 62443, Mustry"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Notes", "item": "https://samdonche.com/notes/" },
+          { "@type": "ListItem", "position": 3, "name": "Ignition secrets", "item": "https://samdonche.com/notes/ignition-secrets/" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- partial:favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Cpath d='M9 11 L14 16 L9 21' fill='none' stroke='%2322d3ee' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='16' y='18.7' width='7.5' height='2.6' rx='1.3' fill='%2322d3ee'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/apple-touch-icon.png" />
+<!-- /partial:favicon -->
+
+<!-- partial:head-assets -->
+  <link rel="preload" href="../../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../../assets/css/fonts.css?v=0f6b5ce264" />
+  <link rel="stylesheet" href="../../assets/css/tailwind.css?v=c826c2f54a" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=3de7925a3a" />
+<!-- /partial:head-assets -->
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans antialiased">
+
+<!-- partial:site-bg -->
+  <div aria-hidden="true" class="fixed inset-0 -z-10 bg-slate-950">
+    <div class="absolute inset-0 grid-bg opacity-[0.35]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(52,211,153,0.05),_transparent_50%)]"></div>
+  </div>
+<!-- /partial:site-bg -->
+
+<!-- partial:subpage-topbar -->
+<!-- Top bar -->
+  <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <a href="../../" class="flex items-center gap-2 group shrink-0" aria-label="Home">
+        <span class="relative inline-flex h-2.5 w-2.5">
+          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+        </span>
+        <span class="brand-mark brand-mark--floor font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
+          sam.donche<span class="brand-mark__host"><span class="text-brand-400">@</span>edge</span>
+        </span>
+        <span class="brand-mark brand-mark--desk text-sm sm:text-base font-semibold tracking-tight text-slate-100 group-hover:text-brand-300 transition-colors">
+          Sam Donche
+        </span>
+      </a>
+      <div class="flex items-center gap-1.5 sm:gap-3 min-w-0">
+        <div class="mode-switch shrink-0" role="group" aria-label="Presentation mode">
+          <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
+          <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
+        </div>
+        <a href="../" class="subpage-back font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← notes</a>
+        <button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      </div>
+    </div>
+  </header>
+<!-- /partial:subpage-topbar -->
+
+  <div class="lg:pl-64">
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-24">
+    <article>
+      <div class="hero-enter">
+        <p class="section-eyebrow">// Notes</p>
+        <h1 class="section-title">Ignition credentials belong in your secrets manager.</h1>
+        <p class="mt-4 font-mono text-xs tracking-wider text-slate-500">
+          2026-09-22 <span class="text-slate-700">·</span> 8 min read <span class="text-slate-700">·</span> Ignition
+        </p>
+      </div>
+
+      <div class="note-prose reveal mt-10">
+        <p>
+          Every Ignition gateway I have commissioned held secrets. Database passwords. OPC accounts.
+          Email credentials. API keys buried in gateway scripts. Encrypted or not, they lived inside
+          the gateway, got copied into the next environment, and quietly outlived every rotation
+          policy IT wrote down.
+        </p>
+        <p>
+          The same plants usually already run HashiCorp Vault, Azure Key Vault, AWS Secrets Manager
+          or Google Secret Manager for everything else. Nobody needed another vault. They needed
+          Ignition to talk to the one they had.
+        </p>
+        <p>
+          <a href="https://mustrysolutions.com/ignition-modules/secrets" target="_blank" rel="noopener">Mustry Secrets</a>
+          registers new provider types on Ignition&nbsp;8.3&rsquo;s own Secret Providers page. Named
+          secrets resolve from your manager when something actually needs the value.
+        </p>
+
+        <div class="note-fig">
+          <p class="note-fig__title">How a secret resolves</p>
+          <div class="note-chips" aria-hidden="true">
+            <span class="note-chip note-chip--accent"><span class="note-tech" style="--icon: url(../../assets/img/notes/tech/vault.svg)" aria-hidden="true"></span> HashiCorp Vault</span>
+            <span class="note-chip note-chip--accent"><span class="note-tech" style="--icon: url(../../assets/img/notes/tech/microsoftazure.svg)" aria-hidden="true"></span> Azure Key Vault</span>
+            <span class="note-chip note-chip--accent"><span class="note-tech" style="--icon: url(../../assets/img/notes/tech/amazonwebservices.svg)" aria-hidden="true"></span> AWS Secrets Manager</span>
+            <span class="note-chip note-chip--accent"><span class="note-tech" style="--icon: url(../../assets/img/notes/tech/googlecloud.svg)" aria-hidden="true"></span> Google Secret Manager</span>
+            <span class="note-chip">Cached wrapper</span>
+          </div>
+          <p class="note-arrow" aria-hidden="true"><span class="note-arrow__glyph">↓</span> registered as provider types</p>
+          <div class="note-node note-node--key note-node--center" aria-hidden="true">
+            <b>Secret Providers page</b>
+            cache + last-known-good in front of every provider
+          </div>
+          <p class="note-arrow" aria-hidden="true"><span class="note-arrow__glyph">↓</span> resolved by</p>
+          <div class="note-row" aria-hidden="true">
+            <div class="note-node"><b>Database connections</b></div>
+            <div class="note-node"><b>OPC connections</b></div>
+            <div class="note-node"><b>Email profiles</b></div>
+          </div>
+          <p class="note-fig__note">Plus <code>system.secrets</code> scripts. The value never lives as a paste in the gateway backup.</p>
+        </div>
+
+        <h2>What breaks when the password lives in the gateway</h2>
+        <p>
+          Fine for one quiet gateway. Less fine once you have an estate, a compliance review, or a
+          password that actually rotates.
+        </p>
+        <ul>
+          <li>
+            <strong>Rotation means editing every copy.</strong> Change the database password in Vault
+            and you still visit every gateway that stored a local paste. Most teams postpone that
+            visit. The old password stays live in a backup.
+          </li>
+          <li>
+            <strong>Environments drift.</strong> Dev, test and production each get their own paste of
+            the same secret. Or worse, the production password rides along in a project export.
+          </li>
+          <li>
+            <strong>Audits get awkward.</strong> NIS2 and IEC&nbsp;62443 conversations start with
+            &ldquo;who can read which credential, and when did it last rotate?&rdquo; A password field
+            on a connection page is a weak answer.
+          </li>
+          <li>
+            <strong>Restarts become the rotation window.</strong> Anything that needs a gateway bounce
+            to pick up a new secret becomes a maintenance event. Plants avoid those. Secrets go stale
+            on purpose.
+          </li>
+        </ul>
+        <p>
+          None of this is exotic. It is what happens when the platform stores secrets and IT stores
+          secrets, and nobody wired the two together.
+        </p>
+
+        <h2>Native providers, same page</h2>
+        <p>
+          Ignition&nbsp;8.3 already has Secret Providers. Database connections, OPC and email
+          profiles, and <code>system.secrets</code> scripts can reference a named secret instead of
+          holding the value. Built-in providers cover the internal and file cases. They do not speak
+          Vault, Azure, AWS or Google.
+        </p>
+        <p>
+          The module adds those types under Platform&nbsp;&rarr;&nbsp;Security&nbsp;&rarr;&nbsp;Secret
+          Providers. Configure a provider once. Point each connection at a secret name. The gateway
+          resolves outbound when it needs the value. No inbound ports into the plant for the vault.
+          No third-party jars stuffed into the <code>.modl</code>. Plain HTTP against the manager you
+          already run, on the gateway&rsquo;s own JSON stack.
+        </p>
+        <p>Providers today:</p>
+        <ul>
+          <li><strong>HashiCorp Vault.</strong> KV&nbsp;v2 and database-engine static roles, with token, AppRole or Kubernetes auth</li>
+          <li><strong>Azure Key Vault.</strong> Client secret or managed identity</li>
+          <li><strong>AWS Secrets Manager.</strong> Access key or EC2 instance role</li>
+          <li><strong>Google Secret Manager.</strong> Service account key or GCE/GKE metadata</li>
+          <li><strong>Cached provider.</strong> Wraps another provider for hub-and-spoke estates over the Gateway Network</li>
+        </ul>
+
+        <h2>Rotate without scheduling Saturday</h2>
+        <div class="note-fig" aria-hidden="true">
+          <p class="note-fig__title">Windowless rotation</p>
+          <div class="note-row">
+            <div class="note-node note-node--out note-node--center">
+              <div class="note-node__marks"><span class="note-tech" style="--icon: url(../../assets/img/notes/tech/vault.svg)" aria-hidden="true"></span><span class="note-tech" style="--icon: url(../../assets/img/notes/tech/microsoftazure.svg)" aria-hidden="true"></span></div>
+              <b>Rotate in the manager</b>
+              Vault, Azure, AWS or Google
+            </div>
+            <div class="note-node note-node--key note-node--center">
+              <b>Next resolve</b>
+              gateway picks it up live
+            </div>
+            <div class="note-node note-node--center">
+              <b>Connections stay up</b>
+              no planned bounce
+            </div>
+          </div>
+          <p class="note-arrow"><span class="note-arrow__glyph">↓</span> if the manager is down</p>
+          <div class="note-node note-node--center">
+            <b>Last-known-good cache</b>
+            plant keeps running · every cached serve is audited
+          </div>
+        </div>
+
+        <p>
+          Rotate the secret in the manager. The gateway picks it up on the next resolve. Database
+          connections do not fault for a planned bounce. Nobody schedules Saturday night because a
+          password aged out. That is usually the line that ends the meeting.
+        </p>
+        <p>
+          Caching with last-known-good fallback matters just as much on the floor. If Vault or Azure
+          has a bad afternoon, the plant keeps running on the last good value, and every cached serve
+          lands in the gateway audit trail. The opposite of a sidecar that fails closed and takes the
+          line with it.
+        </p>
+        <p>
+          Licence behaviour is deliberate. On a lapse there is a 72-hour grace where cached values keep
+          serving with explicit warnings, then reads fail loudly. A plant that thinks it still has
+          credentials and does not is worse than one that knows.
+        </p>
+
+        <h2>Limits worth knowing</h2>
+        <p>
+          This is not a secrets manager. If you do not have one, pick Vault or your cloud vendor
+          first. The module is the bridge.
+        </p>
+        <p>
+          It is not a policy engine either. Who may read which path, how often passwords rotate, and
+          which namespaces belong to which plant still live in your manager. Ignition just stops being
+          the place those policies go to die.
+        </p>
+        <p>
+          Gateway-scope for Ignition&nbsp;8.3.3+. Edge only loads modules from Inductive&rsquo;s fixed
+          vendor list, so talk to us before you assume Edge is in scope. Hub-and-spoke over the
+          Gateway Network is the usual pattern when edge sites should not each hold a vault token.
+        </p>
+
+        <h2>Where it sits</h2>
+        <p>
+          Same idea as
+          <a href="../mes-scada-vs-historian/">MES, SCADA and historians</a>
+          answering different questions: secrets management is not a SCADA feature. It is
+          infrastructure every connection and script depends on. When the password lives in IT&rsquo;s
+          manager, commissioning a new gateway stops meaning &ldquo;paste the production password
+          again.&rdquo;
+        </p>
+        <p>
+          Mapping the rest of what we built for Ignition&nbsp;8.3? Start from the
+          <a href="../ignition-modules/">modules overview</a>.
+          Secrets is usually the first one that shows up in a security review. &euro;600 per gateway,
+          perpetual, with Basic Care updates available yearly.
+        </p>
+      </div>
+
+      <!-- Closing CTA -->
+      <div class="mt-12 rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 reveal">
+        <p class="text-slate-300 leading-relaxed">
+          Runs on Ignition&rsquo;s standard trial timer. Manual, pricing and the request form are on
+          the product page.
+        </p>
+        <a href="https://mustrysolutions.com/ignition-modules/secrets" target="_blank" rel="noopener" class="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-md bg-brand-400 text-slate-950 font-semibold hover:bg-brand-300 transition">
+          Secrets module on Mustry
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+            <nav class="mt-12 reveal" aria-label="Related reading">
+        <p class="section-eyebrow">// Related</p>
+        <ul class="mt-4 grid gap-3">
+          <li>
+            <a href="../ignition-modules/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Ignition modules for the gaps the platform leaves</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="../ignition-amqp/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Stop scripting RabbitMQ inside Ignition</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="../ignition-observability/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Put your Ignition gateway on the same dashboards as everything else</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://mustrysolutions.com/ignition-modules" target="_blank" rel="noopener" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">All Ignition modules on mustrysolutions.com</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">External ↗</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <p class="mt-10 font-mono text-xs">
+        <a href="../" class="text-slate-500 hover:text-brand-300 transition-colors">← all notes</a>
+      </p>
+    </article>
+  </main>
+  </div>
+
+<!-- partial:subpage-footer -->
+  <footer class="border-t border-slate-800/60 lg:pl-64">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-500">
+      <p class="font-mono text-xs">&copy; <span id="year"></span> Sam Donche</p>
+    </div>
+  </footer>
+<!-- /partial:subpage-footer -->
+
+<!-- partial:site-scripts -->
+  <script src="../../assets/js/eggs.js?v=e05e8c5e22" defer></script>
+  <script src="../../assets/js/script.js?v=914b99f4fc" defer></script>
+  <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../../assets/js/goatcounter.js"></script>
+<!-- /partial:site-scripts -->
+</body>
+</html>

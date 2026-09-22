@@ -40,6 +40,51 @@ CARDS = [
     {"slug": "case-studies", "eyebrow": "CASE STUDIES", "title": "Selected work on the plant floor"},
     {"slug": "publications", "eyebrow": "PUBLICATIONS", "title": "Research output from UZ Gent"},
     {
+        "slug": "ignition-secrets",
+        "eyebrow": "NOTE",
+        "title": "Ignition credentials belong in your secrets manager",
+    },
+    {
+        "slug": "ignition-observability",
+        "eyebrow": "NOTE",
+        "title": "Put your Ignition gateway on the same dashboards as everything else",
+    },
+    {
+        "slug": "ignition-historian",
+        "eyebrow": "NOTE",
+        "title": "Tag history that stays fast when retention gets long",
+    },
+    {
+        "slug": "ignition-amqp",
+        "eyebrow": "NOTE",
+        "title": "Stop scripting RabbitMQ inside Ignition",
+    },
+    {
+        "slug": "ignition-alarms",
+        "eyebrow": "NOTE",
+        "title": "Page the channel the crew actually watches",
+    },
+    {
+        "slug": "ignition-perspective",
+        "eyebrow": "NOTE",
+        "title": "Fourteen Perspective components the platform never shipped",
+    },
+    {
+        "slug": "ignition-doom",
+        "eyebrow": "NOTE",
+        "title": "Yes, your Ignition gateway can run Doom",
+    },
+    {
+        "slug": "ignition-dark-mode",
+        "eyebrow": "NOTE",
+        "title": "A dark Ignition Designer from one menu item",
+    },
+    {
+        "slug": "ignition-modules",
+        "eyebrow": "NOTE",
+        "title": "Ignition modules for the gaps the platform leaves",
+    },
+    {
         "slug": "mqtt-sparkplug-b",
         "eyebrow": "NOTE",
         "title": "MQTT and Sparkplug B: why factories stopped polling",

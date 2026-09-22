@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- partial:head-boot -->
+  <script>
+    document.documentElement.classList.add('js');
+    try {
+      if (localStorage.getItem('samdonche.nav.rail') === '1') {
+        document.documentElement.classList.add('nav-rail');
+      }
+      var params = new URLSearchParams(location.search);
+      var mode = params.get('mode');
+      // Canonical: desk | floor. Legacy: site/briefing → desk, operator → floor.
+      if (mode === 'briefing' || mode === 'site') mode = 'desk';
+      if (mode === 'operator') mode = 'floor';
+      if (mode === 'desk' || mode === 'floor') {
+        localStorage.setItem('samdonche.mode', mode);
+      } else {
+        mode = localStorage.getItem('samdonche.mode');
+        if (mode === 'briefing' || mode === 'site') mode = 'desk';
+        if (mode === 'operator') mode = 'floor';
+      }
+      if (mode !== 'floor') mode = 'desk';
+      document.documentElement.setAttribute('data-mode', mode);
+    } catch (e) {
+      document.documentElement.setAttribute('data-mode', 'desk');
+    }
+  </script>
+<!-- /partial:head-boot -->
+  <meta name="theme-color" content="#020617" />
+  <meta name="description" content="A free Perspective component that runs Doom inside SCADA. Tags fire the shotgun, alarms pause the marine, health lands in your historian. Industrially useless on purpose." />
+  <meta name="author" content="Sam Donche" />
+  <title>Yes, your Ignition gateway can run Doom — Sam Donche</title>
+
+  <link rel="canonical" href="https://samdonche.com/notes/ignition-doom/" />
+  <link rel="alternate" type="application/atom+xml" title="Sam Donche — Notes" href="../feed.xml" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Sam Donche" />
+  <meta property="og:title" content="Yes, your Ignition gateway can run Doom" />
+  <meta property="og:description" content="Doom in Perspective: tag-bound controls, alarm-aware pause, historian telemetry, and deathmatch through the gateway." />
+  <meta property="og:url" content="https://samdonche.com/notes/ignition-doom/" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://samdonche.com/assets/img/og/ignition-doom.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Yes, your Ignition gateway can run Doom — Sam Donche" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Yes, your Ignition gateway can run Doom" />
+  <meta name="twitter:description" content="Doom in Perspective: tag-bound controls, alarm-aware pause, historian telemetry, and deathmatch through the gateway." />
+  <meta name="twitter:image" content="https://samdonche.com/assets/img/og/ignition-doom.jpg" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "Yes, your Ignition gateway can run Doom",
+        "description": "A free Perspective component that runs Doom inside SCADA. Tags fire the shotgun, alarms pause the marine, health lands in your historian. Industrially useless on purpose.",
+        "image": "https://samdonche.com/assets/img/og/ignition-doom.jpg",
+        "datePublished": "2026-09-22",
+        "dateModified": "2026-09-22",
+        "inLanguage": "en",
+        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "publisher": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "mainEntityOfPage": "https://samdonche.com/notes/ignition-doom/",
+        "keywords": "Ignition, Doom, Perspective, free, GPL, Mustry, SCADA"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Notes", "item": "https://samdonche.com/notes/" },
+          { "@type": "ListItem", "position": 3, "name": "Yes, your Ignition gateway can run Doom", "item": "https://samdonche.com/notes/ignition-doom/" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- partial:favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Cpath d='M9 11 L14 16 L9 21' fill='none' stroke='%2322d3ee' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='16' y='18.7' width='7.5' height='2.6' rx='1.3' fill='%2322d3ee'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/apple-touch-icon.png" />
+<!-- /partial:favicon -->
+
+<!-- partial:head-assets -->
+  <link rel="preload" href="../../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../../assets/css/fonts.css?v=0f6b5ce264" />
+  <link rel="stylesheet" href="../../assets/css/tailwind.css?v=c826c2f54a" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=3de7925a3a" />
+<!-- /partial:head-assets -->
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans antialiased">
+
+<!-- partial:site-bg -->
+  <div aria-hidden="true" class="fixed inset-0 -z-10 bg-slate-950">
+    <div class="absolute inset-0 grid-bg opacity-[0.35]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(52,211,153,0.05),_transparent_50%)]"></div>
+  </div>
+<!-- /partial:site-bg -->
+
+<!-- partial:subpage-topbar -->
+<!-- Top bar -->
+  <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <a href="../../" class="flex items-center gap-2 group shrink-0" aria-label="Home">
+        <span class="relative inline-flex h-2.5 w-2.5">
+          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+        </span>
+        <span class="brand-mark brand-mark--floor font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
+          sam.donche<span class="brand-mark__host"><span class="text-brand-400">@</span>edge</span>
+        </span>
+        <span class="brand-mark brand-mark--desk text-sm sm:text-base font-semibold tracking-tight text-slate-100 group-hover:text-brand-300 transition-colors">
+          Sam Donche
+        </span>
+      </a>
+      <div class="flex items-center gap-1.5 sm:gap-3 min-w-0">
+        <div class="mode-switch shrink-0" role="group" aria-label="Presentation mode">
+          <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
+          <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
+        </div>
+        <a href="../" class="subpage-back font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← notes</a>
+        <button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      </div>
+    </div>
+  </header>
+<!-- /partial:subpage-topbar -->
+
+  <div class="lg:pl-64">
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-24">
+    <article>
+      <div class="hero-enter">
+        <p class="section-eyebrow">// Notes</p>
+        <h1 class="section-title">Yes, your Ignition gateway can run Doom.</h1>
+        <p class="mt-4 font-mono text-xs tracking-wider text-slate-500">
+          2026-09-22 <span class="text-slate-700">·</span> 5 min read <span class="text-slate-700">·</span> Ignition
+        </p>
+      </div>
+
+      <div class="note-prose reveal mt-10">
+        <p>
+          Someone always asks whether the gateway can run Doom. Ours can. A free Perspective
+          component plays the 1993 shareware episode inside a view. Tags fire the shotgun. Alarms
+          pause the game. The marine&rsquo;s health lands in your historian next to the pump
+          pressures. Two operators can deathmatch through the gateway.
+        </p>
+        <p>
+          Industrially useless. That is intentional. GPL-2.0, Ignition&nbsp;8.3.6+, one component
+          under the Mustry Solutions palette. No trial, no activation.
+        </p>
+
+        <figure class="note-shot">
+          <div class="note-shot__frame" style="grid-template-columns:1fr">
+            <div class="note-shot__cell">
+              <img src="../../assets/img/notes/doom-paused.jpg" alt="Doom paused in a Perspective view while a line alarm is active" width="960" height="600" loading="lazy" />
+              <p class="note-shot__cap note-shot__cap--on"><span class="note-shot__dot" aria-hidden="true"></span> Line stopped · alarm active · marine waits</p>
+            </div>
+          </div>
+          <p class="note-shot__credit">From the
+            <a href="https://github.com/Mustry-Solutions/ignition-doom-module" target="_blank" rel="noopener">module repo</a></p>
+        </figure>
+
+        <h2>What it hooks into</h2>
+        <ul>
+          <li><strong>Plays Doom.</strong> Chocolate Doom compiled to WebAssembly, served by the gateway, running in the browser. Keyboard and mouse stay in the game when it has focus.</li>
+          <li><strong>Takes orders from tags.</strong> Boolean props for forward, fire, use and the rest. Bind them and a PLC input fires the shotgun.</li>
+          <li><strong>Obeys your alarms.</strong> Two-way <code>state.paused</code>. Bind an active alarm and production trouble freezes the marine until someone acknowledges.</li>
+          <li><strong>Reports back.</strong> Health, armor, ammo, kills and more stream into a <code>[Doom]</code> tag provider, one folder per player. Historize it next to real process data.</li>
+          <li><strong>Deathmatch.</strong> The gateway relays Doom&rsquo;s network between Perspective sessions. Host in one browser, join from another.</li>
+        </ul>
+
+        <figure class="note-gallery__card" style="margin:0 0 1.5rem;display:block">
+          <div class="note-gallery__media" style="aspect-ratio:16/9">
+            <img src="../../assets/img/notes/doom-control-room.jpg" alt="Doom control room demo with tag tiles, alarms and a health trend" width="960" height="540" loading="lazy" />
+          </div>
+          <figcaption class="note-gallery__cap">
+            <b>Control room demo</b>
+            <span>game · [Doom] tags · alarms · historian trend</span>
+          </figcaption>
+        </figure>
+
+        <h2>Why bother</h2>
+        <p>
+          Because people ask, and because a module that is obviously useless is a clean demo of how
+          Perspective components, tag providers and gateway services fit together. The modules that
+          pay the bills are elsewhere. Doom is the one that gets Ignition people curious.
+        </p>
+        <p>
+          Want components that actually earn their keep on a plant floor? Start with the
+          <a href="../ignition-perspective/">Perspective Components</a> note.
+        </p>
+
+      </div>
+
+      <div class="mt-12 rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 reveal">
+        <p class="text-slate-300 leading-relaxed">Signed .modl on GitHub. Drop Doom on a view. Fire the shotgun from a tag.</p>
+        <a href="https://github.com/Mustry-Solutions/ignition-doom-module" target="_blank" rel="noopener" class="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-md bg-brand-400 text-slate-950 font-semibold hover:bg-brand-300 transition">
+          Mustry Doom on GitHub
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+            <nav class="mt-12 reveal" aria-label="Related reading">
+        <p class="section-eyebrow">// Related</p>
+        <ul class="mt-4 grid gap-3">
+          <li>
+            <a href="../ignition-modules/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Ignition modules for the gaps the platform leaves</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="../ignition-perspective/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Fourteen Perspective components the platform never shipped</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="../ignition-dark-mode/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">A dark Ignition Designer from one menu item</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://mustrysolutions.com/ignition-modules" target="_blank" rel="noopener" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">All Ignition modules on mustrysolutions.com</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">External ↗</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <p class="mt-10 font-mono text-xs">
+        <a href="../" class="text-slate-500 hover:text-brand-300 transition-colors">← all notes</a>
+      </p>
+
+    </article>
+  </main>
+  </div>
+
+<!-- partial:subpage-footer -->
+  <footer class="border-t border-slate-800/60 lg:pl-64">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-500">
+      <p class="font-mono text-xs">&copy; <span id="year"></span> Sam Donche</p>
+    </div>
+  </footer>
+<!-- /partial:subpage-footer -->
+
+<!-- partial:site-scripts -->
+  <script src="../../assets/js/eggs.js?v=e05e8c5e22" defer></script>
+  <script src="../../assets/js/script.js?v=914b99f4fc" defer></script>
+  <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../../assets/js/goatcounter.js"></script>
+<!-- /partial:site-scripts -->
+</body>
+</html>

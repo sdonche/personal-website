@@ -64,7 +64,7 @@
   <link rel="preload" href="../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="../assets/css/fonts.css?v=0f6b5ce264" />
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=c826c2f54a" />
-  <link rel="stylesheet" href="../assets/css/styles.css?v=7b7a106a9c" />
+  <link rel="stylesheet" href="../assets/css/styles.css?v=3de7925a3a" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -122,6 +122,123 @@
 
     <ul class="mt-12 grid gap-5">
       <li>
+        <a href="ignition-secrets/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">Ignition credentials belong in your secrets manager</h2>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Read ↗</span>
+          </div>
+          <p class="text-sm text-slate-400 mt-1 font-mono">2026-09-22 · 8 min read</p>
+          <p class="mt-3 text-sm text-slate-300 leading-relaxed">Gateways still hold database passwords and script secrets. Why that breaks rotation and audits, and how a native secret-provider module resolves them from Vault, Azure, AWS or Google instead.</p>
+          <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+            <span class="tag">Ignition</span><span class="tag">Secrets</span><span class="tag">Vault</span><span class="tag">Security</span>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="ignition-observability/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">Put your Ignition gateway on the same dashboards as everything else</h2>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Read ↗</span>
+          </div>
+          <p class="text-sm text-slate-400 mt-1 font-mono">2026-09-22 · 7 min read</p>
+          <p class="mt-3 text-sm text-slate-300 leading-relaxed">OpenTelemetry and Prometheus for Ignition 8.3: curated metrics, logs, and no wrapper.conf surgery. Gateway health where your on-call already looks.</p>
+          <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+            <span class="tag">Ignition</span><span class="tag">OpenTelemetry</span><span class="tag">Grafana</span><span class="tag">Prometheus</span>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="ignition-historian/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">Tag history that stays fast when retention gets long</h2>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Read ↗</span>
+          </div>
+          <p class="text-sm text-slate-400 mt-1 font-mono">2026-09-22 · 6 min read</p>
+          <p class="mt-3 text-sm text-slate-300 leading-relaxed">TimescaleDB-backed historian for Ignition 8.3. Aggregates in tens of milliseconds over hundreds of millions of rows, with the native tag-history experience kept.</p>
+          <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+            <span class="tag">Ignition</span><span class="tag">TimescaleDB</span><span class="tag">Historian</span>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="ignition-amqp/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">Stop scripting RabbitMQ inside Ignition</h2>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Read ↗</span>
+          </div>
+          <p class="text-sm text-slate-400 mt-1 font-mono">2026-09-22 · 6 min read</p>
+          <p class="mt-3 text-sm text-slate-300 leading-relaxed">Named AMQP broker connections as gateway config, Event Streams and system.amqp scripting. Replaces the client parked in getGlobals().</p>
+          <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+            <span class="tag">Ignition</span><span class="tag">AMQP</span><span class="tag">RabbitMQ</span>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="ignition-alarms/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">Page the channel the crew actually watches</h2>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Read ↗</span>
+          </div>
+          <p class="text-sm text-slate-400 mt-1 font-mono">2026-09-22 · 6 min read</p>
+          <p class="mt-3 text-sm text-slate-300 leading-relaxed">Teams, Slack and webhook alarm notification profiles for Ignition 8.3, with acknowledgement, retry, fallback and a delivery audit trail.</p>
+          <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+            <span class="tag">Ignition</span><span class="tag">Alarms</span><span class="tag">Teams</span><span class="tag">Slack</span>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="ignition-perspective/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">Fourteen Perspective components the platform never shipped</h2>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Read ↗</span>
+          </div>
+          <p class="text-sm text-slate-400 mt-1 font-mono">2026-09-22 · 6 min read</p>
+          <p class="mt-3 text-sm text-slate-300 leading-relaxed">Free Apache-2.0 components: scheduling board, calendar, editable grid, pan-and-zoom, branching diagram, and the admin family Vision had.</p>
+          <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+            <span class="tag">Ignition</span><span class="tag">Perspective</span><span class="tag">Open source</span>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="ignition-dark-mode/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">A dark Ignition Designer from one menu item</h2>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Read ↗</span>
+          </div>
+          <p class="text-sm text-slate-400 mt-1 font-mono">2026-09-22 · 5 min read</p>
+          <p class="mt-3 text-sm text-slate-300 leading-relaxed">Free FlatLaf dark mode for the Ignition 8.3 Designer. Tools → Dark Mode, remembered between launches, open source on GitHub.</p>
+          <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+            <span class="tag">Ignition</span><span class="tag">Designer</span><span class="tag">Dark mode</span><span class="tag">Free</span>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="ignition-doom/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">Yes, your Ignition gateway can run Doom</h2>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Read ↗</span>
+          </div>
+          <p class="text-sm text-slate-400 mt-1 font-mono">2026-09-22 · 5 min read</p>
+          <p class="mt-3 text-sm text-slate-300 leading-relaxed">A free Perspective component that runs Doom inside SCADA. Tags fire the shotgun, alarms pause the marine, health lands in your historian. Industrially useless on purpose.</p>
+          <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+            <span class="tag">Ignition</span><span class="tag">Doom</span><span class="tag">Perspective</span><span class="tag">Free</span>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="ignition-modules/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">Ignition modules for the gaps the platform leaves</h2>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Read ↗</span>
+          </div>
+          <p class="text-sm text-slate-400 mt-1 font-mono">2026-09-22 · 6 min read</p>
+          <p class="mt-3 text-sm text-slate-300 leading-relaxed">Secrets, RabbitMQ, Timescale, OpenTelemetry, alarm channels, Perspective UI, Designer dark mode, and Doom: Ignition 8.3 modules from Mustry, and where each one fits.</p>
+          <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+            <span class="tag">Ignition</span><span class="tag">Modules</span><span class="tag">Mustry</span><span class="tag">8.3</span>
+          </div>
+        </a>
+      </li>
+      <li>
         <a href="mqtt-sparkplug-b/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
           <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">MQTT and Sparkplug B: why factories stopped polling</h2>
@@ -160,7 +277,7 @@
 
 <!-- partial:site-scripts -->
   <script src="../assets/js/eggs.js?v=e05e8c5e22" defer></script>
-  <script src="../assets/js/script.js?v=3acea1135a" defer></script>
+  <script src="../assets/js/script.js?v=914b99f4fc" defer></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../assets/js/goatcounter.js"></script>
 <!-- /partial:site-scripts -->
 </body>

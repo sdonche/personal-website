@@ -18,6 +18,98 @@ AUTHOR = "Sam Donche"
 # Newest first
 NOTES = [
     {
+        "slug": "ignition-secrets",
+        "title": "Ignition credentials belong in your secrets manager",
+        "summary": (
+            "Gateways still hold database passwords and script secrets. Why that "
+            "breaks rotation and audits, and how a native secret-provider module "
+            "resolves them from Vault, Azure, AWS or Google instead."
+        ),
+        "published": "2026-09-22",
+        "updated": "2026-09-22",
+    },
+    {
+        "slug": "ignition-observability",
+        "title": "Put your Ignition gateway on the same dashboards as everything else",
+        "summary": (
+            "OpenTelemetry and Prometheus for Ignition 8.3: curated metrics, logs, "
+            "and no wrapper.conf surgery."
+        ),
+        "published": "2026-09-22",
+        "updated": "2026-09-22",
+    },
+    {
+        "slug": "ignition-historian",
+        "title": "Tag history that stays fast when retention gets long",
+        "summary": (
+            "TimescaleDB-backed historian for Ignition 8.3. Aggregates in tens of "
+            "milliseconds over hundreds of millions of rows."
+        ),
+        "published": "2026-09-22",
+        "updated": "2026-09-22",
+    },
+    {
+        "slug": "ignition-amqp",
+        "title": "Stop scripting RabbitMQ inside Ignition",
+        "summary": (
+            "Named AMQP broker connections as gateway config, Event Streams and "
+            "system.amqp scripting. Replaces the client parked in getGlobals()."
+        ),
+        "published": "2026-09-22",
+        "updated": "2026-09-22",
+    },
+    {
+        "slug": "ignition-alarms",
+        "title": "Page the channel the crew actually watches",
+        "summary": (
+            "Teams, Slack and webhook alarm notification profiles for Ignition 8.3, "
+            "with acknowledgement, retry, fallback and a delivery audit trail."
+        ),
+        "published": "2026-09-22",
+        "updated": "2026-09-22",
+    },
+    {
+        "slug": "ignition-perspective",
+        "title": "Fourteen Perspective components the platform never shipped",
+        "summary": (
+            "Free Apache-2.0 components: scheduling board, calendar, editable grid, "
+            "pan-and-zoom, branching diagram, and the admin family Vision had."
+        ),
+        "published": "2026-09-22",
+        "updated": "2026-09-22",
+    },
+    {
+        "slug": "ignition-doom",
+        "title": "Yes, your Ignition gateway can run Doom",
+        "summary": (
+            "A free Perspective component that runs Doom inside SCADA. Tags fire "
+            "the shotgun, alarms pause the marine. Industrially useless on purpose."
+        ),
+        "published": "2026-09-22",
+        "updated": "2026-09-22",
+    },
+    {
+        "slug": "ignition-dark-mode",
+        "title": "A dark Ignition Designer from one menu item",
+        "summary": (
+            "Free FlatLaf dark mode for the Ignition 8.3 Designer. Tools → Dark Mode, "
+            "remembered between launches, open source on GitHub."
+        ),
+        "published": "2026-09-22",
+        "updated": "2026-09-22",
+    },
+    {
+        "slug": "ignition-modules",
+        "title": "Ignition modules for the gaps the platform leaves",
+        "summary": (
+            "Secrets, RabbitMQ, Timescale, OpenTelemetry, alarm channels, "
+            "Perspective UI, Designer dark mode, and Doom: Ignition 8.3 modules "
+            "from Mustry, and where each one fits."
+        ),
+        "published": "2026-09-22",
+        "updated": "2026-09-22",
+    },
+    {
         "slug": "mqtt-sparkplug-b",
         "title": "MQTT and Sparkplug B: why factories stopped polling",
         "summary": (
@@ -39,6 +131,7 @@ NOTES = [
         "updated": "2026-07-23",
     },
 ]
+
 
 
 def atom_date(d: str) -> str:
