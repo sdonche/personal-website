@@ -245,6 +245,9 @@
     STUB_LINE_TAGS.map((t) => ({ ...t, id: `${line.id}/${t.id}` }))
   );
 
+  /** Site-level meta tags shared by Heuvelland + sisters (Running / Mode / OEE / LastContact). */
+  const SITE_META_NAMES = ["Running", "Mode", "OEE", "LastContact"];
+
   /** Offline sister sites — site tags + stub Mixing/Packaging areas. */
   const SISTER_AREAS = [
     { id: "Mixing", tags: [
@@ -262,13 +265,22 @@
     Gent: "2026-09-20 14:02 UTC",
     Brugge: "2026-09-17 23:55 UTC",
   };
+  const HEUVELLAND_SITE_TAGS = [
+    { id: `${SITE}/Running`, name: "Running", type: "bool", live: true },
+    { id: `${SITE}/Mode`, name: "Mode", type: "string", live: true },
+    { id: `${SITE}/OEE`, name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1), live: true },
+    { id: `${SITE}/LastContact`, name: "LastContact", type: "string", live: true },
+  ];
   const SISTER_SITE_TAGS = SISTER_SITES.flatMap((site) => {
-    const top = [
-      { id: `${site}/Running`, name: "Running", type: "bool", live: false },
-      { id: `${site}/Mode`, name: "Mode", type: "string", live: false },
-      { id: `${site}/OEE`, name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1), live: false },
-      { id: `${site}/LastContact`, name: "LastContact", type: "string", live: false },
-    ];
+    const top = SITE_META_NAMES.map((name) => {
+      if (name === "OEE") {
+        return { id: `${site}/OEE`, name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1), live: false };
+      }
+      if (name === "Running") {
+        return { id: `${site}/Running`, name: "Running", type: "bool", live: false };
+      }
+      return { id: `${site}/${name}`, name, type: "string", live: false };
+    });
     const areas = SISTER_AREAS.flatMap((area) =>
       area.tags.map((t) => ({
         id: `${site}/${area.id}/${t.name}`,
@@ -284,6 +296,7 @@
 
   const ALL_TAGS = LINE3_TAGS.concat(
     STUB_TAGS,
+    HEUVELLAND_SITE_TAGS,
     MIXING_TAGS,
     REFINING_TAGS,
     CONCHING_TAGS,
@@ -301,6 +314,12 @@
   function isSisterSiteTag(rel) {
     if (!rel) return false;
     return SISTER_SITE_SET.has(rel.split("/")[0]);
+  }
+
+  function isHeuvellandSiteTag(rel) {
+    if (!rel) return false;
+    const parts = rel.split("/");
+    return parts.length === 2 && parts[0] === SITE && SITE_META_NAMES.includes(parts[1]);
   }
 
   function isMixingTag(rel) {
@@ -330,7 +349,7 @@
 
   function isPackagingTag(rel) {
     if (!rel) return false;
-    if (isProcessAreaTag(rel) || isSisterSiteTag(rel)) return false;
+    if (isProcessAreaTag(rel) || isSisterSiteTag(rel) || isHeuvellandSiteTag(rel)) return false;
     return true;
   }
 
@@ -340,13 +359,13 @@
     if (isConchingTag(rel)) return "conching";
     if (isTemperingTag(rel)) return "tempering";
     if (isMouldingTag(rel)) return "moulding";
-    if (isSisterSiteTag(rel)) return null;
+    if (isSisterSiteTag(rel) || isHeuvellandSiteTag(rel)) return null;
     if (isPackagingTag(rel)) return "packaging";
     return null;
   }
 
   function pathOf(rel) {
-    if (isSisterSiteTag(rel)) return `${PROVIDER}${rel}`;
+    if (isSisterSiteTag(rel) || isHeuvellandSiteTag(rel)) return `${PROVIDER}${rel}`;
     if (isProcessAreaTag(rel)) return `${PROVIDER}${SITE}/${rel}`;
     if (isStubTag(rel)) return `${PROVIDER}${AREA_ROOT}/${rel}`;
     return `${PROVIDER}${AREA_ROOT}/${LIVE_LINE}/${rel}`;
@@ -678,6 +697,18 @@
     live["Moulding/Outlet/ValveOpen"] = { value: mouldOutOpen, quality: mouldStarve ? "Uncertain" : "Good" };
     live["Moulding/Outlet/FlowKgH"] = { value: Math.max(0, mouldOutFlow), quality: mouldStarve ? "Bad" : "Good" };
     live["Moulding/Cooling/AirTempC"] = { value: airTemp, quality: mouldStarve ? "Uncertain" : "Good" };
+
+    /* Heuvelland site meta — same shape as sister sites. */
+    const plantMode = mixOver || temperWarm || jam
+      ? "FAULT"
+      : mixValve || temperBelt || feedStarved
+        ? "HOLD"
+        : "AUTO";
+    const contactStamp = new Date().toISOString().replace("T", " ").slice(0, 16) + " UTC";
+    live[`${SITE}/Running`] = { value: lineOk || !jam, quality: jam || mixOver || temperWarm ? "Uncertain" : "Good" };
+    live[`${SITE}/Mode`] = { value: plantMode, quality: jam || mixOver || temperWarm ? "Bad" : feedStarved ? "Uncertain" : "Good" };
+    live[`${SITE}/OEE`] = { value: oee, quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" };
+    live[`${SITE}/LastContact`] = { value: contactStamp, quality: "Good" };
 
     SISTER_SITES.forEach((site) => {
       live[`${site}/Running`] = { value: false, quality: "Stale" };
@@ -1052,8 +1083,9 @@
     const moulding = renderMouldingFolder();
 
     /* Process order: Mixing → Refining → Conching → Tempering → Moulding → Packaging */
+    const siteMeta = HEUVELLAND_SITE_TAGS.map((t) => renderTagButton(t.id, t)).join("");
     const heuvellandAreas = mixing + refining + conching + tempering + moulding + packaging;
-    const heuvelland = renderFolder(SITE, SITE, heuvellandAreas, "plant-tree__site plant-tree__site--live");
+    const heuvelland = renderFolder(SITE, SITE, siteMeta + heuvellandAreas, "plant-tree__site plant-tree__site--live");
     const sisters = SISTER_SITES.map(renderSisterSiteFolder).join("");
 
     root.innerHTML = renderFolder(EDGE_ROOT, EDGE_ROOT, heuvelland + sisters, "plant-tree__edge");
@@ -2182,6 +2214,9 @@
       if (isSisterSiteTag(state.selectedTag)) {
         return state.selectedTag.split("/")[0];
       }
+      if (isHeuvellandSiteTag(state.selectedTag)) {
+        return SITE;
+      }
       if (isProcessAreaTag(state.selectedTag)) {
         const parts = state.selectedTag.split("/");
         return parts.length > 2 ? parts.slice(0, -1).join(" / ") : parts[0];
@@ -2393,6 +2428,8 @@
         acc += "/" + parts[i];
         open.add(acc);
       }
+    } else if (isHeuvellandSiteTag(id)) {
+      open.add(SITE);
     } else if (isProcessAreaTag(id)) {
       open.add(SITE);
       const parts = id.split("/");
