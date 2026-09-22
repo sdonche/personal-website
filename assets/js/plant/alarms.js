@@ -4,12 +4,31 @@ import { Plant } from "./ns.js?v=c600f295ec";
 Plant.navigateToAlarm = function navigateToAlarm(alarm) {
   if (!alarm) return;
   const meta = Plant.ALARM_PID[alarm.id];
+  if (meta?.navTag && Plant.TAG_BY_ID[meta.navTag]) {
+    Plant.selectTag(meta.navTag);
+    return;
+  }
+  if (meta?.navDrawing) {
+    Plant.setActiveDrawing(meta.navDrawing);
+    return;
+  }
   const tag = Plant.tagFromAlarmPath(alarm.path);
   if (tag) {
     Plant.selectTag(tag);
     return;
   }
   if (meta?.drawing) Plant.setActiveDrawing(meta.drawing);
+}
+
+Plant.sortActiveAlarms = function sortActiveAlarms(alarms) {
+  const firstOut = Plant.firstOutAlarmId(alarms);
+  return alarms.slice().sort((a, b) => {
+    const aFo = a.id === firstOut && !a.acked;
+    const bFo = b.id === firstOut && !b.acked;
+    if (aFo !== bFo) return aFo ? -1 : 1;
+    if (a.acked !== b.acked) return a.acked ? 1 : -1;
+    return a.ts - b.ts;
+  });
 }
 
 Plant.renderAlarms = function renderAlarms() {
@@ -54,9 +73,7 @@ Plant.renderAlarms = function renderAlarms() {
   }
 
   const firstOut = Plant.firstOutAlarmId(Plant.state.alarms);
-  list.innerHTML = active
-    .slice()
-    .sort((a, b) => Number(a.acked) - Number(b.acked) || b.ts - a.ts)
+  list.innerHTML = Plant.sortActiveAlarms(active)
     .map((a) => {
       const acked = a.acked ? " is-acked" : "";
       const fo = a.id === firstOut && !a.acked ? `<span class="plant-alarm__firstout" title="First-out">1st</span>` : "";
@@ -80,7 +97,7 @@ Plant.renderAlarms = function renderAlarms() {
 Plant.updateAlarmTimes = function updateAlarmTimes() {
   if (Plant.state.alarmPane === "history") return;
   const filterSev = (a) => Plant.state.alarmFilter === "all" || a.severity === Plant.state.alarmFilter;
-  const sorted = Plant.state.alarms.filter(filterSev).slice().sort((x, y) => Number(x.acked) - Number(y.acked) || y.ts - x.ts);
+  const sorted = Plant.sortActiveAlarms(Plant.state.alarms.filter(filterSev));
   document.querySelectorAll("#plant-alarms .plant-alarm").forEach((el, i) => {
     const a = sorted[i];
     if (!a) return;

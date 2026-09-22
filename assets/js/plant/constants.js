@@ -205,14 +205,14 @@ Plant.CONCHING_TAGS = [
   { id: "Conching/Jacket/FlowM3H", name: "FlowM3H", type: "number", unit: "m³/h", format: (v) => v.toFixed(1), live: true },
 ];
 
-/** Tempering tags — cooling tunnel Temper1. */
+/** Tempering tags — temper machine Temper1 (heat / cool / reheat zones + screw). */
 Plant.TEMPERING_TAGS = [
   { id: "Tempering/Running", name: "Running", type: "bool", live: true },
   { id: "Tempering/Mode", name: "Mode", type: "string", live: true },
   { id: "Tempering/BatchId", name: "BatchId", type: "string", live: true },
 
   { id: "Tempering/Temper1/Running", name: "Running", type: "bool", live: true },
-  { id: "Tempering/Temper1/BeltSpeed", name: "BeltSpeed", type: "number", unit: "m/min", format: (v) => v.toFixed(1), live: true },
+  { id: "Tempering/Temper1/ScrewRpm", name: "ScrewRpm", type: "number", unit: "rpm", format: (v) => v.toFixed(1), live: true },
   { id: "Tempering/Temper1/Zone1TempC", name: "Zone1TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
   { id: "Tempering/Temper1/Zone2TempC", name: "Zone2TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
   { id: "Tempering/Temper1/Zone3TempC", name: "Zone3TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
@@ -321,15 +321,15 @@ Plant.DEFAULT_OPEN = [
   /* Areas stay collapsed so Gullegem/Ieper/Gent/Brugge stay on-screen. */
 ];
 
-/** Alarm → drawing / equipment for P&ID callouts. */
+/** Alarm → drawing / equipment for P&ID callouts. Optional navDrawing/navTag jump to root cause. */
 Plant.ALARM_PID = {
   "alm-cartoner-jam": { drawing: "packaging", equip: "Cartoner", severity: "critical" },
   "alm-infeed-starved": { drawing: "packaging", equip: "Infeed", severity: "warning" },
-  "alm-pack-upstream": { drawing: "packaging", equip: "Infeed", severity: "warning" },
-  "alm-pack-temper": { drawing: "packaging", equip: "Infeed", severity: "warning" },
-  "alm-pack-refine": { drawing: "packaging", equip: "Infeed", severity: "warning" },
-  "alm-pack-conche": { drawing: "packaging", equip: "Infeed", severity: "warning" },
-  "alm-pack-mould": { drawing: "packaging", equip: "Infeed", severity: "warning" },
+  "alm-pack-upstream": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "mixing", navTag: "Mixing/Mixer1/Running" },
+  "alm-pack-temper": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "tempering", navTag: "Tempering/Temper1/ScrewRpm" },
+  "alm-pack-refine": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "refining", navTag: "Refining/Refiner1/LoadPct" },
+  "alm-pack-conche": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "conching", navTag: "Conching/Conche1/TempC" },
+  "alm-pack-mould": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "moulding", navTag: "Moulding/Moulder1/CyclesPerMin" },
   "alm-mix-overtemp": { drawing: "mixing", equip: "Mixer1", severity: "critical" },
   "alm-mix-valve": { drawing: "mixing", equip: "CocoaLiquor", severity: "warning" },
   "alm-temper-warm": { drawing: "tempering", equip: "Temper1", severity: "critical" },
@@ -340,7 +340,7 @@ Plant.ALARM_PID = {
   "alm-conche-overtemp": { drawing: "conching", equip: "Conche1", severity: "critical" },
   "alm-conche-agitator": { drawing: "conching", equip: "Conche1", severity: "warning" },
   "alm-mould-jam": { drawing: "moulding", equip: "Moulder1", severity: "critical" },
-  "alm-mould-cool": { drawing: "moulding", equip: "Moulder1", severity: "warning" },
+  "alm-mould-cool": { drawing: "moulding", equip: "Cooling", severity: "warning" },
 };
 
 Plant.BATCH_STEPS = ["mixing", "refining", "conching", "tempering", "moulding", "packaging"];

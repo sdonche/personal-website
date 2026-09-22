@@ -913,14 +913,22 @@
   stroke-width: 1;
 }
 .pid-tunnel__zone-label {
-  fill: rgb(100 116 139);
-  font-size: 9px;
-  letter-spacing: 0.08em;
+  fill: rgb(148 163 184);
+  font-size: 8px;
+  letter-spacing: 0.06em;
 }
-.pid-tunnel__belt {
+.pid-tunnel__zone-sub {
+  fill: rgb(100 116 139);
+  font-size: 7px;
+  letter-spacing: 0.04em;
+}
+.pid-tunnel__screw {
   stroke: #94a3b8;
-  stroke-width: 2;
-  stroke-dasharray: 8 6;
+  stroke-width: 2.25;
+}
+.pid-tunnel__screw-flight {
+  stroke: rgba(148, 163, 184, 0.55);
+  stroke-width: 1.25;
 }
 .pid-tunnel.is-selected .pid-tunnel__shell,
 .pid-tunnel.is-hover .pid-tunnel__shell {
@@ -935,20 +943,24 @@
 .pid-tunnel__zone.is-warm {
   fill: rgba(248, 113, 113, 0.12);
 }
-.pid-tunnel__belt.is-stopped {
+.pid-tunnel__screw.is-stopped {
   stroke: #fbbf24;
   stroke-dasharray: none;
 }
+.pid-tunnel__screw.is-stopped + .pid-tunnel__screw-flight,
+.pid-tunnel:has(.pid-tunnel__screw.is-stopped) .pid-tunnel__screw-flight {
+  stroke: rgba(251, 191, 36, 0.55);
+}
 
 @media (prefers-reduced-motion: no-preference) {
-  .pid-svg.is-running .pid-tunnel__belt:not(.is-stopped) {
-    animation: pid-belt 1.4s linear infinite;
+  .pid-svg.is-running .pid-tunnel__screw:not(.is-stopped) {
+    animation: pid-screw 1.6s linear infinite;
   }
 }
 
-@keyframes pid-belt {
-  from { stroke-dashoffset: 0; }
-  to { stroke-dashoffset: -28; }
+@keyframes pid-screw {
+  from { stroke-dashoffset: 0; stroke-dasharray: 10 8; }
+  to { stroke-dashoffset: -36; stroke-dasharray: 10 8; }
 }
 
 /* Refining five-roll + moulding machine */
@@ -990,6 +1002,45 @@
 .pid-refiner.is-warn .pid-refiner__shell,
 .pid-moulder.is-warn .pid-moulder__shell {
   stroke: #fbbf24;
+}
+
+.pid-cooling {
+  cursor: pointer;
+}
+.pid-cooling.is-warn .pid-pipe {
+  stroke: #fbbf24;
+}
+.pid-cooling.is-warn .pid-flow-label,
+.pid-cooling.is-fault .pid-flow-label {
+  fill: #fbbf24;
+}
+.pid-cooling.is-selected .pid-flow-label {
+  fill: var(--color-brand-300);
+}
+.pid-cooling.is-alarm .pid-pipe {
+  stroke: #f87171;
+}
+
+.pid-bars-out {
+  cursor: pointer;
+}
+.pid-bars-out__belt {
+  fill: rgba(2, 6, 23, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+}
+.pid-bars-out__roller {
+  fill: rgba(15, 23, 42, 0.95);
+  stroke: #94a3b8;
+  stroke-width: 1.25;
+}
+.pid-bars-out__hatch {
+  stroke: rgba(148, 163, 184, 0.55);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+.pid-bars-out.is-selected .pid-bars-out__belt {
+  stroke: var(--color-brand-300);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1370,12 +1421,29 @@
   fill: #34d399;
 }
 
-.pid-overview__area.is-warn .pid-overview__box {
+.pid-overview__area.is-warn .pid-overview__box,
+.pid-overview__area.is-hold .pid-overview__box,
+.pid-overview__area.is-starved .pid-overview__box {
   stroke: #fbbf24;
 }
 
-.pid-overview__area.is-warn .pid-overview__health {
+.pid-overview__area.is-warn .pid-overview__health,
+.pid-overview__area.is-hold .pid-overview__health,
+.pid-overview__area.is-starved .pid-overview__health {
   fill: #fbbf24;
+}
+
+.pid-overview__finish {
+  fill: #94a3b8;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+.plant-faceplate__note {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: rgb(148 163 184);
 }
 
 .pid-overview__area.is-fault .pid-overview__box {
