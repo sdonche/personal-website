@@ -51,18 +51,20 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem 1.25rem;
-  padding: 0.65rem 0.85rem;
+  gap: 0.55rem 0.85rem;
+  padding: 0.55rem 0.85rem;
   border-bottom: 1px solid var(--plant-stroke);
   background: rgba(2, 6, 23, 0.55);
+  flex-shrink: 0;
 }
 
 .plant-hmi__title {
   display: flex;
   align-items: baseline;
   gap: 0.55rem;
-  flex-wrap: wrap;
-  min-width: 0;
+  flex-wrap: nowrap;
+  flex: 0 0 14.5rem;
+  min-width: 14.5rem;
 }
 
 .plant-hmi__title h1 {
@@ -72,30 +74,36 @@
   font-weight: 500;
   letter-spacing: 0.04em;
   color: rgb(226 232 240);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 11.5rem;
 }
 
 .plant-area-nav {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.2rem;
-  padding: 0.15rem;
+  gap: 0.15rem;
+  padding: 0.12rem;
   border: 1px solid var(--plant-stroke);
-  background: rgba(2, 6, 23, 0.45);
+  background: rgba(2, 6, 23, 0.4);
 }
 
 .plant-area-nav__btn {
   appearance: none;
   border: 0;
+  border-radius: 2px;
   background: transparent;
   color: rgb(148 163 184);
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.35rem 0.65rem;
+  padding: 0.32rem 0.48rem;
   cursor: pointer;
   transition: color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
 }
 
 .plant-area-nav__btn:hover {
@@ -109,7 +117,7 @@
 
 .plant-area-nav__btn.is-active {
   color: rgb(226 232 240);
-  background: rgba(34, 211, 238, 0.12);
+  background: rgba(34, 211, 238, 0.14);
 }
 
 .plant-sim-badge {
@@ -414,6 +422,20 @@
   padding: 0.05rem 0.28rem;
   border-radius: 2px;
   vertical-align: middle;
+}
+.plant-tree__area--stub > details > summary .plant-tree__label::after {
+  content: "OFFLINE";
+  margin-left: 0.45rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--plant-stale);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.plant-tree__area--stub > details > summary {
+  color: rgb(100 116 139);
 }
 .plant-tree__line--live > details > summary .plant-tree__label::after {
   content: "LIVE";
@@ -802,6 +824,34 @@
 @keyframes pid-belt {
   from { stroke-dashoffset: 0; }
   to { stroke-dashoffset: -28; }
+}
+
+/* Refining five-roll + moulding machine */
+.pid-refiner,
+.pid-moulder {
+  cursor: pointer;
+}
+.pid-refiner__shell,
+.pid-moulder__shell {
+  fill: rgba(2, 6, 23, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.75;
+}
+.pid-refiner__roll {
+  fill: rgba(15, 23, 42, 0.95);
+  stroke: rgba(148, 163, 184, 0.55);
+  stroke-width: 1.25;
+}
+.pid-moulder__cavity {
+  fill: rgba(15, 23, 42, 0.85);
+  stroke: rgba(148, 163, 184, 0.5);
+  stroke-width: 1.1;
+}
+.pid-refiner.is-selected .pid-refiner__shell,
+.pid-refiner.is-hover .pid-refiner__shell,
+.pid-moulder.is-selected .pid-moulder__shell,
+.pid-moulder.is-hover .pid-moulder__shell {
+  stroke: var(--color-brand-300);
 }
 
 .pid-mix-valve.is-open .pid-mix-valve__body {

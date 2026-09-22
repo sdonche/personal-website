@@ -1,7 +1,7 @@
 /* =============================================================
    plant.js — Heuvelland chocolate plant HMI (/plant/)
-   Site → Packaging + Mixing + Tempering tag browser; drawings switch by selection.
-   Packaging Line1/Line2: live tags only (no drawing yet).
+   Process order: Mixing → Refining → Conching → Tempering → Moulding → Packaging.
+   All six areas have live P&ID drawings (Packaging Line3 + five process areas).
    Cross-area BatchId + Mixing/Tempering faults starve Packaging feed.
    State persists in localStorage until "Reset line".
    ============================================================= */
@@ -9,17 +9,38 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "samdonche.plant.v7";
+  const STORAGE_KEY = "samdonche.plant.v9";
   const TICK_MS = 1000;
   const PROVIDER = "[edge]";
   const SITE = "Heuvelland";
   const AREA = "Packaging";
   const MIXING_AREA = "Mixing";
+  const REFINING_AREA = "Refining";
+  const CONCHING_AREA = "Conching";
   const TEMPERING_AREA = "Tempering";
+  const MOULDING_AREA = "Moulding";
   const LIVE_LINE = "Line3";
   const AREA_ROOT = `${SITE}/${AREA}`;
   const MIXING_ROOT = `${SITE}/${MIXING_AREA}`;
+  const REFINING_ROOT = `${SITE}/${REFINING_AREA}`;
+  const CONCHING_ROOT = `${SITE}/${CONCHING_AREA}`;
   const TEMPERING_ROOT = `${SITE}/${TEMPERING_AREA}`;
+  const MOULDING_ROOT = `${SITE}/${MOULDING_AREA}`;
+
+  /**
+   * Plant areas in mass-flow order (chocolate bars).
+   * Every area has a live P&ID drawing.
+   */
+  const PLANT_AREAS = [
+    { id: "Mixing", drawing: "mixing", live: true },
+    { id: "Refining", drawing: "refining", live: true },
+    { id: "Conching", drawing: "conching", live: true },
+    { id: "Tempering", drawing: "tempering", live: true },
+    { id: "Moulding", drawing: "moulding", live: true },
+    { id: "Packaging", drawing: "packaging", live: true },
+  ];
+
+  const DRAWING_IDS = PLANT_AREAS.map((a) => a.drawing);
 
   /** @typedef {"Good"|"Uncertain"|"Bad"|"Stale"} Quality */
 
@@ -134,6 +155,41 @@
     { id: "Mixing/Drain/ValveOpen", name: "ValveOpen", type: "bool", live: true },
   ];
 
+  /** Refining tags — five-roll Refiner1. */
+  const REFINING_TAGS = [
+    { id: "Refining/Running", name: "Running", type: "bool", live: true },
+    { id: "Refining/Mode", name: "Mode", type: "string", live: true },
+    { id: "Refining/BatchId", name: "BatchId", type: "string", live: true },
+
+    { id: "Refining/Refiner1/Running", name: "Running", type: "bool", live: true },
+    { id: "Refining/Refiner1/LoadPct", name: "LoadPct", type: "number", unit: "%", format: (v) => v.toFixed(1), live: true },
+    { id: "Refining/Refiner1/ParticleUm", name: "ParticleUm", type: "number", unit: "µm", format: (v) => v.toFixed(1), live: true },
+
+    { id: "Refining/Inlet/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+    { id: "Refining/Inlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Refining/Outlet/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+    { id: "Refining/Outlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)), live: true },
+  ];
+
+  /** Conching tags — Conche1 agitator tank. */
+  const CONCHING_TAGS = [
+    { id: "Conching/Running", name: "Running", type: "bool", live: true },
+    { id: "Conching/Mode", name: "Mode", type: "string", live: true },
+    { id: "Conching/BatchId", name: "BatchId", type: "string", live: true },
+
+    { id: "Conching/Conche1/Running", name: "Running", type: "bool", live: true },
+    { id: "Conching/Conche1/TempC", name: "TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
+    { id: "Conching/Conche1/AgitatorRpm", name: "AgitatorRpm", type: "number", unit: "rpm", format: (v) => String(Math.round(v)), live: true },
+    { id: "Conching/Conche1/TimeMin", name: "TimeMin", type: "number", unit: "min", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Conching/Inlet/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+    { id: "Conching/Inlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Conching/Outlet/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+    { id: "Conching/Outlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)), live: true },
+  ];
+
   /** Tempering tags — cooling tunnel Temper1. */
   const TEMPERING_TAGS = [
     { id: "Tempering/Running", name: "Running", type: "bool", live: true },
@@ -157,12 +213,38 @@
     { id: "Tempering/ChilledWater/SupplyTempC", name: "SupplyTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
   ];
 
+  /** Moulding tags — Moulder1 + cooling air. */
+  const MOULDING_TAGS = [
+    { id: "Moulding/Running", name: "Running", type: "bool", live: true },
+    { id: "Moulding/Mode", name: "Mode", type: "string", live: true },
+    { id: "Moulding/BatchId", name: "BatchId", type: "string", live: true },
+
+    { id: "Moulding/Moulder1/Running", name: "Running", type: "bool", live: true },
+    { id: "Moulding/Moulder1/CyclesPerMin", name: "CyclesPerMin", type: "number", unit: "cpm", format: (v) => String(Math.round(v)), live: true },
+    { id: "Moulding/Moulder1/MouldTempC", name: "MouldTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
+
+    { id: "Moulding/Inlet/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+    { id: "Moulding/Inlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Moulding/Outlet/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+    { id: "Moulding/Outlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Moulding/Cooling/AirTempC", name: "AirTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
+  ];
+
   /** Prefixed stub tags: Line1/OEE, Line2/Infeed/Speed, … */
   const STUB_TAGS = STUB_LINES.flatMap((line) =>
     STUB_LINE_TAGS.map((t) => ({ ...t, id: `${line.id}/${t.id}` }))
   );
 
-  const ALL_TAGS = LINE3_TAGS.concat(STUB_TAGS, MIXING_TAGS, TEMPERING_TAGS);
+  const ALL_TAGS = LINE3_TAGS.concat(
+    STUB_TAGS,
+    MIXING_TAGS,
+    REFINING_TAGS,
+    CONCHING_TAGS,
+    TEMPERING_TAGS,
+    MOULDING_TAGS
+  );
   const TAG_BY_ID = Object.fromEntries(ALL_TAGS.map((t) => [t.id, t]));
 
   function isStubTag(rel) {
@@ -173,18 +255,45 @@
     return !!rel && rel.startsWith("Mixing/");
   }
 
+  function isRefiningTag(rel) {
+    return !!rel?.startsWith("Refining/");
+  }
+
+  function isConchingTag(rel) {
+    return !!rel?.startsWith("Conching/");
+  }
+
   function isTemperingTag(rel) {
     return !!rel && rel.startsWith("Tempering/");
   }
 
+  function isMouldingTag(rel) {
+    return !!rel?.startsWith("Moulding/");
+  }
+
+  function isProcessAreaTag(rel) {
+    return isMixingTag(rel) || isRefiningTag(rel) || isConchingTag(rel)
+      || isTemperingTag(rel) || isMouldingTag(rel);
+  }
+
+  function isPackagingTag(rel) {
+    if (!rel) return false;
+    if (isProcessAreaTag(rel)) return false;
+    return true;
+  }
+
   function drawingForTag(rel) {
     if (isMixingTag(rel)) return "mixing";
+    if (isRefiningTag(rel)) return "refining";
+    if (isConchingTag(rel)) return "conching";
     if (isTemperingTag(rel)) return "tempering";
-    return "packaging";
+    if (isMouldingTag(rel)) return "moulding";
+    if (isPackagingTag(rel)) return "packaging";
+    return null;
   }
 
   function pathOf(rel) {
-    if (isMixingTag(rel) || isTemperingTag(rel)) return `${PROVIDER}${SITE}/${rel}`;
+    if (isProcessAreaTag(rel)) return `${PROVIDER}${SITE}/${rel}`;
     if (isStubTag(rel)) return `${PROVIDER}${AREA_ROOT}/${rel}`;
     return `${PROVIDER}${AREA_ROOT}/${LIVE_LINE}/${rel}`;
   }
@@ -192,14 +301,20 @@
   /** Default open folders in the nested tree (node keys). */
   const DEFAULT_OPEN = [
     SITE,
+    MIXING_ROOT,
+    `${MIXING_ROOT}/Mixer1`,
+    REFINING_ROOT,
+    `${REFINING_ROOT}/Refiner1`,
+    CONCHING_ROOT,
+    `${CONCHING_ROOT}/Conche1`,
+    TEMPERING_ROOT,
+    `${TEMPERING_ROOT}/Temper1`,
+    MOULDING_ROOT,
+    `${MOULDING_ROOT}/Moulder1`,
     AREA_ROOT,
     `${AREA_ROOT}/Line3`,
     `${AREA_ROOT}/Line3/Cartoner`,
     `${AREA_ROOT}/Line3/Checkweigher`,
-    MIXING_ROOT,
-    `${MIXING_ROOT}/Mixer1`,
-    TEMPERING_ROOT,
-    `${TEMPERING_ROOT}/Temper1`,
   ];
 
   function defaultState() {
@@ -213,7 +328,7 @@
       overCount: 1,
       palletsDone: 47,
       selectedTag: "OEE",
-      activeDrawing: /** @type {"packaging"|"mixing"|"tempering"} */ ("packaging"),
+      activeDrawing: /** @type {"packaging"|"mixing"|"refining"|"conching"|"tempering"|"moulding"} */ ("packaging"),
       alarms: /** @type {Alarm[]} */ ([]),
       openNodes: DEFAULT_OPEN.slice(),
     };
@@ -255,7 +370,7 @@
         alarms: Array.isArray(parsed.alarms) ? parsed.alarms : [],
         openNodes: Array.isArray(parsed.openNodes) ? parsed.openNodes : base.openNodes,
         selectedTag: TAG_BY_ID[parsed.selectedTag] ? parsed.selectedTag : base.selectedTag,
-        activeDrawing: ["packaging", "mixing", "tempering"].includes(parsed.activeDrawing)
+        activeDrawing: DRAWING_IDS.includes(parsed.activeDrawing)
           ? parsed.activeDrawing
           : drawingForTag(TAG_BY_ID[parsed.selectedTag] ? parsed.selectedTag : base.selectedTag),
         mixScenario: parsed.mixScenario === "overtemp" || parsed.mixScenario === "valve"
@@ -412,7 +527,53 @@
     live["Mixing/Outlet/FlowKgH"] = { value: mixOutFlow, quality: mixFault ? "Bad" : "Good" };
     live["Mixing/Drain/ValveOpen"] = { value: false, quality: "Good" };
 
-    /* Tempering — inlet tracks Mixing mass out. */
+    /* Refining — inlet tracks Mixing mass out. */
+    const refineStarve = mixFault;
+    const refineRun = !refineStarve;
+    const refineLoad = refineStarve ? clamp(drift(12, 3, 23), 0, 25) : clamp(drift(62, 3.5, 23), 45, 78);
+    const particle = refineStarve ? clamp(drift(38, 2, 24), 30, 45) : clamp(drift(22, 1.2, 24), 18, 28);
+    const refineInOpen = !refineStarve;
+    const refineOutOpen = refineRun;
+    const refineInFlow = refineStarve ? 0 : Math.max(0, mixOutFlow * 0.99 + drift(0, 18, 25));
+    const refineOutFlow = refineRun ? Math.max(0, mixOutFlow * 0.99 + drift(0, 22, 26)) : 0;
+    const refineMode = refineStarve ? "STARVED" : "AUTO";
+    const refineQ = refineStarve ? "Uncertain" : "Good";
+    live["Refining/Running"] = { value: refineRun, quality: refineQ };
+    live["Refining/Mode"] = { value: refineMode, quality: refineQ };
+    live["Refining/BatchId"] = { value: batchId, quality: "Good" };
+    live["Refining/Refiner1/Running"] = { value: refineRun, quality: refineQ };
+    live["Refining/Refiner1/LoadPct"] = { value: refineLoad, quality: refineStarve ? "Uncertain" : "Good" };
+    live["Refining/Refiner1/ParticleUm"] = { value: particle, quality: refineStarve ? "Uncertain" : "Good" };
+    live["Refining/Inlet/ValveOpen"] = { value: refineInOpen, quality: refineStarve ? "Uncertain" : "Good" };
+    live["Refining/Inlet/FlowKgH"] = { value: Math.max(0, refineInFlow), quality: refineStarve ? "Bad" : "Good" };
+    live["Refining/Outlet/ValveOpen"] = { value: refineOutOpen, quality: refineStarve ? "Uncertain" : "Good" };
+    live["Refining/Outlet/FlowKgH"] = { value: Math.max(0, refineOutFlow), quality: refineStarve ? "Bad" : "Good" };
+
+    /* Conching — inlet from refining outlet. */
+    const concheStarve = mixFault || refineStarve;
+    const concheRun = !concheStarve;
+    const concheTemp = concheStarve ? clamp(drift(48, 1.5, 27), 40, 55) : clamp(drift(65, 1.2, 27), 58, 72);
+    const concheRpm = concheStarve ? clamp(drift(6, 2, 28), 0, 12) : clamp(drift(28, 2.5, 28), 18, 40);
+    const concheTime = Math.floor((tick % 5400) / 60);
+    const concheInOpen = !concheStarve;
+    const concheOutOpen = concheRun;
+    const concheInFlow = concheStarve ? 0 : Math.max(0, refineOutFlow * 0.98 + drift(0, 16, 29));
+    const conchOutFlow = concheRun ? Math.max(0, concheInFlow * 0.99 + drift(0, 14, 30)) : 0;
+    const concheMode = concheStarve ? "STARVED" : "AUTO";
+    const concheQ = concheStarve ? "Uncertain" : "Good";
+    live["Conching/Running"] = { value: concheRun, quality: concheQ };
+    live["Conching/Mode"] = { value: concheMode, quality: concheQ };
+    live["Conching/BatchId"] = { value: batchId, quality: "Good" };
+    live["Conching/Conche1/Running"] = { value: concheRun, quality: concheQ };
+    live["Conching/Conche1/TempC"] = { value: concheTemp, quality: concheStarve ? "Uncertain" : "Good" };
+    live["Conching/Conche1/AgitatorRpm"] = { value: concheRpm, quality: concheStarve ? "Uncertain" : "Good" };
+    live["Conching/Conche1/TimeMin"] = { value: concheTime, quality: "Good" };
+    live["Conching/Inlet/ValveOpen"] = { value: concheInOpen, quality: concheStarve ? "Uncertain" : "Good" };
+    live["Conching/Inlet/FlowKgH"] = { value: Math.max(0, concheInFlow), quality: concheStarve ? "Bad" : "Good" };
+    live["Conching/Outlet/ValveOpen"] = { value: concheOutOpen, quality: concheStarve ? "Uncertain" : "Good" };
+    live["Conching/Outlet/FlowKgH"] = { value: Math.max(0, conchOutFlow), quality: concheStarve ? "Bad" : "Good" };
+
+    /* Tempering — inlet tracks Conching mass out; starve only on Mixing fault. */
     const temperStarve = mixFault;
     const temperRun = !temperBelt && !temperStarve;
     const z1 = temperWarm ? clamp(drift(38, 0.9, 14), 35, 42) : clamp(drift(32.5, 0.8, 14), 28, 36);
@@ -422,7 +583,7 @@
     const belt = temperBelt ? 0 : temperStarve ? clamp(drift(1.2, 0.3, 18), 0.4, 2) : clamp(drift(4.2, 0.25, 18), 2.5, 6);
     const inOpen = !temperStarve;
     const outOpen = temperRun;
-    const inFlow = temperStarve ? 0 : Math.max(0, mixOutFlow * 0.97 + drift(0, 20, 19));
+    const inFlow = temperStarve ? 0 : Math.max(0, conchOutFlow * 0.97 + drift(0, 20, 19));
     const tOutFlow = temperRun ? Math.max(0, inFlow * 0.98 + drift(0, 15, 20)) : 0;
     const cwFlow = clamp(drift(temperWarm ? 8 : 12.5, 0.8, 21), 6, 18);
     const cwSupply = clamp(drift(temperWarm ? 9.5 : 6.5, 0.4, 22), 4, 11);
@@ -443,6 +604,30 @@
     live["Tempering/Outlet/FlowKgH"] = { value: Math.max(0, tOutFlow), quality: temperBelt || temperStarve ? "Bad" : "Good" };
     live["Tempering/ChilledWater/FlowM3H"] = { value: cwFlow, quality: temperWarm ? "Uncertain" : "Good" };
     live["Tempering/ChilledWater/SupplyTempC"] = { value: cwSupply, quality: temperWarm ? "Uncertain" : "Good" };
+
+    /* Moulding — inlet from tempering outlet. */
+    const mouldStarve = temperBelt || mixFault;
+    const mouldRun = !mouldStarve;
+    const cycles = mouldStarve ? clamp(drift(3, 1.2, 31), 0, 6) : clamp(drift(18, 1.5, 31), 12, 24);
+    const mouldTemp = mouldStarve ? clamp(drift(18, 1.2, 32), 14, 24) : clamp(drift(12, 0.8, 32), 9, 16);
+    const airTemp = mouldStarve ? clamp(drift(14, 1.0, 33), 10, 20) : clamp(drift(8, 0.6, 33), 5, 12);
+    const mouldInOpen = !mouldStarve;
+    const mouldOutOpen = mouldRun;
+    const mouldInFlow = mouldStarve ? 0 : Math.max(0, tOutFlow * 0.98 + drift(0, 14, 34));
+    const mouldOutFlow = mouldRun ? Math.max(0, mouldInFlow * 0.99 + drift(0, 12, 35)) : 0;
+    const mouldMode = mouldStarve ? "STARVED" : "AUTO";
+    const mouldQ = mouldStarve ? "Uncertain" : "Good";
+    live["Moulding/Running"] = { value: mouldRun, quality: mouldQ };
+    live["Moulding/Mode"] = { value: mouldMode, quality: mouldQ };
+    live["Moulding/BatchId"] = { value: batchId, quality: "Good" };
+    live["Moulding/Moulder1/Running"] = { value: mouldRun, quality: mouldQ };
+    live["Moulding/Moulder1/CyclesPerMin"] = { value: cycles, quality: mouldStarve ? "Uncertain" : "Good" };
+    live["Moulding/Moulder1/MouldTempC"] = { value: mouldTemp, quality: mouldStarve ? "Uncertain" : "Good" };
+    live["Moulding/Inlet/ValveOpen"] = { value: mouldInOpen, quality: mouldStarve ? "Uncertain" : "Good" };
+    live["Moulding/Inlet/FlowKgH"] = { value: Math.max(0, mouldInFlow), quality: mouldStarve ? "Bad" : "Good" };
+    live["Moulding/Outlet/ValveOpen"] = { value: mouldOutOpen, quality: mouldStarve ? "Uncertain" : "Good" };
+    live["Moulding/Outlet/FlowKgH"] = { value: Math.max(0, mouldOutFlow), quality: mouldStarve ? "Bad" : "Good" };
+    live["Moulding/Cooling/AirTempC"] = { value: airTemp, quality: mouldStarve ? "Uncertain" : "Good" };
 
     syncScenarioAlarms();
   }
@@ -714,6 +899,62 @@
     return renderFolder(TEMPERING_ROOT, TEMPERING_AREA, body, "plant-tree__area plant-tree__area--live", { drawing: "tempering" });
   }
 
+  function areaTagsUnder(tagList, areaPrefix, prefix) {
+    const base = areaPrefix.endsWith("/") ? areaPrefix : areaPrefix + "/";
+    if (!prefix) {
+      return tagList.filter((t) => {
+        if (!t.id.startsWith(base)) return false;
+        return !t.id.slice(base.length).includes("/");
+      });
+    }
+    const p = base + (prefix.endsWith("/") ? prefix : prefix + "/");
+    return tagList.filter((t) => {
+      if (!t.id.startsWith(p)) return false;
+      return !t.id.slice(p.length).includes("/");
+    });
+  }
+
+  function renderRefiningFolder() {
+    const areaTags = areaTagsUnder(REFINING_TAGS, "Refining/", "").map((t) => renderTagButton(t.id, t)).join("");
+    const refiner = areaTagsUnder(REFINING_TAGS, "Refining/", "Refiner1").map((t) => renderTagButton(t.id, t)).join("");
+    const inlet = areaTagsUnder(REFINING_TAGS, "Refining/", "Inlet").map((t) => renderTagButton(t.id, t)).join("");
+    const outlet = areaTagsUnder(REFINING_TAGS, "Refining/", "Outlet").map((t) => renderTagButton(t.id, t)).join("");
+    const body =
+      areaTags +
+      renderFolder(`${REFINING_ROOT}/Refiner1`, "Refiner1", refiner) +
+      renderFolder(`${REFINING_ROOT}/Inlet`, "Inlet", inlet) +
+      renderFolder(`${REFINING_ROOT}/Outlet`, "Outlet", outlet);
+    return renderFolder(REFINING_ROOT, REFINING_AREA, body, "plant-tree__area plant-tree__area--live", { drawing: "refining" });
+  }
+
+  function renderConchingFolder() {
+    const areaTags = areaTagsUnder(CONCHING_TAGS, "Conching/", "").map((t) => renderTagButton(t.id, t)).join("");
+    const conche = areaTagsUnder(CONCHING_TAGS, "Conching/", "Conche1").map((t) => renderTagButton(t.id, t)).join("");
+    const inlet = areaTagsUnder(CONCHING_TAGS, "Conching/", "Inlet").map((t) => renderTagButton(t.id, t)).join("");
+    const outlet = areaTagsUnder(CONCHING_TAGS, "Conching/", "Outlet").map((t) => renderTagButton(t.id, t)).join("");
+    const body =
+      areaTags +
+      renderFolder(`${CONCHING_ROOT}/Conche1`, "Conche1", conche) +
+      renderFolder(`${CONCHING_ROOT}/Inlet`, "Inlet", inlet) +
+      renderFolder(`${CONCHING_ROOT}/Outlet`, "Outlet", outlet);
+    return renderFolder(CONCHING_ROOT, CONCHING_AREA, body, "plant-tree__area plant-tree__area--live", { drawing: "conching" });
+  }
+
+  function renderMouldingFolder() {
+    const areaTags = areaTagsUnder(MOULDING_TAGS, "Moulding/", "").map((t) => renderTagButton(t.id, t)).join("");
+    const moulder = areaTagsUnder(MOULDING_TAGS, "Moulding/", "Moulder1").map((t) => renderTagButton(t.id, t)).join("");
+    const inlet = areaTagsUnder(MOULDING_TAGS, "Moulding/", "Inlet").map((t) => renderTagButton(t.id, t)).join("");
+    const outlet = areaTagsUnder(MOULDING_TAGS, "Moulding/", "Outlet").map((t) => renderTagButton(t.id, t)).join("");
+    const cooling = areaTagsUnder(MOULDING_TAGS, "Moulding/", "Cooling").map((t) => renderTagButton(t.id, t)).join("");
+    const body =
+      areaTags +
+      renderFolder(`${MOULDING_ROOT}/Moulder1`, "Moulder1", moulder) +
+      renderFolder(`${MOULDING_ROOT}/Inlet`, "Inlet", inlet) +
+      renderFolder(`${MOULDING_ROOT}/Outlet`, "Outlet", outlet) +
+      renderFolder(`${MOULDING_ROOT}/Cooling`, "Cooling", cooling);
+    return renderFolder(MOULDING_ROOT, MOULDING_AREA, body, "plant-tree__area plant-tree__area--live", { drawing: "moulding" });
+  }
+
   function buildTree() {
     const root = document.getElementById("plant-tree");
     if (!root) return;
@@ -723,8 +964,14 @@
 
     const packaging = renderFolder(AREA_ROOT, AREA, lines, "plant-tree__area plant-tree__area--live", { drawing: "packaging" });
     const mixing = renderMixingFolder();
+    const refining = renderRefiningFolder();
+    const conching = renderConchingFolder();
     const tempering = renderTemperingFolder();
-    root.innerHTML = renderFolder(SITE, SITE, packaging + mixing + tempering, "plant-tree__site");
+    const moulding = renderMouldingFolder();
+
+    /* Process order: Mixing → Refining → Conching → Tempering → Moulding → Packaging */
+    const areas = mixing + refining + conching + tempering + moulding + packaging;
+    root.innerHTML = renderFolder(SITE, SITE, areas, "plant-tree__site");
     treeBuilt = true;
     updateTreeValues();
 
@@ -803,9 +1050,9 @@
 
   function equipKeyForTag(tagId) {
     if (!tagId) return null;
-    if (isMixingTag(tagId) || isTemperingTag(tagId)) {
+    if (isProcessAreaTag(tagId)) {
       const parts = tagId.split("/");
-      // Mixing/Mixer1/LevelPct → Mixer1; Tempering/Temper1/Zone1TempC → Temper1
+      // Mixing/Mixer1/LevelPct → Mixer1; Refining/Refiner1/LoadPct → Refiner1
       return parts[1] || null;
     }
     let id = tagId;
@@ -1066,7 +1313,7 @@
         </g>
 
         <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — CHOCOLATE MASS</text>
-        <text class="pid-sheet__sub" x="24" y="52">Cocoa liquor + sugar → Mixer1 → mass out (tempering next)</text>
+        <text class="pid-sheet__sub" x="24" y="52">Cocoa liquor + sugar → Mixer1 → mass out (refining next)</text>
 
         <text class="pid-flow-label" x="28" y="${cocoaY - 10}" text-anchor="start">COCOA LIQUOR</text>
         <line class="pid-pipe pid-pipe--main" x1="28" y1="${cocoaY}" x2="${tankX}" y2="${cocoaY}" />
@@ -1158,7 +1405,7 @@
         </g>
 
         <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — TEMPERING TUNNEL</text>
-        <text class="pid-sheet__sub" x="24" y="52">Mass in from Mixing → three cooling zones → to Packaging</text>
+        <text class="pid-sheet__sub" x="24" y="52">Mass in from Conching → three cooling zones → to Moulding</text>
 
         <text class="pid-flow-label" x="28" y="${inY - 10}" text-anchor="start">MASS IN</text>
         <line class="pid-pipe pid-pipe--main" x1="28" y1="${inY}" x2="${tunnelX}" y2="${inY}" />
@@ -1190,9 +1437,230 @@
     pidBuilt = true;
   }
 
+  function buildRefiningPid() {
+    const host = document.getElementById("plant-pid");
+    if (!host) return;
+
+    const vbW = 960;
+    const vbH = 420;
+    const machineX = 220;
+    const machineY = 118;
+    const machineW = 520;
+    const machineH = 160;
+    const midY = machineY + machineH / 2;
+    const machineCx = machineX + machineW / 2;
+    const rollW = machineW / 5;
+
+    const rolls = [0, 1, 2, 3, 4].map((i) => {
+      const x = machineX + 16 + i * (rollW - 4);
+      return `<rect class="pid-refiner__roll" x="${x}" y="${machineY + 36}" width="${rollW - 20}" height="${machineH - 72}" rx="4" />`;
+    }).join("");
+
+    const balloons = [
+      balloon(90, midY - 52, "FI", "121", "Refining/Inlet/FlowKgH", 140, midY, "Inlet"),
+      balloon(machineCx - 80, 68, "SI", "120", "Refining/Refiner1/LoadPct", machineCx - 40, machineY, "Refiner1"),
+      balloon(machineCx + 80, 68, "FI", "122", "Refining/Refiner1/ParticleUm", machineCx + 40, machineY, "Refiner1"),
+      balloon(850, midY - 52, "FI", "130", "Refining/Outlet/FlowKgH", 800, midY, "Outlet"),
+    ].join("");
+
+    host.innerHTML = `
+      <svg class="pid-svg pid-svg--refining is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heuvelland Refining Refiner1 P and ID">
+        <title>Heuvelland Refining — Refiner1</title>
+        <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
+        <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
+
+        <g class="pid-titleblock">
+          <rect class="pid-titleblock__box" x="${vbW - 220}" y="${vbH - 56}" width="208" height="44" />
+          <line class="pid-sheet__rule" x1="${vbW - 220}" y1="${vbH - 34}" x2="${vbW - 12}" y2="${vbH - 34}" />
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 42}">DWG</text>
+          <text class="pid-titleblock__v" x="${vbW - 180}" y="${vbH - 42}">REF-120</text>
+          <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
+          <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Refining</text>
+          <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
+        </g>
+
+        <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — FIVE-ROLL REFINER</text>
+        <text class="pid-sheet__sub" x="24" y="52">Mass in from Mixing → Refiner1 → mass out to Conching</text>
+
+        <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">MASS IN</text>
+        <line class="pid-pipe pid-pipe--main" x1="28" y1="${midY}" x2="${machineX}" y2="${midY}" />
+        ${flowArrow(95, midY)}
+        ${mixValve(140, midY, "Refining/Inlet/ValveOpen", "Inlet", "XV-121")}
+        ${flange(machineX, midY)}
+
+        <g class="pid-refiner pid-equip--run" data-equip="Refiner1" data-tag="Refining/Refiner1/Running" role="button" tabindex="0">
+          <rect class="pid-refiner__shell" x="${machineX}" y="${machineY}" width="${machineW}" height="${machineH}" rx="5" />
+          ${rolls}
+          <text class="pid-equip__pid" x="${machineCx}" y="${machineY - 12}" text-anchor="middle">REF-120</text>
+          <text class="pid-equip__name" x="${machineCx}" y="${machineY + machineH + 22}" text-anchor="middle">Refiner1</text>
+        </g>
+
+        <line class="pid-pipe pid-pipe--main" x1="${machineX + machineW}" y1="${midY}" x2="920" y2="${midY}" />
+        ${flange(machineX + machineW, midY)}
+        ${mixValve(820, midY, "Refining/Outlet/ValveOpen", "Outlet", "XV-130")}
+        ${flowArrow(875, midY)}
+        <text class="pid-flow-label" x="926" y="${midY - 10}" text-anchor="start">MASS OUT</text>
+
+        ${balloons}
+      </svg>`;
+
+    pidBuilt = true;
+  }
+
+  function buildConchingPid() {
+    const host = document.getElementById("plant-pid");
+    if (!host) return;
+
+    const vbW = 960;
+    const vbH = 420;
+    const tankX = 340;
+    const tankY = 88;
+    const tankW = 260;
+    const tankH = 240;
+    const tankCx = tankX + tankW / 2;
+    const midY = tankY + tankH / 2;
+
+    const balloons = [
+      balloon(tankCx - 90, 52, "TI", "130", "Conching/Conche1/TempC", tankCx - 50, tankY, "Conche1"),
+      balloon(tankCx + 90, 52, "SI", "130", "Conching/Conche1/AgitatorRpm", tankCx + 50, tankY, "Conche1"),
+      balloon(90, midY - 52, "FI", "131", "Conching/Inlet/FlowKgH", 140, midY, "Inlet"),
+      balloon(850, midY - 52, "FI", "140", "Conching/Outlet/FlowKgH", 800, midY, "Outlet"),
+    ].join("");
+
+    host.innerHTML = `
+      <svg class="pid-svg pid-svg--conching is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heuvelland Conching Conche1 P and ID">
+        <title>Heuvelland Conching — Conche1</title>
+        <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
+        <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
+
+        <g class="pid-titleblock">
+          <rect class="pid-titleblock__box" x="${vbW - 220}" y="${vbH - 56}" width="208" height="44" />
+          <line class="pid-sheet__rule" x1="${vbW - 220}" y1="${vbH - 34}" x2="${vbW - 12}" y2="${vbH - 34}" />
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 42}">DWG</text>
+          <text class="pid-titleblock__v" x="${vbW - 180}" y="${vbH - 42}">CON-130</text>
+          <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
+          <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Conching</text>
+          <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
+        </g>
+
+        <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — CONCHE</text>
+        <text class="pid-sheet__sub" x="24" y="52">Mass in from Refining → Conche1 → mass out to Tempering</text>
+
+        <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">MASS IN</text>
+        <line class="pid-pipe pid-pipe--main" x1="28" y1="${midY}" x2="${tankX}" y2="${midY}" />
+        ${flowArrow(95, midY)}
+        ${mixValve(140, midY, "Conching/Inlet/ValveOpen", "Inlet", "XV-131")}
+        ${flange(tankX, midY)}
+
+        <g class="pid-tank pid-equip--run" data-equip="Conche1" data-tag="Conching/Conche1/Running" role="button" tabindex="0">
+          <rect class="pid-tank__shell" x="${tankX}" y="${tankY}" width="${tankW}" height="${tankH}" rx="10" />
+          <rect class="pid-tank__jacket" x="${tankX + 12}" y="${tankY + 12}" width="${tankW - 24}" height="${tankH - 24}" rx="5" />
+          <line class="pid-tank__agitator" x1="${tankCx}" y1="${tankY + 32}" x2="${tankCx}" y2="${tankY + tankH - 32}" />
+          <circle class="pid-tank__hub" cx="${tankCx}" cy="${tankY + 44}" r="8" />
+          <line class="pid-tank__agitator" x1="${tankCx - 40}" y1="${tankY + 100}" x2="${tankCx + 40}" y2="${tankY + 100}" />
+          <line class="pid-tank__agitator" x1="${tankCx - 40}" y1="${tankY + 150}" x2="${tankCx + 40}" y2="${tankY + 150}" />
+          <text class="pid-equip__pid" x="${tankCx}" y="${tankY - 12}" text-anchor="middle">CON-130</text>
+          <text class="pid-equip__name" x="${tankCx}" y="${tankY + tankH + 20}" text-anchor="middle">Conche1</text>
+        </g>
+
+        <line class="pid-pipe pid-pipe--main" x1="${tankX + tankW}" y1="${midY}" x2="920" y2="${midY}" />
+        ${flange(tankX + tankW, midY)}
+        ${mixValve(820, midY, "Conching/Outlet/ValveOpen", "Outlet", "XV-140")}
+        ${flowArrow(875, midY)}
+        <text class="pid-flow-label" x="926" y="${midY - 10}" text-anchor="start">MASS OUT</text>
+
+        ${balloons}
+      </svg>`;
+
+    pidBuilt = true;
+  }
+
+  function buildMouldingPid() {
+    const host = document.getElementById("plant-pid");
+    if (!host) return;
+
+    const vbW = 960;
+    const vbH = 420;
+    const machineX = 250;
+    const machineY = 120;
+    const machineW = 460;
+    const machineH = 150;
+    const midY = machineY + machineH / 2;
+    const machineCx = machineX + machineW / 2;
+
+    const cavities = [0, 1, 2].map((i) => {
+      const x = machineX + 80 + i * 110;
+      return `<rect class="pid-moulder__cavity" x="${x}" y="${machineY + 48}" width="70" height="54" rx="3" />`;
+    }).join("");
+
+    const balloons = [
+      balloon(90, midY - 52, "FI", "221", "Moulding/Inlet/FlowKgH", 140, midY, "Inlet"),
+      balloon(machineCx - 100, 68, "SI", "220", "Moulding/Moulder1/CyclesPerMin", machineCx - 60, machineY, "Moulder1"),
+      balloon(machineCx + 40, 68, "TI", "220", "Moulding/Moulder1/MouldTempC", machineCx + 20, machineY, "Moulder1"),
+      balloon(480, 352, "TI", "240", "Moulding/Cooling/AirTempC", 480, machineY + machineH + 8, "Cooling"),
+      balloon(850, midY - 52, "FI", "230", "Moulding/Outlet/FlowKgH", 800, midY, "Outlet"),
+    ].join("");
+
+    host.innerHTML = `
+      <svg class="pid-svg pid-svg--moulding is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heuvelland Moulding Moulder1 P and ID">
+        <title>Heuvelland Moulding — Moulder1</title>
+        <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
+        <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
+
+        <g class="pid-titleblock">
+          <rect class="pid-titleblock__box" x="${vbW - 220}" y="${vbH - 56}" width="208" height="44" />
+          <line class="pid-sheet__rule" x1="${vbW - 220}" y1="${vbH - 34}" x2="${vbW - 12}" y2="${vbH - 34}" />
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 42}">DWG</text>
+          <text class="pid-titleblock__v" x="${vbW - 180}" y="${vbH - 42}">MLD-220</text>
+          <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
+          <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Moulding</text>
+          <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
+        </g>
+
+        <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — MOULDING</text>
+        <text class="pid-sheet__sub" x="24" y="52">Mass in from Tempering → Moulder1 → bars to Packaging</text>
+
+        <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">MASS IN</text>
+        <line class="pid-pipe pid-pipe--main" x1="28" y1="${midY}" x2="${machineX}" y2="${midY}" />
+        ${flowArrow(95, midY)}
+        ${mixValve(140, midY, "Moulding/Inlet/ValveOpen", "Inlet", "XV-221")}
+        ${flange(machineX, midY)}
+
+        <g class="pid-moulder pid-equip--run" data-equip="Moulder1" data-tag="Moulding/Moulder1/Running" role="button" tabindex="0">
+          <rect class="pid-moulder__shell" x="${machineX}" y="${machineY}" width="${machineW}" height="${machineH}" rx="5" />
+          ${cavities}
+          <text class="pid-equip__pid" x="${machineCx}" y="${machineY - 12}" text-anchor="middle">MLD-220</text>
+          <text class="pid-equip__name" x="${machineCx}" y="${machineY + machineH + 22}" text-anchor="middle">Moulder1</text>
+        </g>
+
+        <line class="pid-pipe pid-pipe--main" x1="${machineX + machineW}" y1="${midY}" x2="920" y2="${midY}" />
+        ${flange(machineX + machineW, midY)}
+        ${mixValve(820, midY, "Moulding/Outlet/ValveOpen", "Outlet", "XV-230")}
+        ${flowArrow(875, midY)}
+        <text class="pid-flow-label" x="926" y="${midY - 10}" text-anchor="start">TO PACK</text>
+
+        <text class="pid-flow-label" x="28" y="352" text-anchor="start">COOLING AIR</text>
+        <line class="pid-pipe pid-pipe--divert" x1="140" y1="352" x2="${machineX + 60}" y2="${machineY + machineH}" />
+        <line class="pid-pipe pid-pipe--divert" x1="${machineX + machineW - 60}" y1="${machineY + machineH}" x2="720" y2="352" />
+
+        ${balloons}
+      </svg>`;
+
+    pidBuilt = true;
+  }
+
   function buildPid() {
     if (state.activeDrawing === "mixing") buildMixingPid();
+    else if (state.activeDrawing === "refining") buildRefiningPid();
+    else if (state.activeDrawing === "conching") buildConchingPid();
     else if (state.activeDrawing === "tempering") buildTemperingPid();
+    else if (state.activeDrawing === "moulding") buildMouldingPid();
     else buildPackagingPid();
   }
 
@@ -1223,8 +1691,13 @@
     const starved = state.scenario === "starved";
     const svg = host.querySelector(".pid-svg");
     if (!svg) return;
-    const mixing = state.activeDrawing === "mixing";
-    const tempering = state.activeDrawing === "tempering";
+    const drawing = state.activeDrawing;
+    const mixing = drawing === "mixing";
+    const refining = drawing === "refining";
+    const conching = drawing === "conching";
+    const tempering = drawing === "tempering";
+    const moulding = drawing === "moulding";
+    const processArea = mixing || refining || conching || tempering || moulding;
     const mixOver = state.mixScenario === "overtemp";
     const mixValve = state.mixScenario === "valve";
 
@@ -1234,10 +1707,11 @@
     svg.classList.remove("is-running", "is-fault", "is-warn");
     if (mixing) svg.classList.add(mixOver ? "is-fault" : mixValve ? "is-warn" : "is-running");
     else if (tempering) svg.classList.add(temperWarm ? "is-fault" : temperBelt ? "is-warn" : "is-running");
+    else if (refining || conching || moulding) svg.classList.add("is-running");
     else svg.classList.add(jam ? "is-fault" : starved ? "is-warn" : "is-running");
 
     const flow = svg.querySelector("[data-pid-flow]");
-    if (flow) flow.style.display = (!mixing && !tempering && !jam && !starved && !reducedMotion) ? "" : "none";
+    if (flow) flow.style.display = (!processArea && !jam && !starved && !reducedMotion) ? "" : "none";
 
     if (mixing) {
       const tank = svg.querySelector(".pid-tank");
@@ -1278,6 +1752,26 @@
       });
       const belt = svg.querySelector(".pid-tunnel__belt");
       if (belt) belt.classList.toggle("is-stopped", temperBelt);
+      svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
+        const tagId = g.getAttribute("data-tag");
+        const open = !!(live[tagId] || {}).value;
+        g.classList.toggle("is-open", open);
+        g.classList.toggle("is-selected", tagId === state.selectedTag);
+        g.classList.remove("is-hover");
+      });
+    } else if (refining || conching || moulding) {
+      const equipSel = refining
+        ? "Refining/Refiner1"
+        : conching
+          ? "Conching/Conche1"
+          : "Moulding/Moulder1";
+      const equipEl = svg.querySelector(
+        refining ? ".pid-refiner" : conching ? ".pid-tank" : ".pid-moulder"
+      );
+      if (equipEl) {
+        equipEl.classList.remove("is-selected", "is-hover", "is-fault", "is-warn");
+        if (state.selectedTag.startsWith(equipSel)) equipEl.classList.add("is-selected");
+      }
       svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
         const tagId = g.getAttribute("data-tag");
         const open = !!(live[tagId] || {}).value;
@@ -1334,8 +1828,13 @@
   function renderKpis() {
     const jam = state.scenario === "jam" && !state.cartonerJamCleared;
     const starved = state.scenario === "starved";
-    const mixing = state.activeDrawing === "mixing";
-    const tempering = state.activeDrawing === "tempering";
+    const drawing = state.activeDrawing;
+    const mixing = drawing === "mixing";
+    const refining = drawing === "refining";
+    const conching = drawing === "conching";
+    const tempering = drawing === "tempering";
+    const moulding = drawing === "moulding";
+    const packaging = drawing === "packaging";
     const mixOver = state.mixScenario === "overtemp";
     const mixValve = state.mixScenario === "valve";
     const setKpi = (id, text, tone) => {
@@ -1366,6 +1865,34 @@
       setKpi("kpi-b", `${jacket.toFixed(1)}°C`, mixOver || jacket > 52 ? "bad" : "good");
       setKpi("kpi-c", String(Math.round(rpm)), mixOver || mixValve ? "warn" : "good");
       setKpi("kpi-d", String(live["Mixing/Mode"]?.value ?? "—"), mixOver ? "bad" : mixValve ? "warn" : "good");
+    } else if (refining) {
+      const load = live["Refining/Refiner1/LoadPct"]?.value ?? 0;
+      const particle = live["Refining/Refiner1/ParticleUm"]?.value ?? 0;
+      const outFlow = live["Refining/Outlet/FlowKgH"]?.value ?? 0;
+      const mode = live["Refining/Mode"]?.value ?? "—";
+      const starvedRefine = mode === "STARVED";
+      setLabel("kpi-a-label", "Load");
+      setLabel("kpi-b-label", "Particle");
+      setLabel("kpi-c-label", "Outlet");
+      setLabel("kpi-d-label", "Mode");
+      setKpi("kpi-a", `${load.toFixed(1)}%`, starvedRefine ? "warn" : "good");
+      setKpi("kpi-b", `${particle.toFixed(1)} µm`, starvedRefine ? "warn" : "good");
+      setKpi("kpi-c", String(Math.round(outFlow)), starvedRefine ? "warn" : "good");
+      setKpi("kpi-d", String(mode), starvedRefine ? "warn" : "good");
+    } else if (conching) {
+      const temp = live["Conching/Conche1/TempC"]?.value ?? 0;
+      const rpm = live["Conching/Conche1/AgitatorRpm"]?.value ?? 0;
+      const timeMin = live["Conching/Conche1/TimeMin"]?.value ?? 0;
+      const mode = live["Conching/Mode"]?.value ?? "—";
+      const starvedConche = mode === "STARVED";
+      setLabel("kpi-a-label", "Temp");
+      setLabel("kpi-b-label", "RPM");
+      setLabel("kpi-c-label", "Time");
+      setLabel("kpi-d-label", "Mode");
+      setKpi("kpi-a", `${temp.toFixed(1)}°C`, starvedConche ? "warn" : "good");
+      setKpi("kpi-b", String(Math.round(rpm)), starvedConche ? "warn" : "good");
+      setKpi("kpi-c", `${Math.round(timeMin)} min`, "good");
+      setKpi("kpi-d", String(mode), starvedConche ? "warn" : "good");
     } else if (tempering) {
       const z1 = live["Tempering/Temper1/Zone1TempC"]?.value ?? 0;
       const z3 = live["Tempering/Temper1/Zone3TempC"]?.value ?? 0;
@@ -1379,6 +1906,20 @@
       setKpi("kpi-b", `${z3.toFixed(1)}°C`, temperWarm ? "bad" : "good");
       setKpi("kpi-c", `${belt.toFixed(1)}`, temperBelt ? "bad" : temperStarve ? "warn" : "good");
       setKpi("kpi-d", String(live["Tempering/Mode"]?.value ?? "—"), temperWarm ? "bad" : temperBelt || temperStarve ? "warn" : "good");
+    } else if (moulding) {
+      const cycles = live["Moulding/Moulder1/CyclesPerMin"]?.value ?? 0;
+      const mouldTemp = live["Moulding/Moulder1/MouldTempC"]?.value ?? 0;
+      const airTemp = live["Moulding/Cooling/AirTempC"]?.value ?? 0;
+      const mode = live["Moulding/Mode"]?.value ?? "—";
+      const starvedMould = mode === "STARVED";
+      setLabel("kpi-a-label", "Cycles");
+      setLabel("kpi-b-label", "Mould °C");
+      setLabel("kpi-c-label", "Air °C");
+      setLabel("kpi-d-label", "Mode");
+      setKpi("kpi-a", String(Math.round(cycles)), starvedMould ? "warn" : "good");
+      setKpi("kpi-b", `${mouldTemp.toFixed(1)}°C`, starvedMould ? "warn" : "good");
+      setKpi("kpi-c", `${airTemp.toFixed(1)}°C`, starvedMould ? "warn" : "good");
+      setKpi("kpi-d", String(mode), starvedMould ? "warn" : "good");
     } else {
       const oee = live.OEE?.value ?? 0;
       setLabel("kpi-a-label", "OEE");
@@ -1394,11 +1935,11 @@
     const pkgToolbar = document.querySelector('[data-toolbar-area="packaging"]');
     const mixToolbar = document.querySelector('[data-toolbar-area="mixing"]');
     const temperToolbar = document.querySelector('[data-toolbar-area="tempering"]');
-    if (pkgToolbar) pkgToolbar.hidden = mixing || tempering;
+    if (pkgToolbar) pkgToolbar.hidden = !packaging;
     if (mixToolbar) mixToolbar.hidden = !mixing;
     if (temperToolbar) temperToolbar.hidden = !tempering;
     document.querySelectorAll("[data-toolbar-packaging-only]").forEach((el) => {
-      el.hidden = mixing || tempering;
+      el.hidden = !packaging;
     });
 
     document.querySelectorAll("[data-scenario]").forEach((btn) => {
@@ -1417,18 +1958,20 @@
       btn.classList.toggle("is-active", active);
     });
 
+    const titleMap = {
+      mixing: "Heuvelland · Mixing",
+      refining: "Heuvelland · Refining",
+      conching: "Heuvelland · Conching",
+      tempering: "Heuvelland · Tempering",
+      moulding: "Heuvelland · Moulding",
+      packaging: "Heuvelland · Line 3",
+    };
     const title = document.querySelector(".plant-hmi__title h1");
-    if (title) {
-      title.textContent = mixing
-        ? "Heuvelland · Mixing"
-        : tempering
-          ? "Heuvelland · Tempering"
-          : "Heuvelland · Line 3";
-    }
+    if (title) title.textContent = titleMap[drawing] || titleMap.packaging;
 
     document.querySelectorAll(".plant-area-nav__btn[data-drawing]").forEach((btn) => {
-      const drawing = btn.getAttribute("data-drawing");
-      const on = drawing === state.activeDrawing;
+      const d = btn.getAttribute("data-drawing");
+      const on = d === state.activeDrawing;
       btn.classList.toggle("is-active", on);
       btn.setAttribute("aria-selected", on ? "true" : "false");
     });
@@ -1441,9 +1984,19 @@
       else if (mixing && mixValve) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Valve fault"; }
       else if (tempering && temperWarm) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Zone warm"; }
       else if (tempering && temperBelt) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Belt stop"; }
-      else if (!mixing && !tempering && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
-      else if (!mixing && !tempering && feedStarved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
-      else { scanLabel.textContent = mixing ? "Mixing" : tempering ? "Tempering" : "Scanning"; }
+      else if (packaging && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
+      else if (packaging && feedStarved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
+      else {
+        const healthyLabels = {
+          mixing: "Mixing",
+          refining: "Refining",
+          conching: "Conching",
+          tempering: "Tempering",
+          moulding: "Moulding",
+          packaging: "Scanning",
+        };
+        scanLabel.textContent = healthyLabels[drawing] || "Scanning";
+      }
     }
   }
 
@@ -1457,7 +2010,7 @@
       return;
     }
     const folder = (() => {
-      if (isMixingTag(state.selectedTag) || isTemperingTag(state.selectedTag)) {
+      if (isProcessAreaTag(state.selectedTag)) {
         const parts = state.selectedTag.split("/");
         return parts.length > 2 ? parts.slice(0, -1).join(" / ") : parts[0];
       }
@@ -1576,7 +2129,10 @@
   const DRAWING_HOME_TAG = {
     packaging: "OEE",
     mixing: "Mixing/Mixer1/LevelPct",
+    refining: "Refining/Refiner1/LoadPct",
+    conching: "Conching/Conche1/TempC",
     tempering: "Tempering/Temper1/Zone1TempC",
+    moulding: "Moulding/Moulder1/CyclesPerMin",
   };
 
   function setActiveDrawing(name) {
@@ -1632,7 +2188,7 @@
   function selectTag(id) {
     if (!id || !TAG_BY_ID[id]) return;
     const nextDrawing = drawingForTag(id);
-    if (nextDrawing !== state.activeDrawing) {
+    if (nextDrawing && nextDrawing !== state.activeDrawing) {
       state.activeDrawing = nextDrawing;
       pidBuilt = false;
       clearPidHover();
@@ -1640,9 +2196,7 @@
     state.selectedTag = id;
     const open = new Set(state.openNodes);
     open.add(SITE);
-    if (isMixingTag(id) || isTemperingTag(id)) {
-      const root = isMixingTag(id) ? MIXING_ROOT : TEMPERING_ROOT;
-      open.add(root);
+    if (isProcessAreaTag(id)) {
       const parts = id.split("/");
       let acc = SITE;
       for (let i = 0; i < parts.length - 1; i++) {
