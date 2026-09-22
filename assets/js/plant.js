@@ -37,8 +37,8 @@
     { id: "Infeed", label: "Infeed", pid: "CV-301", kind: "conveyor" },
     { id: "Cartoner", label: "Cartoner", pid: "CT-310", kind: "machine" },
     { id: "Checkweigher", label: "Checkweigher", pid: "WT-320", kind: "scale" },
-    { id: "CasePacker", label: "CasePacker", pid: "CP-330", kind: "machine" },
-    { id: "Palletizer", label: "Palletizer", pid: "PL-340", kind: "machine" },
+    { id: "CasePacker", label: "Case packer", pid: "CP-330", kind: "machine" },
+    { id: "Palletizer", label: "Palletizer", pid: "PL-340", kind: "palletizer" },
     { id: "Outfeed", label: "Outfeed", pid: "CV-350", kind: "conveyor" },
   ];
 
@@ -407,59 +407,99 @@
 
   /* ---------------- P&ID ---------------- */
 
-  function balloon(cx, cy, top, bot, tagId, qClass) {
+  function liveReadout(tagId) {
+    const def = TAG_BY_ID[tagId];
+    const lv = live[tagId];
+    if (!def || !lv) return "";
+    return formatValue(def, lv.value);
+  }
+
+  function balloon(cx, cy, top, bot, tagId, anchorY) {
+    const q = (live[tagId] || {}).quality || "Stale";
+    const qClass = `pid-q--${q.toLowerCase()}`;
     const selected = tagId === state.selectedTag ? " is-selected" : "";
+    const val = liveReadout(tagId);
+    const leaderY2 = anchorY != null ? anchorY : cy + 42;
     return `
-      <g class="pid-balloon${selected} ${qClass}" data-tag="${escapeHtml(tagId)}" role="button" tabindex="0" aria-label="${escapeHtml(top + " " + bot)}">
-        <line class="pid-leader" x1="${cx}" y1="${cy + 18}" x2="${cx}" y2="${cy + 36}" />
-        <circle class="pid-balloon__ring" cx="${cx}" cy="${cy}" r="18" />
-        <line class="pid-balloon__split" x1="${cx - 18}" y1="${cy}" x2="${cx + 18}" y2="${cy}" />
+      <g class="pid-balloon${selected} ${qClass}" data-tag="${escapeHtml(tagId)}" role="button" tabindex="0" aria-label="${escapeHtml(top + "-" + bot + " " + val)}">
+        <line class="pid-leader" x1="${cx}" y1="${cy + 20}" x2="${cx}" y2="${leaderY2}" />
+        <circle class="pid-balloon__ring" cx="${cx}" cy="${cy}" r="17" />
+        <line class="pid-balloon__split" x1="${cx - 17}" y1="${cy}" x2="${cx + 17}" y2="${cy}" />
         <text class="pid-balloon__top" x="${cx}" y="${cy - 4}" text-anchor="middle">${escapeHtml(top)}</text>
         <text class="pid-balloon__bot" x="${cx}" y="${cy + 11}" text-anchor="middle">${escapeHtml(bot)}</text>
+        ${val ? `<text class="pid-balloon__val" x="${cx + 22}" y="${cy + 4}" text-anchor="start">${escapeHtml(val)}</text>` : ""}
       </g>`;
+  }
+
+  function flange(x, y) {
+    return `<line class="pid-flange" x1="${x}" y1="${y - 7}" x2="${x}" y2="${y + 7}" />`;
+  }
+
+  function flowArrow(x, y) {
+    return `<polygon class="pid-arrow" points="${x},${y} ${x - 7},${y - 4.5} ${x - 7},${y + 4.5}" />`;
+  }
+
+  function nozzleCaps(x, y, w, h) {
+    const mid = y + h / 2;
+    return `${flange(x, mid)}${flange(x + w, mid)}`;
   }
 
   function equipBlock(x, y, w, h, eq, st) {
     const tagId = `${eq.id}/Running`;
     const selected = state.selectedTag.startsWith(eq.id + "/") || state.selectedTag === eq.id
       ? " is-selected" : "";
+    const midY = y + h / 2;
     let body;
     if (eq.kind === "conveyor") {
       body = `
-        <rect class="pid-equip__body" x="${x}" y="${y + 8}" width="${w}" height="${h - 16}" rx="3" />
-        <circle class="pid-equip__roller" cx="${x + 10}" cy="${y + h / 2}" r="7" />
-        <circle class="pid-equip__roller" cx="${x + w - 10}" cy="${y + h / 2}" r="7" />
-        <line class="pid-equip__belt" x1="${x + 10}" y1="${y + 12}" x2="${x + w - 10}" y2="${y + 12}" />
-        <line class="pid-equip__belt" x1="${x + 10}" y1="${y + h - 12}" x2="${x + w - 10}" y2="${y + h - 12}" />`;
+        <rect class="pid-equip__body" x="${x}" y="${y + 10}" width="${w}" height="${h - 20}" rx="2" />
+        <circle class="pid-equip__roller" cx="${x + 11}" cy="${midY}" r="8" />
+        <circle class="pid-equip__roller" cx="${x + w - 11}" cy="${midY}" r="8" />
+        <line class="pid-equip__belt" x1="${x + 11}" y1="${y + 14}" x2="${x + w - 11}" y2="${y + 14}" />
+        <line class="pid-equip__belt" x1="${x + 11}" y1="${y + h - 14}" x2="${x + w - 11}" y2="${y + h - 14}" />
+        <line class="pid-equip__hatch" x1="${x + 22}" y1="${midY}" x2="${x + w - 22}" y2="${midY}" />
+        ${nozzleCaps(x, y, w, h)}`;
     } else if (eq.kind === "scale") {
       body = `
-        <rect class="pid-equip__body" x="${x}" y="${y}" width="${w}" height="${h}" rx="2" />
-        <line class="pid-equip__detail" x1="${x + 8}" y1="${y + h - 10}" x2="${x + w - 8}" y2="${y + h - 10}" />
-        <line class="pid-equip__detail" x1="${x + w / 2}" y1="${y + 8}" x2="${x + w / 2}" y2="${y + h - 10}" />
-        <rect class="pid-equip__platen" x="${x + 14}" y="${y + 10}" width="${w - 28}" height="10" rx="1" />`;
-    } else {
+        <rect class="pid-equip__body" x="${x + 6}" y="${y + 4}" width="${w - 12}" height="${h - 8}" rx="1" />
+        <rect class="pid-equip__platen" x="${x + 16}" y="${y + 10}" width="${w - 32}" height="8" rx="1" />
+        <line class="pid-equip__detail" x1="${x + w / 2}" y1="${y + 18}" x2="${x + w / 2}" y2="${y + h - 14}" />
+        <line class="pid-equip__detail" x1="${x + 14}" y1="${y + h - 12}" x2="${x + w - 14}" y2="${y + h - 12}" />
+        <line class="pid-equip__detail" x1="${x + 18}" y1="${y + h - 8}" x2="${x + w - 18}" y2="${y + h - 8}" />
+        ${nozzleCaps(x + 6, y, w - 12, h)}`;
+    } else if (eq.kind === "palletizer") {
       body = `
-        <rect class="pid-equip__body" x="${x}" y="${y}" width="${w}" height="${h}" rx="2" />
-        <rect class="pid-equip__detail" x="${x + 6}" y="${y + 8}" width="${w - 12}" height="${h - 16}" rx="1" />`;
+        <rect class="pid-equip__body" x="${x}" y="${y}" width="${w}" height="${h}" rx="1" />
+        <rect class="pid-equip__stack" x="${x + 16}" y="${y + h - 18}" width="${w - 32}" height="6" />
+        <rect class="pid-equip__stack" x="${x + 20}" y="${y + h - 26}" width="${w - 40}" height="6" />
+        <rect class="pid-equip__stack" x="${x + 24}" y="${y + h - 34}" width="${w - 48}" height="6" />
+        <line class="pid-equip__detail" x1="${x + 10}" y1="${y + 10}" x2="${x + w - 10}" y2="${y + 10}" />
+        ${nozzleCaps(x, y, w, h)}`;
+    } else {
+      // packaging machine
+      body = `
+        <rect class="pid-equip__body" x="${x}" y="${y}" width="${w}" height="${h}" rx="1" />
+        <rect class="pid-equip__detail" x="${x + 8}" y="${y + 10}" width="${w - 16}" height="${h - 20}" rx="1" />
+        <line class="pid-equip__detail" x1="${x + 8}" y1="${midY}" x2="${x + w - 8}" y2="${midY}" />
+        ${nozzleCaps(x, y, w, h)}`;
     }
     return `
       <g class="pid-equip pid-equip--${st}${selected}" data-equip="${escapeHtml(eq.id)}" data-tag="${escapeHtml(tagId)}" role="button" tabindex="0">
         ${body}
-        <text class="pid-equip__pid" x="${x + w / 2}" y="${y + h / 2 - 2}" text-anchor="middle">${escapeHtml(eq.pid)}</text>
-        <text class="pid-equip__name" x="${x + w / 2}" y="${y + h / 2 + 12}" text-anchor="middle">${escapeHtml(eq.label)}</text>
+        <text class="pid-equip__pid" x="${x + w / 2}" y="${y - 8}" text-anchor="middle">${escapeHtml(eq.pid)}</text>
+        <text class="pid-equip__name" x="${x + w / 2}" y="${y + h + 14}" text-anchor="middle">${escapeHtml(eq.label)}</text>
       </g>`;
   }
 
-  function qClassFor(tagId) {
-    const q = (live[tagId] || {}).quality || "Stale";
-    return `pid-q--${q.toLowerCase()}`;
-  }
-
-  function formatLive(id) {
-    const def = TAG_BY_ID[id];
-    const lv = live[id];
-    if (!def || !lv) return "—";
-    return formatValue(def, lv.value);
+  function divertValve(cx, cy, active, selected) {
+    // 3-way divert: triangle on vertical stem
+    return `
+      <g class="pid-valve${selected}${active ? " is-active" : ""}" data-tag="Checkweigher/Reject/Divert" role="button" tabindex="0" aria-label="Reject divert valve RJ-321">
+        <line class="pid-pipe" x1="${cx}" y1="${cy - 22}" x2="${cx}" y2="${cy - 10}" />
+        <polygon class="pid-valve__body" points="${cx},${cy - 10} ${cx - 12},${cy + 10} ${cx + 12},${cy + 10}" />
+        <line class="pid-pipe pid-pipe--divert" x1="${cx}" y1="${cy + 10}" x2="${cx}" y2="${cy + 34}" />
+        <text class="pid-valve__pid" x="${cx + 18}" y="${cy + 4}" text-anchor="start">RJ-321</text>
+      </g>`;
   }
 
   function renderPid() {
@@ -470,62 +510,93 @@
     const starved = state.scenario === "starved";
     const flowClass = jam ? "is-fault" : starved ? "is-warn" : "is-running";
 
-    // Layout coordinates (viewBox 0 0 920 360)
-    const y = 168;
-    const h = 56;
-    const w = 88;
-    const xs = [40, 180, 320, 480, 620, 760];
+    // Sheet coordinates
+    const vbW = 960;
+    const vbH = 420;
+    const y = 178;
+    const h = 58;
+    const w = 92;
+    const xs = [56, 198, 340, 500, 642, 784];
+    const midY = y + h / 2;
     const rejectX = xs[2] + w / 2;
-    const rejectY = 280;
+    const valveY = y + h + 48;
+    const binY = 350;
 
-    const nozzles = xs.map((x, i) => {
+    const pipes = xs.map((x, i) => {
       if (i === xs.length - 1) return "";
       const x1 = x + w;
       const x2 = xs[i + 1];
-      return `<line class="pid-pipe" x1="${x1}" y1="${y + h / 2}" x2="${x2}" y2="${y + h / 2}" />`;
+      const mid = (x1 + x2) / 2;
+      return `
+        <line class="pid-pipe pid-pipe--main" x1="${x1}" y1="${midY}" x2="${x2}" y2="${midY}" />
+        ${flange(x1, midY)}${flange(x2, midY)}
+        ${flowArrow(mid + 4, midY)}`;
     }).join("");
 
     const flowAnim = (!jam && !starved && !reducedMotion)
-      ? `<line class="pid-pipe-flow" x1="40" y1="${y + h / 2}" x2="848" y2="${y + h / 2}" />`
+      ? `<line class="pid-pipe-flow" x1="${xs[0]}" y1="${midY}" x2="${xs[5] + w}" y2="${midY}" />`
       : "";
 
     const equips = EQUIPMENT.map((eq, i) =>
       equipBlock(xs[i], y, w, h, eq, equipState(eq.id))
     ).join("");
 
+    // Five key balloons only
     const balloons = [
-      balloon(xs[0] + w / 2, 78, "SI", "301", "Infeed/Speed", qClassFor("Infeed/Speed")),
-      balloon(xs[0] + w / 2 - 36, 118, "XS", "301", "Infeed/Photoeye", qClassFor("Infeed/Photoeye")),
-      balloon(xs[1] + w / 2, 78, "SC", "310", "Cartoner/Speed", qClassFor("Cartoner/Speed")),
-      balloon(xs[1] + w / 2 + 40, 118, "YA", "310", "Cartoner/Jam", qClassFor("Cartoner/Jam")),
-      balloon(xs[2] + w / 2, 78, "WT", "320", "Checkweigher/WeightKg", qClassFor("Checkweigher/WeightKg")),
-      balloon(xs[3] + w / 2, 78, "SC", "330", "CasePacker/CasesPerMin", qClassFor("CasePacker/CasesPerMin")),
-      balloon(xs[4] + w / 2, 78, "CI", "340", "Palletizer/Layers", qClassFor("Palletizer/Layers")),
-      balloon(xs[5] + w / 2, 78, "XS", "350", "Outfeed/Photoeye", qClassFor("Outfeed/Photoeye")),
+      balloon(xs[0] + w / 2, 88, "SI", "301", "Infeed/Speed", y - 2),
+      balloon(xs[1] + w / 2 - 28, 88, "SC", "310", "Cartoner/Speed", y - 2),
+      balloon(xs[1] + w / 2 + 28, 88, "YA", "310", "Cartoner/Jam", y - 2),
+      balloon(xs[2] + w / 2, 88, "WT", "320", "Checkweigher/WeightKg", y - 2),
+      balloon(rejectX + 56, valveY + 8, "XI", "321", "Checkweigher/Reject/Divert", valveY + 10),
     ].join("");
 
     const rejectActive = !!(live["Checkweigher/Reject/Active"] || {}).value;
     const rejectSel = state.selectedTag.startsWith("Checkweigher/Reject") ? " is-selected" : "";
+    const rejectCount = Math.round(live["Checkweigher/Reject/Count"]?.value ?? state.rejectCount);
+
+    const productLabel = `
+      <text class="pid-flow-label" x="${xs[0] - 8}" y="${midY - 12}" text-anchor="start">PRODUCT</text>
+      <polygon class="pid-arrow pid-arrow--lg" points="${xs[0] - 4},${midY} ${xs[0] - 14},${midY - 5} ${xs[0] - 14},${midY + 5}" />`;
 
     host.innerHTML = `
-      <svg class="pid-svg ${flowClass}" viewBox="0 0 920 360" role="img" aria-label="Line 3 packaging P and ID">
+      <svg class="pid-svg ${flowClass}" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Line 3 packaging P and ID">
         <title>Packaging Line 3 — P&amp;ID</title>
-        <text class="pid-title" x="16" y="28">Packaging / Line3</text>
-        <text class="pid-subtitle" x="16" y="46">Process flow · instrument balloons select tags</text>
 
-        ${nozzles}
+        <!-- Drawing border -->
+        <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
+        <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
+
+        <!-- Title block -->
+        <g class="pid-titleblock">
+          <rect class="pid-titleblock__box" x="${vbW - 220}" y="${vbH - 56}" width="208" height="44" />
+          <line class="pid-sheet__rule" x1="${vbW - 220}" y1="${vbH - 34}" x2="${vbW - 12}" y2="${vbH - 34}" />
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 42}">DWG</text>
+          <text class="pid-titleblock__v" x="${vbW - 180}" y="${vbH - 42}">PKG-L3-001</text>
+          <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
+          <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Packaging / Line3</text>
+          <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
+        </g>
+
+        <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — PRIMARY PACK</text>
+        <text class="pid-sheet__sub" x="24" y="52">Click equipment or instrument balloons to select tags</text>
+
+        ${productLabel}
+        ${pipes}
         ${flowAnim}
         ${equips}
-        ${balloons}
 
-        <!-- Reject divert -->
-        <line class="pid-pipe pid-pipe--divert" x1="${rejectX}" y1="${y + h}" x2="${rejectX}" y2="${rejectY - 18}" />
-        <g class="pid-reject${rejectSel}${rejectActive ? " is-active" : ""}" data-tag="Checkweigher/Reject/Count" role="button" tabindex="0">
-          <polygon class="pid-reject__body" points="${rejectX - 28},${rejectY - 14} ${rejectX + 28},${rejectY - 14} ${rejectX + 22},${rejectY + 18} ${rejectX - 22},${rejectY + 18}" />
-          <text class="pid-reject__pid" x="${rejectX}" y="${rejectY - 1}" text-anchor="middle">RJ-321</text>
-          <text class="pid-reject__name" x="${rejectX}" y="${rejectY + 12}" text-anchor="middle">Reject · ${Math.round(live["Checkweigher/Reject/Count"]?.value ?? state.rejectCount)}</text>
+        <!-- Reject branch -->
+        <line class="pid-pipe pid-pipe--divert" x1="${rejectX}" y1="${y + h}" x2="${rejectX}" y2="${valveY - 22}" />
+        ${divertValve(rejectX, valveY, rejectActive, rejectSel)}
+        <g class="pid-bin${rejectSel}" data-tag="Checkweigher/Reject/Count" role="button" tabindex="0">
+          <path class="pid-bin__body" d="M${rejectX - 26},${binY - 18} L${rejectX + 26},${binY - 18} L${rejectX + 20},${binY + 14} L${rejectX - 20},${binY + 14} Z" />
+          <text class="pid-bin__label" x="${rejectX}" y="${binY + 2}" text-anchor="middle">REJECT</text>
+          <text class="pid-bin__count" x="${rejectX}" y="${binY + 28}" text-anchor="middle">${rejectCount}</text>
         </g>
-        ${balloon(rejectX + 52, rejectY - 8, "XI", "321", "Checkweigher/Reject/Divert", qClassFor("Checkweigher/Reject/Divert"))}
+
+        ${balloons}
       </svg>`;
   }
 
@@ -536,8 +607,8 @@
       const el = document.getElementById(id);
       if (!el) return;
       el.textContent = text;
+      el.removeAttribute("data-tone");
       if (tone) el.setAttribute("data-tone", tone);
-      else el.removeAttribute("data-tone");
     };
     const oee = live.OEE?.value ?? 0;
     setKpi("kpi-oee", `${oee.toFixed(1)}%`, jam ? "bad" : starved ? "warn" : oee >= 80 ? "good" : "warn");

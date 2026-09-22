@@ -454,206 +454,278 @@
   min-height: 0;
 }
 
-.plant-kpis {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  .plant-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
-
-.plant-kpi {
-  border: 1px solid var(--plant-stroke);
-  background: rgba(2, 6, 23, 0.45);
-  padding: 0.55rem 0.65rem;
-  border-radius: 0.35rem;
-}
-
-.plant-kpi__label {
+.plant-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.55rem;
+  padding: 0.15rem 0.1rem 0.55rem;
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
-  font-size: 0.55rem;
-  letter-spacing: 0.1em;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgb(100 116 139);
 }
 
-.plant-kpi__value {
-  margin-top: 0.2rem;
-  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
-  font-size: 1rem;
+.plant-status__item strong {
+  margin-left: 0.3rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
   color: rgb(226 232 240);
+  font-variant-numeric: tabular-nums;
 }
 
-.plant-kpi__value[data-tone="bad"] { color: var(--plant-bad); }
-.plant-kpi__value[data-tone="warn"] { color: var(--plant-uncertain); }
-.plant-kpi__value[data-tone="good"] { color: var(--plant-good); }
+.plant-status__item strong[data-tone="bad"] { color: var(--plant-bad); }
+.plant-status__item strong[data-tone="warn"] { color: var(--plant-uncertain); }
+.plant-status__item strong[data-tone="good"] { color: var(--plant-good); }
+
+.plant-status__sep { color: rgb(51 65 85); }
 
 .plant-pid {
   flex: 1;
-  min-height: 14rem;
+  min-height: 16rem;
   overflow: auto;
-  border: 1px solid var(--plant-stroke);
-  border-radius: 0.35rem;
-  background:
-    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px),
-    rgba(2, 6, 23, 0.55);
-  background-size: 24px 24px, 24px 24px, auto;
+  border: 0;
+  border-radius: 0;
+  background: rgba(2, 6, 23, 0.35);
 }
 
 .pid-svg {
   display: block;
   width: 100%;
-  min-width: 52rem;
+  min-width: 56rem;
   height: auto;
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
 }
 
-.pid-title {
-  fill: rgb(226 232 240);
-  font-size: 13px;
+.pid-sheet {
+  fill: rgba(2, 6, 23, 0.55);
+  stroke: rgba(148, 163, 184, 0.35);
+  stroke-width: 1.25;
+}
+.pid-sheet__rule {
+  stroke: rgba(148, 163, 184, 0.28);
+  stroke-width: 1;
+}
+.pid-sheet__head {
+  fill: rgb(203 213 225);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+.pid-sheet__sub {
+  fill: rgb(100 116 139);
+  font-size: 9px;
   letter-spacing: 0.04em;
 }
-.pid-subtitle {
+
+.pid-titleblock__box {
+  fill: rgba(2, 6, 23, 0.75);
+  stroke: rgba(148, 163, 184, 0.35);
+  stroke-width: 1;
+}
+.pid-titleblock__k {
   fill: rgb(100 116 139);
-  font-size: 10px;
-  letter-spacing: 0.06em;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+.pid-titleblock__v {
+  fill: rgb(226 232 240);
+  font-size: 9px;
+  letter-spacing: 0.03em;
+}
+.pid-titleblock__sim {
+  fill: var(--color-brand-400);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+
+.pid-flow-label {
+  fill: rgb(148 163 184);
+  font-size: 8px;
+  letter-spacing: 0.12em;
 }
 
 .pid-pipe {
-  stroke: var(--pid-stroke);
-  stroke-width: 2.5;
+  stroke: #94a3b8;
+  stroke-width: 2;
   fill: none;
+  stroke-linecap: square;
+}
+.pid-pipe--main {
+  stroke-width: 2.75;
 }
 .pid-pipe--divert {
   stroke-dasharray: 5 4;
-  stroke: rgba(248, 113, 113, 0.65);
+  stroke-width: 1.75;
+  stroke: #94a3b8;
+}
+.pid-flange {
+  stroke: #94a3b8;
+  stroke-width: 2;
+}
+.pid-arrow {
+  fill: #94a3b8;
+  stroke: none;
 }
 
 .pid-pipe-flow {
-  stroke: rgba(52, 211, 153, 0.55);
-  stroke-width: 2;
-  stroke-dasharray: 8 10;
+  stroke: rgba(148, 163, 184, 0.35);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 10;
   fill: none;
   pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .pid-svg.is-running .pid-pipe-flow {
-    animation: pid-flow 1.1s linear infinite;
+    animation: pid-flow 1.2s linear infinite;
   }
 }
 
 @keyframes pid-flow {
   from { stroke-dashoffset: 0; }
-  to { stroke-dashoffset: -18; }
+  to { stroke-dashoffset: -16; }
 }
 
-.pid-svg.is-fault .pid-pipe { stroke: rgba(248, 113, 113, 0.7); }
-.pid-svg.is-warn .pid-pipe { stroke: rgba(251, 191, 36, 0.65); }
-
-.pid-equip {
-  cursor: pointer;
+/* Monochrome base; only fault/warn tint equipment — not the whole pipe network */
+.pid-svg.is-fault .pid-equip--fault .pid-equip__body,
+.pid-svg.is-fault .pid-equip--fault .pid-equip__roller {
+  stroke: #f87171;
 }
+.pid-svg.is-warn .pid-equip--warn .pid-equip__body,
+.pid-svg.is-warn .pid-equip--warn .pid-equip__roller {
+  stroke: #fbbf24;
+}
+
+.pid-equip { cursor: pointer; }
 .pid-equip__body {
-  fill: var(--pid-fill);
-  stroke: var(--pid-stroke);
-  stroke-width: 1.75;
+  fill: rgba(2, 6, 23, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.6;
 }
 .pid-equip__detail,
 .pid-equip__belt,
-.pid-equip__roller,
-.pid-equip__platen {
+.pid-equip__hatch {
   fill: none;
   stroke: rgba(148, 163, 184, 0.55);
-  stroke-width: 1.25;
+  stroke-width: 1.1;
 }
-.pid-equip__roller { fill: rgba(15, 23, 42, 0.9); }
+.pid-equip__hatch { stroke-dasharray: 3 3; }
+.pid-equip__roller {
+  fill: rgba(2, 6, 23, 0.95);
+  stroke: #94a3b8;
+  stroke-width: 1.4;
+}
 .pid-equip__platen {
-  fill: rgba(34, 211, 238, 0.08);
-  stroke: rgba(34, 211, 238, 0.35);
+  fill: rgba(148, 163, 184, 0.08);
+  stroke: #94a3b8;
+  stroke-width: 1.1;
+}
+.pid-equip__stack {
+  fill: rgba(148, 163, 184, 0.12);
+  stroke: #94a3b8;
+  stroke-width: 1;
 }
 .pid-equip__pid {
-  fill: rgb(226 232 240);
-  font-size: 10px;
+  fill: #e2e8f0;
+  font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   pointer-events: none;
 }
 .pid-equip__name {
-  fill: rgb(148 163 184);
+  fill: #94a3b8;
   font-size: 8px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   pointer-events: none;
 }
 
-.pid-equip--run .pid-equip__body { stroke: rgba(52, 211, 153, 0.75); }
-.pid-equip--fault .pid-equip__body { stroke: rgba(248, 113, 113, 0.9); }
-.pid-equip--warn .pid-equip__body { stroke: rgba(251, 191, 36, 0.85); }
-.pid-equip--idle .pid-equip__body { stroke: rgba(100, 116, 139, 0.55); opacity: 0.85; }
+.pid-equip--idle { opacity: 0.72; }
+.pid-equip--fault .pid-equip__body { stroke: #f87171; stroke-width: 2; }
+.pid-equip--warn .pid-equip__body { stroke: #fbbf24; stroke-width: 1.85; }
 
 .pid-equip.is-selected .pid-equip__body,
-.pid-reject.is-selected .pid-reject__body {
+.pid-bin.is-selected .pid-bin__body,
+.pid-valve.is-selected .pid-valve__body {
   stroke: var(--color-brand-400);
-  stroke-width: 2.25;
+  stroke-width: 2.1;
 }
 
-.pid-balloon {
-  cursor: pointer;
-}
+.pid-balloon { cursor: pointer; }
 .pid-balloon__ring {
-  fill: rgba(2, 6, 23, 0.92);
-  stroke: var(--pid-stroke);
-  stroke-width: 1.5;
+  fill: rgba(2, 6, 23, 0.95);
+  stroke: #94a3b8;
+  stroke-width: 1.4;
 }
 .pid-balloon__split {
-  stroke: var(--pid-stroke);
-  stroke-width: 1.25;
+  stroke: #94a3b8;
+  stroke-width: 1.1;
 }
 .pid-balloon__top,
 .pid-balloon__bot {
-  fill: rgb(226 232 240);
+  fill: #e2e8f0;
   font-size: 8px;
   letter-spacing: 0.02em;
   pointer-events: none;
 }
+.pid-balloon__val {
+  fill: #94a3b8;
+  font-size: 7.5px;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
 .pid-leader {
-  stroke: var(--pid-stroke);
-  stroke-width: 1.25;
+  stroke: #64748b;
+  stroke-width: 1.1;
 }
 
 .pid-balloon.is-selected .pid-balloon__ring {
   stroke: var(--color-brand-400);
   stroke-width: 2;
 }
-.pid-q--good .pid-balloon__ring { stroke: rgba(52, 211, 153, 0.85); }
-.pid-q--uncertain .pid-balloon__ring { stroke: rgba(251, 191, 36, 0.85); }
-.pid-q--bad .pid-balloon__ring { stroke: rgba(248, 113, 113, 0.9); }
-.pid-q--stale .pid-balloon__ring { stroke: rgba(148, 163, 184, 0.7); }
+/* Quality only colors the balloon ring */
+.pid-q--good .pid-balloon__ring { stroke: #34d399; }
+.pid-q--uncertain .pid-balloon__ring { stroke: #fbbf24; }
+.pid-q--bad .pid-balloon__ring { stroke: #f87171; }
+.pid-q--stale .pid-balloon__ring { stroke: #94a3b8; }
+.pid-q--good .pid-balloon__val { fill: #6ee7b7; }
+.pid-q--uncertain .pid-balloon__val { fill: #fcd34d; }
+.pid-q--bad .pid-balloon__val { fill: #fca5a5; }
 
-.pid-reject { cursor: pointer; }
-.pid-reject__body {
-  fill: rgba(2, 6, 23, 0.9);
-  stroke: rgba(248, 113, 113, 0.55);
+.pid-valve { cursor: pointer; }
+.pid-valve__body {
+  fill: rgba(2, 6, 23, 0.95);
+  stroke: #94a3b8;
   stroke-width: 1.5;
-  stroke-dasharray: 4 3;
 }
-.pid-reject.is-active .pid-reject__body {
-  stroke: rgba(248, 113, 113, 0.95);
+.pid-valve.is-active .pid-valve__body {
+  stroke: #f87171;
   fill: rgba(248, 113, 113, 0.12);
-  stroke-dasharray: none;
 }
-.pid-reject__pid {
-  fill: #fecaca;
-  font-size: 9px;
-  font-weight: 600;
+.pid-valve__pid {
+  fill: #94a3b8;
+  font-size: 8px;
+  letter-spacing: 0.04em;
   pointer-events: none;
 }
-.pid-reject__name {
-  fill: rgb(148 163 184);
+
+.pid-bin { cursor: pointer; }
+.pid-bin__body {
+  fill: rgba(2, 6, 23, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.4;
+}
+.pid-bin__label {
+  fill: #94a3b8;
   font-size: 8px;
+  letter-spacing: 0.1em;
+  pointer-events: none;
+}
+.pid-bin__count {
+  fill: #e2e8f0;
+  font-size: 10px;
   pointer-events: none;
 }
 
