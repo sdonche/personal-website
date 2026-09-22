@@ -9,7 +9,7 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "samdonche.plant.v13";
+  const STORAGE_KEY = "samdonche.plant.v14";
   const TICK_MS = 1000;
   const PROVIDER = "[edge]";
   const EDGE_ROOT = "[edge]";
@@ -383,6 +383,9 @@
       scenario: /** @type {null|"jam"|"starved"} */ (null),
       mixScenario: /** @type {null|"overtemp"|"valve"} */ (null),
       temperScenario: /** @type {null|"warm"|"belt"} */ (null),
+      refineScenario: /** @type {null|"pressure"|"particle"} */ (null),
+      concheScenario: /** @type {null|"overtemp"|"agitator"} */ (null),
+      mouldScenario: /** @type {null|"jam"|"cool"} */ (null),
       cartonerJamCleared: false,
       rejectCount: 12,
       underCount: 3,
@@ -440,6 +443,15 @@
         temperScenario: parsed.temperScenario === "warm" || parsed.temperScenario === "belt"
           ? parsed.temperScenario
           : null,
+        refineScenario: parsed.refineScenario === "pressure" || parsed.refineScenario === "particle"
+          ? parsed.refineScenario
+          : null,
+        concheScenario: parsed.concheScenario === "overtemp" || parsed.concheScenario === "agitator"
+          ? parsed.concheScenario
+          : null,
+        mouldScenario: parsed.mouldScenario === "jam" || parsed.mouldScenario === "cool"
+          ? parsed.mouldScenario
+          : null,
       };
     } catch (e) {
       return defaultState();
@@ -469,11 +481,18 @@
     const temperWarm = state.temperScenario === "warm";
     const temperBelt = state.temperScenario === "belt";
     const temperFault = temperWarm || temperBelt;
+    const refinePressure = state.refineScenario === "pressure";
+    const refineParticle = state.refineScenario === "particle";
+    const concheOver = state.concheScenario === "overtemp";
+    const concheAgit = state.concheScenario === "agitator";
+    const mouldJam = state.mouldScenario === "jam";
+    const mouldCool = state.mouldScenario === "cool";
     /* Upstream hold starves packaging feed (shared chocolate mass path). */
-    const upstreamHold = mixFault || temperBelt;
+    const upstreamHold = mixFault || temperBelt || refinePressure || concheOver || mouldJam;
     const lineOk = !jam && !starved && !upstreamHold;
     const feedStarved = starved || upstreamHold;
     const batchId = `B-${1400 + Math.floor(tick / 90)}`;
+    const batchPhase = tick % 90;
 
     const speedSp = 120;
     const cartonerSpeed = jam ? 0 : feedStarved ? drift(38, 4, 1) : drift(118, 3, 1);
@@ -588,62 +607,90 @@
     live["Mixing/Outlet/FlowKgH"] = { value: mixOutFlow, quality: mixFault ? "Bad" : "Good" };
     live["Mixing/Drain/ValveOpen"] = { value: false, quality: "Good" };
 
-    /* Refining — inlet tracks Mixing mass out. */
-    const refineStarve = mixFault;
-    const refineRun = !refineStarve;
-    const refineLoad = refineStarve ? clamp(drift(12, 3, 23), 0, 25) : clamp(drift(62, 3.5, 23), 45, 78);
-    const particle = refineStarve ? clamp(drift(38, 2, 24), 30, 45) : clamp(drift(22, 1.2, 24), 18, 28);
+    /* Refining — inlet tracks Mixing mass out; local pressure/particle scenarios. */
+    const refineStarve = mixFault || refinePressure;
+    const refineRun = !refineStarve && !refineParticle;
+    const refineLoad = refineStarve
+      ? clamp(drift(12, 3, 23), 0, 25)
+      : refineParticle
+        ? clamp(drift(48, 3, 23), 35, 58)
+        : clamp(drift(62, 3.5, 23), 45, 78);
+    const particle = refineParticle
+      ? clamp(drift(42, 2.5, 24), 34, 52)
+      : refineStarve
+        ? clamp(drift(38, 2, 24), 30, 45)
+        : clamp(drift(22, 1.2, 24), 18, 28);
     const refineInOpen = !refineStarve;
     const refineOutOpen = refineRun;
     const refineInFlow = refineStarve ? 0 : Math.max(0, mixOutFlow * 0.99 + drift(0, 18, 25));
-    const refineOutFlow = refineRun ? Math.max(0, mixOutFlow * 0.99 + drift(0, 22, 26)) : 0;
-    const rollPressure = refineStarve ? clamp(drift(18, 2, 47), 10, 25) : clamp(drift(42, 2.5, 47), 32, 52);
-    const hydPressure = refineStarve ? clamp(drift(55, 3, 48), 40, 70) : clamp(drift(118, 4, 48), 100, 135);
-    const refineMode = refineStarve ? "STARVED" : "AUTO";
-    const refineQ = refineStarve ? "Uncertain" : "Good";
-    live["Refining/Running"] = { value: refineRun, quality: refineQ };
+    const refineOutFlow = refineRun ? Math.max(0, mixOutFlow * (refineParticle ? 0.7 : 0.99) + drift(0, 22, 26)) : 0;
+    const rollPressure = refinePressure
+      ? clamp(drift(8, 1.5, 47), 2, 14)
+      : refineStarve
+        ? clamp(drift(18, 2, 47), 10, 25)
+        : clamp(drift(42, 2.5, 47), 32, 52);
+    const hydPressure = refinePressure
+      ? clamp(drift(28, 4, 48), 12, 40)
+      : refineStarve
+        ? clamp(drift(55, 3, 48), 40, 70)
+        : clamp(drift(118, 4, 48), 100, 135);
+    const refineMode = refinePressure ? "FAULT" : refineParticle ? "HOLD" : refineStarve ? "STARVED" : "AUTO";
+    const refineQ = refinePressure ? "Bad" : refineParticle || refineStarve ? "Uncertain" : "Good";
+    live["Refining/Running"] = { value: !refineStarve, quality: refineQ };
     live["Refining/Mode"] = { value: refineMode, quality: refineQ };
     live["Refining/BatchId"] = { value: batchId, quality: "Good" };
-    live["Refining/Refiner1/Running"] = { value: refineRun, quality: refineQ };
-    live["Refining/Refiner1/LoadPct"] = { value: refineLoad, quality: refineStarve ? "Uncertain" : "Good" };
-    live["Refining/Refiner1/ParticleUm"] = { value: particle, quality: refineStarve ? "Uncertain" : "Good" };
-    live["Refining/Refiner1/RollPressureBar"] = { value: rollPressure, quality: refineStarve ? "Uncertain" : "Good" };
+    live["Refining/Refiner1/Running"] = { value: !refineStarve, quality: refineQ };
+    live["Refining/Refiner1/LoadPct"] = { value: refineLoad, quality: refineStarve || refineParticle ? "Uncertain" : "Good" };
+    live["Refining/Refiner1/ParticleUm"] = { value: particle, quality: refineParticle ? "Bad" : refineStarve ? "Uncertain" : "Good" };
+    live["Refining/Refiner1/RollPressureBar"] = { value: rollPressure, quality: refinePressure ? "Bad" : refineStarve ? "Uncertain" : "Good" };
     live["Refining/Inlet/ValveOpen"] = { value: refineInOpen, quality: refineStarve ? "Uncertain" : "Good" };
     live["Refining/Inlet/FlowKgH"] = { value: Math.max(0, refineInFlow), quality: refineStarve ? "Bad" : "Good" };
-    live["Refining/Outlet/ValveOpen"] = { value: refineOutOpen, quality: refineStarve ? "Uncertain" : "Good" };
-    live["Refining/Outlet/FlowKgH"] = { value: Math.max(0, refineOutFlow), quality: refineStarve ? "Bad" : "Good" };
-    live["Refining/Hydraulic/PressureBar"] = { value: hydPressure, quality: refineStarve ? "Uncertain" : "Good" };
+    live["Refining/Outlet/ValveOpen"] = { value: refineOutOpen, quality: refinePressure || refineParticle ? "Uncertain" : refineStarve ? "Uncertain" : "Good" };
+    live["Refining/Outlet/FlowKgH"] = { value: Math.max(0, refineOutFlow), quality: refineStarve || refinePressure ? "Bad" : refineParticle ? "Uncertain" : "Good" };
+    live["Refining/Hydraulic/PressureBar"] = { value: hydPressure, quality: refinePressure ? "Bad" : refineStarve ? "Uncertain" : "Good" };
 
-    /* Conching — inlet from refining outlet. */
-    const concheStarve = mixFault || refineStarve;
-    const concheRun = !concheStarve;
-    const concheTemp = concheStarve ? clamp(drift(48, 1.5, 27), 40, 55) : clamp(drift(65, 1.2, 27), 58, 72);
-    const concheRpm = concheStarve ? clamp(drift(6, 2, 28), 0, 12) : clamp(drift(28, 2.5, 28), 18, 40);
+    /* Conching — inlet from refining outlet; local overtemp/agitator scenarios. */
+    const concheStarve = mixFault || refineStarve || refinePressure;
+    const concheRun = !concheStarve && !concheAgit && !concheOver;
+    const concheTemp = concheOver
+      ? clamp(drift(82, 1.8, 27), 76, 90)
+      : concheStarve
+        ? clamp(drift(48, 1.5, 27), 40, 55)
+        : clamp(drift(65, 1.2, 27), 58, 72);
+    const concheRpm = concheAgit
+      ? clamp(drift(2, 1, 28), 0, 5)
+      : concheStarve
+        ? clamp(drift(6, 2, 28), 0, 12)
+        : clamp(drift(28, 2.5, 28), 18, 40);
     const concheTime = Math.floor((tick % 5400) / 60);
     const concheInOpen = !concheStarve;
-    const concheOutOpen = concheRun;
+    const concheOutOpen = !concheStarve && !concheOver;
     const concheInFlow = concheStarve ? 0 : Math.max(0, refineOutFlow * 0.98 + drift(0, 16, 29));
-    const conchOutFlow = concheRun ? Math.max(0, concheInFlow * 0.99 + drift(0, 14, 30)) : 0;
-    const jacketSupply = concheStarve ? clamp(drift(42, 1.2, 49), 35, 50) : clamp(drift(55, 1.0, 49), 48, 62);
+    const conchOutFlow = concheOutOpen ? Math.max(0, concheInFlow * (concheAgit ? 0.55 : 0.99) + drift(0, 14, 30)) : 0;
+    const jacketSupply = concheOver
+      ? clamp(drift(68, 1.5, 49), 60, 78)
+      : concheStarve
+        ? clamp(drift(42, 1.2, 49), 35, 50)
+        : clamp(drift(55, 1.0, 49), 48, 62);
     const jacketFlow = concheStarve ? clamp(drift(0.4, 0.15, 50), 0, 0.8) : clamp(drift(2.4, 0.2, 50), 1.6, 3.2);
-    const concheMode = concheStarve ? "STARVED" : "AUTO";
-    const concheQ = concheStarve ? "Uncertain" : "Good";
-    live["Conching/Running"] = { value: concheRun, quality: concheQ };
+    const concheMode = concheOver ? "FAULT" : concheAgit ? "HOLD" : concheStarve ? "STARVED" : "AUTO";
+    const concheQ = concheOver ? "Bad" : concheAgit || concheStarve ? "Uncertain" : "Good";
+    live["Conching/Running"] = { value: !concheStarve, quality: concheQ };
     live["Conching/Mode"] = { value: concheMode, quality: concheQ };
     live["Conching/BatchId"] = { value: batchId, quality: "Good" };
-    live["Conching/Conche1/Running"] = { value: concheRun, quality: concheQ };
-    live["Conching/Conche1/TempC"] = { value: concheTemp, quality: concheStarve ? "Uncertain" : "Good" };
-    live["Conching/Conche1/AgitatorRpm"] = { value: concheRpm, quality: concheStarve ? "Uncertain" : "Good" };
+    live["Conching/Conche1/Running"] = { value: !concheStarve && !concheAgit, quality: concheQ };
+    live["Conching/Conche1/TempC"] = { value: concheTemp, quality: concheOver ? "Bad" : concheStarve ? "Uncertain" : "Good" };
+    live["Conching/Conche1/AgitatorRpm"] = { value: concheRpm, quality: concheAgit ? "Bad" : concheStarve ? "Uncertain" : "Good" };
     live["Conching/Conche1/TimeMin"] = { value: concheTime, quality: "Good" };
     live["Conching/Inlet/ValveOpen"] = { value: concheInOpen, quality: concheStarve ? "Uncertain" : "Good" };
     live["Conching/Inlet/FlowKgH"] = { value: Math.max(0, concheInFlow), quality: concheStarve ? "Bad" : "Good" };
-    live["Conching/Outlet/ValveOpen"] = { value: concheOutOpen, quality: concheStarve ? "Uncertain" : "Good" };
-    live["Conching/Outlet/FlowKgH"] = { value: Math.max(0, conchOutFlow), quality: concheStarve ? "Bad" : "Good" };
-    live["Conching/Jacket/SupplyTempC"] = { value: jacketSupply, quality: concheStarve ? "Uncertain" : "Good" };
+    live["Conching/Outlet/ValveOpen"] = { value: concheOutOpen, quality: concheOver || concheStarve ? "Uncertain" : "Good" };
+    live["Conching/Outlet/FlowKgH"] = { value: Math.max(0, conchOutFlow), quality: concheStarve || concheOver ? "Bad" : concheAgit ? "Uncertain" : "Good" };
+    live["Conching/Jacket/SupplyTempC"] = { value: jacketSupply, quality: concheOver ? "Bad" : concheStarve ? "Uncertain" : "Good" };
     live["Conching/Jacket/FlowM3H"] = { value: jacketFlow, quality: concheStarve ? "Uncertain" : "Good" };
 
-    /* Tempering — inlet tracks Conching mass out; starve only on Mixing fault. */
-    const temperStarve = mixFault;
+    /* Tempering — inlet tracks Conching mass out; starve on Mixing / refine pressure / conche overtemp. */
+    const temperStarve = mixFault || refinePressure || concheOver;
     const temperRun = !temperBelt && !temperStarve;
     const z1 = temperWarm ? clamp(drift(38, 0.9, 14), 35, 42) : clamp(drift(32.5, 0.8, 14), 28, 36);
     const z2 = temperWarm ? clamp(drift(36, 0.8, 15), 33, 40) : clamp(drift(29.0, 0.7, 15), 26, 33);
@@ -674,52 +721,79 @@
     live["Tempering/ChilledWater/FlowM3H"] = { value: cwFlow, quality: temperWarm ? "Uncertain" : "Good" };
     live["Tempering/ChilledWater/SupplyTempC"] = { value: cwSupply, quality: temperWarm ? "Uncertain" : "Good" };
 
-    /* Moulding — inlet from tempering outlet. */
-    const mouldStarve = temperBelt || mixFault;
-    const mouldRun = !mouldStarve;
-    const cycles = mouldStarve ? clamp(drift(3, 1.2, 31), 0, 6) : clamp(drift(18, 1.5, 31), 12, 24);
+    /* Moulding — inlet from tempering; local jam / cool-air scenarios. */
+    const mouldStarve = temperBelt || mixFault || refinePressure || concheOver;
+    const mouldRun = !mouldStarve && !mouldJam;
+    const cycles = mouldJam
+      ? 0
+      : mouldStarve
+        ? clamp(drift(3, 1.2, 31), 0, 6)
+        : clamp(drift(18, 1.5, 31), 12, 24);
     const mouldTemp = mouldStarve ? clamp(drift(18, 1.2, 32), 14, 24) : clamp(drift(12, 0.8, 32), 9, 16);
-    const airTemp = mouldStarve ? clamp(drift(14, 1.0, 33), 10, 20) : clamp(drift(8, 0.6, 33), 5, 12);
+    const airTemp = mouldCool
+      ? clamp(drift(22, 1.2, 33), 18, 28)
+      : mouldStarve
+        ? clamp(drift(14, 1.0, 33), 10, 20)
+        : clamp(drift(8, 0.6, 33), 5, 12);
     const mouldInOpen = !mouldStarve;
     const mouldOutOpen = mouldRun;
     const mouldInFlow = mouldStarve ? 0 : Math.max(0, tOutFlow * 0.98 + drift(0, 14, 34));
     const mouldOutFlow = mouldRun ? Math.max(0, mouldInFlow * 0.99 + drift(0, 12, 35)) : 0;
-    const mouldMode = mouldStarve ? "STARVED" : "AUTO";
-    const mouldQ = mouldStarve ? "Uncertain" : "Good";
-    live["Moulding/Running"] = { value: mouldRun, quality: mouldQ };
+    const mouldMode = mouldJam ? "FAULT" : mouldCool ? "HOLD" : mouldStarve ? "STARVED" : "AUTO";
+    const mouldQ = mouldJam ? "Bad" : mouldCool || mouldStarve ? "Uncertain" : "Good";
+    live["Moulding/Running"] = { value: !mouldStarve && !mouldJam, quality: mouldQ };
     live["Moulding/Mode"] = { value: mouldMode, quality: mouldQ };
     live["Moulding/BatchId"] = { value: batchId, quality: "Good" };
     live["Moulding/Moulder1/Running"] = { value: mouldRun, quality: mouldQ };
-    live["Moulding/Moulder1/CyclesPerMin"] = { value: cycles, quality: mouldStarve ? "Uncertain" : "Good" };
+    live["Moulding/Moulder1/CyclesPerMin"] = { value: cycles, quality: mouldJam ? "Bad" : mouldStarve ? "Uncertain" : "Good" };
     live["Moulding/Moulder1/MouldTempC"] = { value: mouldTemp, quality: mouldStarve ? "Uncertain" : "Good" };
     live["Moulding/Inlet/ValveOpen"] = { value: mouldInOpen, quality: mouldStarve ? "Uncertain" : "Good" };
     live["Moulding/Inlet/FlowKgH"] = { value: Math.max(0, mouldInFlow), quality: mouldStarve ? "Bad" : "Good" };
-    live["Moulding/Outlet/ValveOpen"] = { value: mouldOutOpen, quality: mouldStarve ? "Uncertain" : "Good" };
-    live["Moulding/Outlet/FlowKgH"] = { value: Math.max(0, mouldOutFlow), quality: mouldStarve ? "Bad" : "Good" };
-    live["Moulding/Cooling/AirTempC"] = { value: airTemp, quality: mouldStarve ? "Uncertain" : "Good" };
+    live["Moulding/Outlet/ValveOpen"] = { value: mouldOutOpen, quality: mouldJam || mouldStarve ? "Uncertain" : "Good" };
+    live["Moulding/Outlet/FlowKgH"] = { value: Math.max(0, mouldOutFlow), quality: mouldJam || mouldStarve ? "Bad" : "Good" };
+    live["Moulding/Cooling/AirTempC"] = { value: airTemp, quality: mouldCool ? "Bad" : mouldStarve ? "Uncertain" : "Good" };
 
     /* Heuvelland site meta — same shape as sister sites. */
-    const plantMode = mixOver || temperWarm || jam
+    const plantMode = mixOver || temperWarm || jam || refinePressure || concheOver || mouldJam
       ? "FAULT"
-      : mixValve || temperBelt || feedStarved
+      : mixValve || temperBelt || feedStarved || refineParticle || concheAgit || mouldCool
         ? "HOLD"
         : "AUTO";
     const contactStamp = new Date().toISOString().replace("T", " ").slice(0, 16) + " UTC";
-    live[`${SITE}/Running`] = { value: lineOk || !jam, quality: jam || mixOver || temperWarm ? "Uncertain" : "Good" };
-    live[`${SITE}/Mode`] = { value: plantMode, quality: jam || mixOver || temperWarm ? "Bad" : feedStarved ? "Uncertain" : "Good" };
+    live[`${SITE}/Running`] = { value: lineOk || !jam, quality: jam || mixOver || temperWarm || refinePressure || concheOver || mouldJam ? "Uncertain" : "Good" };
+    live[`${SITE}/Mode`] = { value: plantMode, quality: jam || mixOver || temperWarm || refinePressure || concheOver || mouldJam ? "Bad" : feedStarved ? "Uncertain" : "Good" };
     live[`${SITE}/OEE`] = { value: oee, quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" };
     live[`${SITE}/LastContact`] = { value: contactStamp, quality: "Good" };
 
+    /* Sister spark: one offline site flaps live for ~8s every ~50s. */
+    const sparkWindow = 50;
+    const sparkHold = 8;
+    const sparkActive = tick % sparkWindow < sparkHold;
+    const sparkSite = sparkActive ? SISTER_SITES[Math.floor(tick / sparkWindow) % SISTER_SITES.length] : null;
     SISTER_SITES.forEach((site) => {
-      live[`${site}/Running`] = { value: false, quality: "Stale" };
-      live[`${site}/Mode`] = { value: "OFFLINE", quality: "Stale" };
-      live[`${site}/OEE`] = { value: 0, quality: "Stale" };
-      live[`${site}/LastContact`] = { value: SISTER_LAST_CONTACT[site], quality: "Stale" };
-      live[`${site}/Mixing/Running`] = { value: false, quality: "Stale" };
-      live[`${site}/Mixing/Mode`] = { value: "OFFLINE", quality: "Stale" };
-      live[`${site}/Packaging/Running`] = { value: false, quality: "Stale" };
-      live[`${site}/Packaging/OEE`] = { value: 0, quality: "Stale" };
+      if (site === sparkSite) {
+        const sparkOee = clamp(drift(72, 2.5, 60), 60, 85);
+        live[`${site}/Running`] = { value: true, quality: "Good" };
+        live[`${site}/Mode`] = { value: "AUTO", quality: "Good" };
+        live[`${site}/OEE`] = { value: sparkOee, quality: "Uncertain" };
+        live[`${site}/LastContact`] = { value: contactStamp, quality: "Good" };
+        live[`${site}/Mixing/Running`] = { value: true, quality: "Good" };
+        live[`${site}/Mixing/Mode`] = { value: "AUTO", quality: "Uncertain" };
+        live[`${site}/Packaging/Running`] = { value: true, quality: "Good" };
+        live[`${site}/Packaging/OEE`] = { value: sparkOee, quality: "Uncertain" };
+      } else {
+        live[`${site}/Running`] = { value: false, quality: "Stale" };
+        live[`${site}/Mode`] = { value: "OFFLINE", quality: "Stale" };
+        live[`${site}/OEE`] = { value: 0, quality: "Stale" };
+        live[`${site}/LastContact`] = { value: SISTER_LAST_CONTACT[site], quality: "Stale" };
+        live[`${site}/Mixing/Running`] = { value: false, quality: "Stale" };
+        live[`${site}/Mixing/Mode`] = { value: "OFFLINE", quality: "Stale" };
+        live[`${site}/Packaging/Running`] = { value: false, quality: "Stale" };
+        live[`${site}/Packaging/OEE`] = { value: 0, quality: "Stale" };
+      }
     });
+    live.__sparkSite = { value: sparkSite, quality: "Good" };
+    live.__batchPhase = { value: batchPhase, quality: "Good" };
 
     syncScenarioAlarms();
   }
@@ -794,11 +868,113 @@
         severity: /** @type {const} */ ("warning"),
       });
     }
+    if (state.refineScenario === "pressure") {
+      want.push({
+        id: "alm-refine-pressure",
+        path: pathOf("Refining/Hydraulic/PressureBar"),
+        message: "Refiner1 hydraulic pressure collapse — rolls unloading",
+        severity: /** @type {const} */ ("critical"),
+      });
+      want.push({
+        id: "alm-pack-refine",
+        path: pathOf("Infeed/Starved"),
+        message: "Packaging Line3 starved — Refining pressure hold",
+        severity: /** @type {const} */ ("warning"),
+      });
+    }
+    if (state.refineScenario === "particle") {
+      want.push({
+        id: "alm-refine-particle",
+        path: pathOf("Refining/Refiner1/ParticleUm"),
+        message: "Refiner1 particle size out of spec — hold and rework",
+        severity: /** @type {const} */ ("warning"),
+      });
+    }
+    if (state.concheScenario === "overtemp") {
+      want.push({
+        id: "alm-conche-overtemp",
+        path: pathOf("Conching/Conche1/TempC"),
+        message: "Conche1 mass overtemperature — outlet held",
+        severity: /** @type {const} */ ("critical"),
+      });
+      want.push({
+        id: "alm-pack-conche",
+        path: pathOf("Infeed/Starved"),
+        message: "Packaging Line3 starved — Conching overtemp hold",
+        severity: /** @type {const} */ ("warning"),
+      });
+    }
+    if (state.concheScenario === "agitator") {
+      want.push({
+        id: "alm-conche-agitator",
+        path: pathOf("Conching/Conche1/AgitatorRpm"),
+        message: "Conche1 agitator stall — mass not developing",
+        severity: /** @type {const} */ ("warning"),
+      });
+    }
+    if (state.mouldScenario === "jam") {
+      want.push({
+        id: "alm-mould-jam",
+        path: pathOf("Moulding/Moulder1/CyclesPerMin"),
+        message: "Moulder1 jam — cycles stopped, bars not releasing",
+        severity: /** @type {const} */ ("critical"),
+      });
+      want.push({
+        id: "alm-pack-mould",
+        path: pathOf("Infeed/Starved"),
+        message: "Packaging Line3 starved — Moulding jam",
+        severity: /** @type {const} */ ("warning"),
+      });
+    }
+    if (state.mouldScenario === "cool") {
+      want.push({
+        id: "alm-mould-cool",
+        path: pathOf("Moulding/Cooling/AirTempC"),
+        message: "Moulder1 cooling air too warm — set risk",
+        severity: /** @type {const} */ ("warning"),
+      });
+    }
     const byId = new Map(state.alarms.map((a) => [a.id, a]));
     state.alarms = want.map((w) => {
       const prev = byId.get(w.id);
       return { ...w, acked: prev ? prev.acked : false, ts: prev ? prev.ts : Date.now() };
     });
+  }
+
+  /** Alarm → drawing / equipment for P&ID callouts. */
+  const ALARM_PID = {
+    "alm-cartoner-jam": { drawing: "packaging", equip: "Cartoner", severity: "critical" },
+    "alm-infeed-starved": { drawing: "packaging", equip: "Infeed", severity: "warning" },
+    "alm-pack-upstream": { drawing: "packaging", equip: "Infeed", severity: "warning" },
+    "alm-pack-temper": { drawing: "packaging", equip: "Infeed", severity: "warning" },
+    "alm-pack-refine": { drawing: "packaging", equip: "Infeed", severity: "warning" },
+    "alm-pack-conche": { drawing: "packaging", equip: "Infeed", severity: "warning" },
+    "alm-pack-mould": { drawing: "packaging", equip: "Infeed", severity: "warning" },
+    "alm-mix-overtemp": { drawing: "mixing", equip: "Mixer1", severity: "critical" },
+    "alm-mix-valve": { drawing: "mixing", equip: "CocoaLiquor", severity: "warning" },
+    "alm-temper-warm": { drawing: "tempering", equip: "Temper1", severity: "critical" },
+    "alm-temper-belt": { drawing: "tempering", equip: "Temper1", severity: "warning" },
+    "alm-temper-upstream": { drawing: "tempering", equip: "Inlet", severity: "warning" },
+    "alm-refine-pressure": { drawing: "refining", equip: "Refiner1", severity: "critical" },
+    "alm-refine-particle": { drawing: "refining", equip: "Refiner1", severity: "warning" },
+    "alm-conche-overtemp": { drawing: "conching", equip: "Conche1", severity: "critical" },
+    "alm-conche-agitator": { drawing: "conching", equip: "Conche1", severity: "warning" },
+    "alm-mould-jam": { drawing: "moulding", equip: "Moulder1", severity: "critical" },
+    "alm-mould-cool": { drawing: "moulding", equip: "Moulder1", severity: "warning" },
+  };
+
+  const BATCH_STEPS = ["mixing", "refining", "conching", "tempering", "moulding", "packaging"];
+  const BATCH_HOME_TAG = {
+    mixing: "Mixing/BatchId",
+    refining: "Refining/BatchId",
+    conching: "Conching/BatchId",
+    tempering: "Tempering/BatchId",
+    moulding: "Moulding/BatchId",
+    packaging: "BatchId",
+  };
+
+  function batchStepIndex(phase) {
+    return Math.min(BATCH_STEPS.length - 1, Math.floor((phase ?? 0) / 15));
   }
 
   function formatValue(def, value) {
@@ -822,7 +998,10 @@
     const jam = state.scenario === "jam" && !state.cartonerJamCleared;
     const starved = state.scenario === "starved"
       || state.mixScenario != null
-      || state.temperScenario === "belt";
+      || state.temperScenario === "belt"
+      || state.refineScenario === "pressure"
+      || state.concheScenario === "overtemp"
+      || state.mouldScenario === "jam";
     if (id === "Cartoner" && jam) return "fault";
     if (id === "Infeed" && starved) return "warn";
     if (jam) {
@@ -1884,20 +2063,28 @@
 
     const temperWarm = state.temperScenario === "warm";
     const temperBelt = state.temperScenario === "belt";
+    const refinePressure = state.refineScenario === "pressure";
+    const refineParticle = state.refineScenario === "particle";
+    const concheOver = state.concheScenario === "overtemp";
+    const concheAgit = state.concheScenario === "agitator";
+    const mouldJam = state.mouldScenario === "jam";
+    const mouldCool = state.mouldScenario === "cool";
 
     svg.classList.remove("is-running", "is-fault", "is-warn");
     if (mixing) svg.classList.add(mixOver ? "is-fault" : mixValve ? "is-warn" : "is-running");
     else if (tempering) svg.classList.add(temperWarm ? "is-fault" : temperBelt ? "is-warn" : "is-running");
-    else if (refining || conching || moulding) svg.classList.add("is-running");
+    else if (refining) svg.classList.add(refinePressure ? "is-fault" : refineParticle ? "is-warn" : "is-running");
+    else if (conching) svg.classList.add(concheOver ? "is-fault" : concheAgit ? "is-warn" : "is-running");
+    else if (moulding) svg.classList.add(mouldJam ? "is-fault" : mouldCool ? "is-warn" : "is-running");
     else svg.classList.add(jam ? "is-fault" : starved ? "is-warn" : "is-running");
 
     const flowShow = (() => {
       if (reducedMotion) return false;
       if (mixing) return !mixOver && !mixValve;
       if (tempering) return !temperWarm && !temperBelt;
-      if (refining) return (live["Refining/Mode"]?.value ?? "") !== "STARVED";
-      if (conching) return (live["Conching/Mode"]?.value ?? "") !== "STARVED";
-      if (moulding) return (live["Moulding/Mode"]?.value ?? "") !== "STARVED";
+      if (refining) return !refinePressure && !refineParticle && (live["Refining/Mode"]?.value ?? "") !== "STARVED";
+      if (conching) return !concheOver && !concheAgit && (live["Conching/Mode"]?.value ?? "") !== "STARVED";
+      if (moulding) return !mouldJam && !mouldCool && (live["Moulding/Mode"]?.value ?? "") !== "STARVED";
       return !jam && !starved;
     })();
     svg.querySelectorAll("[data-pid-flow]").forEach((flow) => {
@@ -1917,7 +2104,7 @@
     if (mixing) {
       const tank = svg.querySelector(".pid-tank");
       if (tank) {
-        tank.classList.remove("is-selected", "is-hover", "is-fault", "is-warn");
+        tank.classList.remove("is-selected", "is-hover", "is-fault", "is-warn", "is-alarm");
         if (state.selectedTag.startsWith("Mixing/Mixer1")) tank.classList.add("is-selected");
         if (mixOver) tank.classList.add("is-fault");
         else if (mixValve) tank.classList.add("is-warn");
@@ -1938,12 +2125,12 @@
         g.classList.toggle("is-open", open);
         g.classList.toggle("is-fault", mixValve && tagId === "Mixing/CocoaLiquor/ValveOpen");
         g.classList.toggle("is-selected", tagId === state.selectedTag);
-        g.classList.remove("is-hover");
+        g.classList.remove("is-hover", "is-alarm");
       });
     } else if (tempering) {
       const tunnel = svg.querySelector(".pid-tunnel");
       if (tunnel) {
-        tunnel.classList.remove("is-selected", "is-hover", "is-fault", "is-warn");
+        tunnel.classList.remove("is-selected", "is-hover", "is-fault", "is-warn", "is-alarm");
         if (state.selectedTag.startsWith("Tempering/Temper1")) tunnel.classList.add("is-selected");
         if (temperWarm) tunnel.classList.add("is-fault");
         else if (temperBelt) tunnel.classList.add("is-warn");
@@ -1958,7 +2145,7 @@
         const open = !!(live[tagId] || {}).value;
         g.classList.toggle("is-open", open);
         g.classList.toggle("is-selected", tagId === state.selectedTag);
-        g.classList.remove("is-hover");
+        g.classList.remove("is-hover", "is-alarm");
       });
     } else if (refining || conching || moulding) {
       const equipSel = refining
@@ -1970,22 +2157,28 @@
         refining ? ".pid-refiner" : conching ? ".pid-tank" : ".pid-moulder"
       );
       if (equipEl) {
-        equipEl.classList.remove("is-selected", "is-hover", "is-fault", "is-warn");
+        equipEl.classList.remove("is-selected", "is-hover", "is-fault", "is-warn", "is-alarm");
         if (state.selectedTag.startsWith(equipSel)) equipEl.classList.add("is-selected");
+        if (refining && refinePressure) equipEl.classList.add("is-fault");
+        else if (refining && refineParticle) equipEl.classList.add("is-warn");
+        else if (conching && concheOver) equipEl.classList.add("is-fault");
+        else if (conching && concheAgit) equipEl.classList.add("is-warn");
+        else if (moulding && mouldJam) equipEl.classList.add("is-fault");
+        else if (moulding && mouldCool) equipEl.classList.add("is-warn");
       }
       svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
         const tagId = g.getAttribute("data-tag");
         const open = !!(live[tagId] || {}).value;
         g.classList.toggle("is-open", open);
         g.classList.toggle("is-selected", tagId === state.selectedTag);
-        g.classList.remove("is-hover");
+        g.classList.remove("is-hover", "is-alarm");
       });
     } else {
       EQUIPMENT.forEach((eq) => {
         const g = svg.querySelector(`.pid-equip[data-equip="${eq.id}"]`);
         if (!g) return;
         const st = equipState(eq.id);
-        g.classList.remove("pid-equip--run", "pid-equip--fault", "pid-equip--warn", "pid-equip--idle", "is-selected", "is-hover");
+        g.classList.remove("pid-equip--run", "pid-equip--fault", "pid-equip--warn", "pid-equip--idle", "is-selected", "is-hover", "is-alarm");
         g.classList.add(`pid-equip--${st}`);
         if (state.selectedTag.startsWith(eq.id + "/") || state.selectedTag === `${eq.id}/Running`) {
           g.classList.add("is-selected");
@@ -1999,13 +2192,37 @@
       if (valve) {
         valve.classList.toggle("is-active", rejectActive);
         valve.classList.toggle("is-selected", rejectSel);
-        valve.classList.remove("is-hover");
+        valve.classList.remove("is-hover", "is-alarm");
       }
       if (bin) {
         bin.classList.toggle("is-selected", rejectSel);
-        bin.classList.remove("is-hover");
+        bin.classList.remove("is-hover", "is-alarm");
         const count = bin.querySelector("[data-pid-reject-count]");
         if (count) count.textContent = String(Math.round(live["Checkweigher/Reject/Count"]?.value ?? state.rejectCount));
+      }
+    }
+
+    const sheetAlarms = state.alarms.filter((a) => ALARM_PID[a.id]?.drawing === drawing);
+    sheetAlarms.forEach((a) => {
+      const meta = ALARM_PID[a.id];
+      if (!meta) return;
+      const nodes = svg.querySelectorAll(`[data-equip="${CSS.escape(meta.equip)}"]`);
+      nodes.forEach((el) => {
+        el.classList.add("is-alarm");
+        if (meta.severity === "critical") el.classList.add("is-fault");
+        else el.classList.add("is-warn");
+      });
+    });
+    const banner = document.getElementById("plant-pid-alarm");
+    if (banner) {
+      if (!sheetAlarms.length) {
+        banner.hidden = true;
+        banner.textContent = "";
+      } else {
+        banner.hidden = false;
+        const top = sheetAlarms.find((a) => a.severity === "critical") || sheetAlarms[0];
+        banner.dataset.severity = top.severity;
+        banner.textContent = top.message;
       }
     }
 
@@ -2071,34 +2288,38 @@
       const particle = live["Refining/Refiner1/ParticleUm"]?.value ?? 0;
       const outFlow = live["Refining/Outlet/FlowKgH"]?.value ?? 0;
       const mode = live["Refining/Mode"]?.value ?? "—";
+      const refinePressure = state.refineScenario === "pressure";
+      const refineParticle = state.refineScenario === "particle";
       const starvedRefine = mode === "STARVED";
       setLabel("kpi-a-label", "Load");
       setLabel("kpi-b-label", "Particle");
       setLabel("kpi-c-label", "Outlet");
       setLabel("kpi-d-label", "Mode");
-      setKpi("kpi-a", `${load.toFixed(1)}%`, starvedRefine ? "warn" : "good");
-      setKpi("kpi-b", `${particle.toFixed(1)} µm`, starvedRefine ? "warn" : "good");
-      setKpi("kpi-c", String(Math.round(outFlow)), starvedRefine ? "warn" : "good");
-      setKpi("kpi-d", String(mode), starvedRefine ? "warn" : "good");
+      setKpi("kpi-a", `${load.toFixed(1)}%`, refinePressure || starvedRefine ? "warn" : "good");
+      setKpi("kpi-b", `${particle.toFixed(1)} µm`, refineParticle ? "bad" : starvedRefine ? "warn" : "good");
+      setKpi("kpi-c", String(Math.round(outFlow)), refinePressure || starvedRefine ? "warn" : "good");
+      setKpi("kpi-d", String(mode), refinePressure ? "bad" : refineParticle || starvedRefine ? "warn" : "good");
     } else if (conching) {
       const temp = live["Conching/Conche1/TempC"]?.value ?? 0;
       const rpm = live["Conching/Conche1/AgitatorRpm"]?.value ?? 0;
       const timeMin = live["Conching/Conche1/TimeMin"]?.value ?? 0;
       const mode = live["Conching/Mode"]?.value ?? "—";
+      const concheOver = state.concheScenario === "overtemp";
+      const concheAgit = state.concheScenario === "agitator";
       const starvedConche = mode === "STARVED";
       setLabel("kpi-a-label", "Temp");
       setLabel("kpi-b-label", "RPM");
       setLabel("kpi-c-label", "Time");
       setLabel("kpi-d-label", "Mode");
-      setKpi("kpi-a", `${temp.toFixed(1)}°C`, starvedConche ? "warn" : "good");
-      setKpi("kpi-b", String(Math.round(rpm)), starvedConche ? "warn" : "good");
+      setKpi("kpi-a", `${temp.toFixed(1)}°C`, concheOver ? "bad" : starvedConche ? "warn" : "good");
+      setKpi("kpi-b", String(Math.round(rpm)), concheAgit ? "bad" : starvedConche ? "warn" : "good");
       setKpi("kpi-c", `${Math.round(timeMin)} min`, "good");
-      setKpi("kpi-d", String(mode), starvedConche ? "warn" : "good");
+      setKpi("kpi-d", String(mode), concheOver ? "bad" : concheAgit || starvedConche ? "warn" : "good");
     } else if (tempering) {
       const z1 = live["Tempering/Temper1/Zone1TempC"]?.value ?? 0;
       const z3 = live["Tempering/Temper1/Zone3TempC"]?.value ?? 0;
       const belt = live["Tempering/Temper1/BeltSpeed"]?.value ?? 0;
-      const temperStarve = state.mixScenario != null;
+      const temperStarve = state.mixScenario != null || state.refineScenario === "pressure" || state.concheScenario === "overtemp";
       setLabel("kpi-a-label", "Zone1");
       setLabel("kpi-b-label", "Zone3");
       setLabel("kpi-c-label", "Belt");
@@ -2112,15 +2333,17 @@
       const mouldTemp = live["Moulding/Moulder1/MouldTempC"]?.value ?? 0;
       const airTemp = live["Moulding/Cooling/AirTempC"]?.value ?? 0;
       const mode = live["Moulding/Mode"]?.value ?? "—";
+      const mouldJamSc = state.mouldScenario === "jam";
+      const mouldCoolSc = state.mouldScenario === "cool";
       const starvedMould = mode === "STARVED";
       setLabel("kpi-a-label", "Cycles");
       setLabel("kpi-b-label", "Mould °C");
       setLabel("kpi-c-label", "Air °C");
       setLabel("kpi-d-label", "Mode");
-      setKpi("kpi-a", String(Math.round(cycles)), starvedMould ? "warn" : "good");
+      setKpi("kpi-a", String(Math.round(cycles)), mouldJamSc ? "bad" : starvedMould ? "warn" : "good");
       setKpi("kpi-b", `${mouldTemp.toFixed(1)}°C`, starvedMould ? "warn" : "good");
-      setKpi("kpi-c", `${airTemp.toFixed(1)}°C`, starvedMould ? "warn" : "good");
-      setKpi("kpi-d", String(mode), starvedMould ? "warn" : "good");
+      setKpi("kpi-c", `${airTemp.toFixed(1)}°C`, mouldCoolSc ? "bad" : starvedMould ? "warn" : "good");
+      setKpi("kpi-d", String(mode), mouldJamSc ? "bad" : mouldCoolSc || starvedMould ? "warn" : "good");
     } else {
       const oee = live.OEE?.value ?? 0;
       setLabel("kpi-a-label", "OEE");
@@ -2136,9 +2359,15 @@
     const pkgToolbar = document.querySelector('[data-toolbar-area="packaging"]');
     const mixToolbar = document.querySelector('[data-toolbar-area="mixing"]');
     const temperToolbar = document.querySelector('[data-toolbar-area="tempering"]');
+    const refineToolbar = document.querySelector('[data-toolbar-area="refining"]');
+    const concheToolbar = document.querySelector('[data-toolbar-area="conching"]');
+    const mouldToolbar = document.querySelector('[data-toolbar-area="moulding"]');
     if (pkgToolbar) pkgToolbar.hidden = !packaging;
     if (mixToolbar) mixToolbar.hidden = !mixing;
     if (temperToolbar) temperToolbar.hidden = !tempering;
+    if (refineToolbar) refineToolbar.hidden = !refining;
+    if (concheToolbar) concheToolbar.hidden = !conching;
+    if (mouldToolbar) mouldToolbar.hidden = !moulding;
     document.querySelectorAll("[data-toolbar-packaging-only]").forEach((el) => {
       el.hidden = !packaging;
     });
@@ -2156,6 +2385,21 @@
     document.querySelectorAll("[data-temper-scenario]").forEach((btn) => {
       const sc = btn.getAttribute("data-temper-scenario");
       const active = sc === "recover" ? state.temperScenario === null : state.temperScenario === sc;
+      btn.classList.toggle("is-active", active);
+    });
+    document.querySelectorAll("[data-refine-scenario]").forEach((btn) => {
+      const sc = btn.getAttribute("data-refine-scenario");
+      const active = sc === "recover" ? state.refineScenario === null : state.refineScenario === sc;
+      btn.classList.toggle("is-active", active);
+    });
+    document.querySelectorAll("[data-conche-scenario]").forEach((btn) => {
+      const sc = btn.getAttribute("data-conche-scenario");
+      const active = sc === "recover" ? state.concheScenario === null : state.concheScenario === sc;
+      btn.classList.toggle("is-active", active);
+    });
+    document.querySelectorAll("[data-mould-scenario]").forEach((btn) => {
+      const sc = btn.getAttribute("data-mould-scenario");
+      const active = sc === "recover" ? state.mouldScenario === null : state.mouldScenario === sc;
       btn.classList.toggle("is-active", active);
     });
 
@@ -2183,8 +2427,14 @@
       scanDot.classList.remove("is-fault", "is-warn");
       if (mixing && mixOver) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Overtemp"; }
       else if (mixing && mixValve) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Valve fault"; }
+      else if (refining && state.refineScenario === "pressure") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Pressure"; }
+      else if (refining && state.refineScenario === "particle") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Particle"; }
+      else if (conching && state.concheScenario === "overtemp") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Overtemp"; }
+      else if (conching && state.concheScenario === "agitator") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Agitator"; }
       else if (tempering && temperWarm) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Zone warm"; }
       else if (tempering && temperBelt) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Belt stop"; }
+      else if (moulding && state.mouldScenario === "jam") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Jam"; }
+      else if (moulding && state.mouldScenario === "cool") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Cool air"; }
       else if (packaging && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
       else if (packaging && feedStarved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
       else {
@@ -2292,8 +2542,10 @@
   function renderAll(opts) {
     const forceAlarms = !opts || opts.alarms !== false;
     renderTree();
+    paintSisterSpark();
     renderPid();
     renderKpis();
+    renderBatchTrail();
     renderDetail();
     if (forceAlarms || tick % 5 === 0 || tick <= 1) renderAlarms();
     else updateAlarmTimes();
@@ -2331,6 +2583,59 @@
     saveState();
     computeLive();
     renderAll();
+  }
+
+  function setRefineScenario(name) {
+    if (name === "recover") state.refineScenario = null;
+    else if (name === "pressure" || name === "particle") state.refineScenario = name;
+    saveState();
+    computeLive();
+    renderAll();
+  }
+
+  function setConcheScenario(name) {
+    if (name === "recover") state.concheScenario = null;
+    else if (name === "overtemp" || name === "agitator") state.concheScenario = name;
+    saveState();
+    computeLive();
+    renderAll();
+  }
+
+  function setMouldScenario(name) {
+    if (name === "recover") state.mouldScenario = null;
+    else if (name === "jam" || name === "cool") state.mouldScenario = name;
+    saveState();
+    computeLive();
+    renderAll();
+  }
+
+  function renderBatchTrail() {
+    const idBtn = document.getElementById("plant-batch-id");
+    const steps = document.getElementById("plant-batch-steps");
+    if (!idBtn || !steps) return;
+    const batchId = String(live.BatchId?.value ?? live["Mixing/BatchId"]?.value ?? "—");
+    idBtn.textContent = `BATCH ${batchId}`;
+    const here = batchStepIndex(live.__batchPhase?.value ?? (tick % 90));
+    steps.querySelectorAll("[data-batch-step]").forEach((btn) => {
+      const step = btn.getAttribute("data-batch-step");
+      const idx = BATCH_STEPS.indexOf(step);
+      const li = btn.closest("li");
+      if (!li) return;
+      li.classList.remove("is-done", "is-here", "is-pending");
+      if (idx < here) li.classList.add("is-done");
+      else if (idx === here) li.classList.add("is-here");
+      else li.classList.add("is-pending");
+      btn.classList.toggle("is-active", step === state.activeDrawing);
+    });
+  }
+
+  function paintSisterSpark() {
+    const spark = live.__sparkSite?.value || null;
+    document.querySelectorAll(".plant-tree__site--offline").forEach((li) => {
+      const label = li.querySelector(":scope > details > summary .plant-tree__label")?.textContent?.trim();
+      const on = !!spark && label === spark;
+      li.classList.toggle("plant-tree__site--spark", on);
+    });
   }
 
   const DRAWING_HOME_TAG = {
@@ -2540,19 +2845,39 @@
     });
 
     document.querySelector(".plant-toolbar")?.addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-action], [data-scenario], [data-mix-scenario], [data-temper-scenario]");
+      const btn = e.target.closest("[data-action], [data-scenario], [data-mix-scenario], [data-temper-scenario], [data-refine-scenario], [data-conche-scenario], [data-mould-scenario]");
       if (!btn) return;
       const sc = btn.getAttribute("data-scenario");
       const mixSc = btn.getAttribute("data-mix-scenario");
       const temperSc = btn.getAttribute("data-temper-scenario");
+      const refineSc = btn.getAttribute("data-refine-scenario");
+      const concheSc = btn.getAttribute("data-conche-scenario");
+      const mouldSc = btn.getAttribute("data-mould-scenario");
       if (sc) { setScenario(sc); return; }
       if (mixSc) { setMixScenario(mixSc); return; }
       if (temperSc) { setTemperScenario(temperSc); return; }
+      if (refineSc) { setRefineScenario(refineSc); return; }
+      if (concheSc) { setConcheScenario(concheSc); return; }
+      if (mouldSc) { setMouldScenario(mouldSc); return; }
       const action = btn.getAttribute("data-action");
       if (action === "ack-all") ackAll();
       else if (action === "reset-reject") resetReject();
       else if (action === "clear-jam") clearCartonerJam();
       else if (action === "reset-line") resetLine();
+    });
+
+    document.getElementById("plant-batch-trail")?.addEventListener("click", (e) => {
+      const idBtn = e.target.closest("#plant-batch-id");
+      if (idBtn) {
+        const tag = BATCH_HOME_TAG[state.activeDrawing] || "BatchId";
+        selectTag(tag);
+        return;
+      }
+      const stepBtn = e.target.closest("[data-batch-step]");
+      if (stepBtn) {
+        const step = stepBtn.getAttribute("data-batch-step");
+        if (step) setActiveDrawing(step);
+      }
     });
 
     document.querySelector(".plant-area-nav")?.addEventListener("click", (e) => {
