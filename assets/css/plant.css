@@ -409,6 +409,36 @@
   color: rgb(226 232 240);
   font-weight: 600;
 }
+.plant-tree__site--live > details > summary .plant-tree__label::after {
+  content: "LIVE";
+  margin-left: 0.45rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--plant-good);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.plant-tree__site--offline > details > summary .plant-tree__label::after {
+  content: "OFFLINE";
+  margin-left: 0.45rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--plant-stale);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.plant-tree__site--offline > details > summary {
+  color: rgb(100 116 139);
+  font-weight: 500;
+}
+.plant-tree__edge > details > summary {
+  color: rgb(226 232 240);
+  font-weight: 600;
+}
 .plant-tree__area > details > summary {
   color: rgb(203 213 225);
 }

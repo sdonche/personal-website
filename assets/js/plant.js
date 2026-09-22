@@ -1,7 +1,7 @@
 /* =============================================================
    plant.js — Heuvelland chocolate plant HMI (/plant/)
+   Edge sites: Heuvelland (LIVE) + Gullegem / Ieper / Gent / Brugge (OFFLINE).
    Process order: Mixing → Refining → Conching → Tempering → Moulding → Packaging.
-   All six areas have live P&ID drawings (Packaging Line3 + five process areas).
    Cross-area BatchId + Mixing/Tempering faults starve Packaging feed.
    State persists in localStorage until "Reset line".
    ============================================================= */
@@ -9,10 +9,12 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "samdonche.plant.v9";
+  const STORAGE_KEY = "samdonche.plant.v10";
   const TICK_MS = 1000;
   const PROVIDER = "[edge]";
+  const EDGE_ROOT = "[edge]";
   const SITE = "Heuvelland";
+  const SISTER_SITES = ["Gullegem", "Ieper", "Gent", "Brugge"];
   const AREA = "Packaging";
   const MIXING_AREA = "Mixing";
   const REFINING_AREA = "Refining";
@@ -237,18 +239,32 @@
     STUB_LINE_TAGS.map((t) => ({ ...t, id: `${line.id}/${t.id}` }))
   );
 
+  /** Offline sister sites — thin tag set each. */
+  const SISTER_SITE_TAGS = SISTER_SITES.flatMap((site) => [
+    { id: `${site}/Running`, name: "Running", type: "bool", live: false },
+    { id: `${site}/Mode`, name: "Mode", type: "string", live: false },
+    { id: `${site}/OEE`, name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1), live: false },
+  ]);
+
   const ALL_TAGS = LINE3_TAGS.concat(
     STUB_TAGS,
     MIXING_TAGS,
     REFINING_TAGS,
     CONCHING_TAGS,
     TEMPERING_TAGS,
-    MOULDING_TAGS
+    MOULDING_TAGS,
+    SISTER_SITE_TAGS
   );
   const TAG_BY_ID = Object.fromEntries(ALL_TAGS.map((t) => [t.id, t]));
+  const SISTER_SITE_SET = new Set(SISTER_SITES);
 
   function isStubTag(rel) {
     return rel.startsWith("Line1/") || rel.startsWith("Line2/");
+  }
+
+  function isSisterSiteTag(rel) {
+    if (!rel) return false;
+    return SISTER_SITE_SET.has(rel.split("/")[0]);
   }
 
   function isMixingTag(rel) {
@@ -278,7 +294,7 @@
 
   function isPackagingTag(rel) {
     if (!rel) return false;
-    if (isProcessAreaTag(rel)) return false;
+    if (isProcessAreaTag(rel) || isSisterSiteTag(rel)) return false;
     return true;
   }
 
@@ -288,11 +304,13 @@
     if (isConchingTag(rel)) return "conching";
     if (isTemperingTag(rel)) return "tempering";
     if (isMouldingTag(rel)) return "moulding";
+    if (isSisterSiteTag(rel)) return null;
     if (isPackagingTag(rel)) return "packaging";
     return null;
   }
 
   function pathOf(rel) {
+    if (isSisterSiteTag(rel)) return `${PROVIDER}${rel}`;
     if (isProcessAreaTag(rel)) return `${PROVIDER}${SITE}/${rel}`;
     if (isStubTag(rel)) return `${PROVIDER}${AREA_ROOT}/${rel}`;
     return `${PROVIDER}${AREA_ROOT}/${LIVE_LINE}/${rel}`;
@@ -300,6 +318,7 @@
 
   /** Default open folders in the nested tree (node keys). */
   const DEFAULT_OPEN = [
+    EDGE_ROOT,
     SITE,
     MIXING_ROOT,
     `${MIXING_ROOT}/Mixer1`,
@@ -629,6 +648,12 @@
     live["Moulding/Outlet/FlowKgH"] = { value: Math.max(0, mouldOutFlow), quality: mouldStarve ? "Bad" : "Good" };
     live["Moulding/Cooling/AirTempC"] = { value: airTemp, quality: mouldStarve ? "Uncertain" : "Good" };
 
+    SISTER_SITES.forEach((site) => {
+      live[`${site}/Running`] = { value: false, quality: "Stale" };
+      live[`${site}/Mode`] = { value: "OFFLINE", quality: "Stale" };
+      live[`${site}/OEE`] = { value: 0, quality: "Stale" };
+    });
+
     syncScenarioAlarms();
   }
 
@@ -779,8 +804,9 @@
   function renderTagButton(relId, def) {
     const lv = live[relId] || { value: "—", quality: "Stale" };
     const sel = relId === state.selectedTag ? " is-selected" : "";
+    const offline = isSisterSiteTag(relId) ? " plant-tag--offline" : "";
     return `<li>
-      <button type="button" class="plant-tag${sel}" data-tag="${escapeHtml(relId)}" data-q="${escapeHtml(lv.quality)}" aria-pressed="${relId === state.selectedTag}">
+      <button type="button" class="plant-tag${sel}${offline}" data-tag="${escapeHtml(relId)}" data-q="${escapeHtml(lv.quality)}" aria-pressed="${relId === state.selectedTag}">
         <span class="plant-q-dot-inline" aria-hidden="true"></span>
         <span class="plant-tag__name">${escapeHtml(def.name)}</span>
         <span class="plant-tag__val">${escapeHtml(formatValue(def, lv.value))}</span>
@@ -955,6 +981,13 @@
     return renderFolder(MOULDING_ROOT, MOULDING_AREA, body, "plant-tree__area plant-tree__area--live", { drawing: "moulding" });
   }
 
+  function renderSisterSiteFolder(site) {
+    const tags = SISTER_SITE_TAGS.filter((t) => t.id.startsWith(`${site}/`))
+      .map((t) => renderTagButton(t.id, t))
+      .join("");
+    return renderFolder(site, site, tags, "plant-tree__site plant-tree__site--offline");
+  }
+
   function buildTree() {
     const root = document.getElementById("plant-tree");
     if (!root) return;
@@ -970,13 +1003,16 @@
     const moulding = renderMouldingFolder();
 
     /* Process order: Mixing → Refining → Conching → Tempering → Moulding → Packaging */
-    const areas = mixing + refining + conching + tempering + moulding + packaging;
-    root.innerHTML = renderFolder(SITE, SITE, areas, "plant-tree__site");
+    const heuvellandAreas = mixing + refining + conching + tempering + moulding + packaging;
+    const heuvelland = renderFolder(SITE, SITE, heuvellandAreas, "plant-tree__site plant-tree__site--live");
+    const sisters = SISTER_SITES.map(renderSisterSiteFolder).join("");
+
+    root.innerHTML = renderFolder(EDGE_ROOT, EDGE_ROOT, heuvelland + sisters, "plant-tree__edge");
     treeBuilt = true;
     updateTreeValues();
 
     const headPath = document.getElementById("plant-tree-path");
-    if (headPath) headPath.textContent = `${PROVIDER}${SITE}`;
+    if (headPath) headPath.textContent = EDGE_ROOT;
   }
 
   function updateTreeValues() {
@@ -1143,7 +1179,7 @@
         <line class="pid-pipe pid-pipe--divert" x1="${cx}" y1="${cyTop}" x2="${cx}" y2="${mid - 10}" />
         <polygon class="pid-valve__body" points="${cx},${mid - 10} ${cx - 11},${mid + 10} ${cx + 11},${mid + 10}" />
         <line class="pid-pipe pid-pipe--divert" x1="${cx}" y1="${mid + 10}" x2="${cx}" y2="${cyBot}" />
-        <text class="pid-valve__pid" x="${cx + 16}" y="${mid + 4}" text-anchor="start">RJ-321</text>
+        <text class="pid-mix-valve__pid" x="${cx + 16}" y="${mid + 4}" text-anchor="start">XV-321</text>
       </g>`;
   }
 
@@ -1156,7 +1192,7 @@
     const y = 178;
     const h = 58;
     const w = 92;
-    // Leave room on the left for the PRODUCT inlet label (no overlap with CV-301).
+    // Leave room on the left for the FROM MOULD inlet label (no overlap with CV-301).
     const xs = [90, 228, 366, 522, 660, 798];
 
     const layout = EQUIPMENT.map((eq, i) => {
@@ -1190,27 +1226,34 @@
     const inlet = `
       <line class="pid-pipe pid-pipe--main" x1="${inletX0}" y1="${midY}" x2="${inletX1}" y2="${midY}" />
       ${flange(inletX1, midY)}
-      <text class="pid-flow-label" x="${inletMid}" y="${midY - 22}" text-anchor="middle">PRODUCT</text>
+      <text class="pid-flow-label" x="${inletMid}" y="${midY - 22}" text-anchor="middle">FROM MOULD</text>
       ${flowArrow(inletX1 - 12, midY)}`;
 
     const last = layout[layout.length - 1];
-    const outletX1 = last.ports.right + 28;
+    const outletX1 = last.ports.right + 48;
     const outlet = `
       <line class="pid-pipe pid-pipe--main" x1="${last.ports.right}" y1="${midY}" x2="${outletX1}" y2="${midY}" />
       ${flange(last.ports.right, midY)}
-      ${flowArrow(outletX1 - 2, midY)}`;
+      ${flowArrow(outletX1 - 8, midY)}
+      <text class="pid-flow-label" x="${outletX1}" y="${midY - 22}" text-anchor="middle">PALLETS</text>`;
 
     const equips = layout.map((n) =>
       equipBlock(n.x, n.y, n.w, n.h, n.eq, "run")
     ).join("");
 
     const cart = layout[1];
+    const caseP = layout[3];
+    const pal = layout[4];
+    const outf = layout[5];
     const balloons = [
       balloon(layout[0].ports.cx, 86, "SI", "301", "Infeed/Speed", layout[0].ports.cx, layout[0].ports.top, "Infeed"),
       balloon(cart.ports.cx - 26, 86, "SC", "310", "Cartoner/Speed", cart.ports.cx - 14, cart.ports.top, "Cartoner"),
       balloon(cart.ports.cx + 26, 86, "YA", "310", "Cartoner/Jam", cart.ports.cx + 14, cart.ports.top, "Cartoner"),
       balloon(weigh.ports.cx, 86, "WT", "320", "Checkweigher/WeightKg", weigh.ports.cx, weigh.ports.top, "Checkweigher"),
       balloon(rejectX + 54, (valveTop + valveBot) / 2, "XI", "321", "Checkweigher/Reject/Divert", rejectX + 12, (valveTop + valveBot) / 2, "Reject"),
+      balloon(caseP.ports.cx, 86, "SI", "330", "CasePacker/Speed", caseP.ports.cx, caseP.ports.top, "CasePacker"),
+      balloon(pal.ports.cx, 86, "CI", "340", "Palletizer/PalletsDone", pal.ports.cx, pal.ports.top, "Palletizer"),
+      balloon(outf.ports.cx, 86, "XI", "350", "Outfeed/Occupied", outf.ports.cx, outf.ports.top, "Outfeed"),
     ].join("");
 
     host.innerHTML = `
@@ -1228,12 +1271,12 @@
           <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
           <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
           <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
-          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Line3</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Packaging / Line3</text>
           <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
         </g>
 
         <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — PRIMARY PACK</text>
-        <text class="pid-sheet__sub" x="24" y="52">Click equipment or instrument balloons to select tags</text>
+        <text class="pid-sheet__sub" x="24" y="52">Bars from Moulding → cartoner → weigh → case → pallet → outfeed</text>
 
         ${equips}
         ${inlet}
@@ -1291,7 +1334,7 @@
       balloon(tankCx, 52, "SI", "110", "Mixing/Mixer1/AgitatorRpm", tankCx, tankY, "Mixer1"),
       balloon(100, cocoaY - 48, "FI", "101", "Mixing/CocoaLiquor/FlowKgH", 190, cocoaY, "CocoaLiquor"),
       balloon(100, sugarY + 52, "FI", "102", "Mixing/Sugar/FlowKgH", 190, sugarY, "Sugar"),
-      balloon(800, outY - 52, "FI", "130", "Mixing/Outlet/FlowKgH", 720, outY, "Outlet"),
+      balloon(800, outY - 52, "FI", "110", "Mixing/Outlet/FlowKgH", 720, outY, "Outlet"),
     ].join("");
 
     host.innerHTML = `
@@ -1308,7 +1351,7 @@
           <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
           <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
           <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
-          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Mixing</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Mixing / Mixer1</text>
           <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
         </g>
 
@@ -1339,12 +1382,12 @@
 
         <line class="pid-pipe pid-pipe--main" x1="${tankX + tankW}" y1="${outY}" x2="880" y2="${outY}" />
         ${flange(tankX + tankW, outY)}
-        ${mixValve(720, outY, "Mixing/Outlet/ValveOpen", "Outlet", "XV-130")}
+        ${mixValve(720, outY, "Mixing/Outlet/ValveOpen", "Outlet", "XV-110")}
         ${flowArrow(800, outY)}
-        <text class="pid-flow-label" x="888" y="${outY - 10}" text-anchor="start">MASS OUT</text>
+        <text class="pid-flow-label" x="888" y="${outY - 10}" text-anchor="start">TO REFINE</text>
 
         <line class="pid-pipe pid-pipe--divert" x1="${drainX}" y1="${drainY0}" x2="${drainX}" y2="${drainY1}" />
-        ${mixValve(drainX, drainY0 + 32, "Mixing/Drain/ValveOpen", "Drain", "XV-120")}
+        ${mixValve(drainX, drainY0 + 32, "Mixing/Drain/ValveOpen", "Drain", "XV-119")}
         <text class="pid-flow-label" x="${drainX + 20}" y="${drainY1}" text-anchor="start">DRAIN</text>
 
         ${balloons}
@@ -1382,8 +1425,9 @@
       balloon(tunnelX + zoneW * 2.5, 68, "TI", "213", "Tempering/Temper1/Zone3TempC", tunnelX + zoneW * 2.5, tunnelY, "Temper1"),
       balloon(tunnelX + tunnelW / 2, 330, "SI", "210", "Tempering/Temper1/BeltSpeed", tunnelX + tunnelW / 2, tunnelY + tunnelH, "Temper1"),
       balloon(90, inY - 52, "FI", "201", "Tempering/Inlet/FlowKgH", 140, inY, "Inlet"),
-      balloon(850, outY - 52, "FI", "230", "Tempering/Outlet/FlowKgH", 800, outY, "Outlet"),
-      balloon(480, 352, "TI", "240", "Tempering/ChilledWater/SupplyTempC", 480, tunnelY + tunnelH + 10, "ChilledWater"),
+      balloon(850, outY - 52, "FI", "205", "Tempering/Outlet/FlowKgH", 800, outY, "Outlet"),
+      balloon(200, 352, "FI", "206", "Tempering/ChilledWater/FlowM3H", 200, tunnelY + tunnelH + 10, "ChilledWater"),
+      balloon(480, 352, "TI", "207", "Tempering/ChilledWater/SupplyTempC", 480, tunnelY + tunnelH + 10, "ChilledWater"),
     ].join("");
 
     host.innerHTML = `
@@ -1400,14 +1444,14 @@
           <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
           <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
           <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
-          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Tempering</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Tempering / Temper1</text>
           <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
         </g>
 
         <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — TEMPERING TUNNEL</text>
         <text class="pid-sheet__sub" x="24" y="52">Mass in from Conching → three cooling zones → to Moulding</text>
 
-        <text class="pid-flow-label" x="28" y="${inY - 10}" text-anchor="start">MASS IN</text>
+        <text class="pid-flow-label" x="28" y="${inY - 10}" text-anchor="start">FROM CONCHE</text>
         <line class="pid-pipe pid-pipe--main" x1="28" y1="${inY}" x2="${tunnelX}" y2="${inY}" />
         ${flowArrow(95, inY)}
         ${mixValve(140, inY, "Tempering/Inlet/ValveOpen", "Inlet", "XV-201")}
@@ -1423,13 +1467,15 @@
 
         <line class="pid-pipe pid-pipe--main" x1="${tunnelX + tunnelW}" y1="${outY}" x2="920" y2="${outY}" />
         ${flange(tunnelX + tunnelW, outY)}
-        ${mixValve(820, outY, "Tempering/Outlet/ValveOpen", "Outlet", "XV-230")}
+        ${mixValve(820, outY, "Tempering/Outlet/ValveOpen", "Outlet", "XV-205")}
         ${flowArrow(875, outY)}
-        <text class="pid-flow-label" x="926" y="${outY - 10}" text-anchor="start">TO PACK</text>
+        <text class="pid-flow-label" x="926" y="${outY - 10}" text-anchor="start">TO MOULD</text>
 
         <text class="pid-flow-label" x="28" y="352" text-anchor="start">CHILLED WATER</text>
         <line class="pid-pipe pid-pipe--divert" x1="140" y1="352" x2="${tunnelX + 50}" y2="${tunnelY + tunnelH}" />
+        ${flange(tunnelX + 50, tunnelY + tunnelH)}
         <line class="pid-pipe pid-pipe--divert" x1="${tunnelX + tunnelW - 50}" y1="${tunnelY + tunnelH}" x2="720" y2="352" />
+        ${flange(tunnelX + tunnelW - 50, tunnelY + tunnelH)}
 
         ${balloons}
       </svg>`;
@@ -1459,8 +1505,8 @@
     const balloons = [
       balloon(90, midY - 52, "FI", "121", "Refining/Inlet/FlowKgH", 140, midY, "Inlet"),
       balloon(machineCx - 80, 68, "SI", "120", "Refining/Refiner1/LoadPct", machineCx - 40, machineY, "Refiner1"),
-      balloon(machineCx + 80, 68, "FI", "122", "Refining/Refiner1/ParticleUm", machineCx + 40, machineY, "Refiner1"),
-      balloon(850, midY - 52, "FI", "130", "Refining/Outlet/FlowKgH", 800, midY, "Outlet"),
+      balloon(machineCx + 80, 68, "QI", "122", "Refining/Refiner1/ParticleUm", machineCx + 40, machineY, "Refiner1"),
+      balloon(850, midY - 52, "FI", "125", "Refining/Outlet/FlowKgH", 800, midY, "Outlet"),
     ].join("");
 
     host.innerHTML = `
@@ -1477,14 +1523,14 @@
           <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
           <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
           <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
-          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Refining</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Refining / Refiner1</text>
           <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
         </g>
 
         <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — FIVE-ROLL REFINER</text>
         <text class="pid-sheet__sub" x="24" y="52">Mass in from Mixing → Refiner1 → mass out to Conching</text>
 
-        <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">MASS IN</text>
+        <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">FROM MIX</text>
         <line class="pid-pipe pid-pipe--main" x1="28" y1="${midY}" x2="${machineX}" y2="${midY}" />
         ${flowArrow(95, midY)}
         ${mixValve(140, midY, "Refining/Inlet/ValveOpen", "Inlet", "XV-121")}
@@ -1499,9 +1545,9 @@
 
         <line class="pid-pipe pid-pipe--main" x1="${machineX + machineW}" y1="${midY}" x2="920" y2="${midY}" />
         ${flange(machineX + machineW, midY)}
-        ${mixValve(820, midY, "Refining/Outlet/ValveOpen", "Outlet", "XV-130")}
+        ${mixValve(820, midY, "Refining/Outlet/ValveOpen", "Outlet", "XV-125")}
         ${flowArrow(875, midY)}
-        <text class="pid-flow-label" x="926" y="${midY - 10}" text-anchor="start">MASS OUT</text>
+        <text class="pid-flow-label" x="926" y="${midY - 10}" text-anchor="start">TO CONCHE</text>
 
         ${balloons}
       </svg>`;
@@ -1525,8 +1571,9 @@
     const balloons = [
       balloon(tankCx - 90, 52, "TI", "130", "Conching/Conche1/TempC", tankCx - 50, tankY, "Conche1"),
       balloon(tankCx + 90, 52, "SI", "130", "Conching/Conche1/AgitatorRpm", tankCx + 50, tankY, "Conche1"),
+      balloon(tankCx + 110, 340, "CI", "130", "Conching/Conche1/TimeMin", tankCx + 50, tankY + tankH, "Conche1"),
       balloon(90, midY - 52, "FI", "131", "Conching/Inlet/FlowKgH", 140, midY, "Inlet"),
-      balloon(850, midY - 52, "FI", "140", "Conching/Outlet/FlowKgH", 800, midY, "Outlet"),
+      balloon(850, midY - 52, "FI", "135", "Conching/Outlet/FlowKgH", 800, midY, "Outlet"),
     ].join("");
 
     host.innerHTML = `
@@ -1543,14 +1590,14 @@
           <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
           <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
           <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
-          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Conching</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Conching / Conche1</text>
           <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
         </g>
 
         <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — CONCHE</text>
         <text class="pid-sheet__sub" x="24" y="52">Mass in from Refining → Conche1 → mass out to Tempering</text>
 
-        <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">MASS IN</text>
+        <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">FROM REFINE</text>
         <line class="pid-pipe pid-pipe--main" x1="28" y1="${midY}" x2="${tankX}" y2="${midY}" />
         ${flowArrow(95, midY)}
         ${mixValve(140, midY, "Conching/Inlet/ValveOpen", "Inlet", "XV-131")}
@@ -1569,9 +1616,9 @@
 
         <line class="pid-pipe pid-pipe--main" x1="${tankX + tankW}" y1="${midY}" x2="920" y2="${midY}" />
         ${flange(tankX + tankW, midY)}
-        ${mixValve(820, midY, "Conching/Outlet/ValveOpen", "Outlet", "XV-140")}
+        ${mixValve(820, midY, "Conching/Outlet/ValveOpen", "Outlet", "XV-135")}
         ${flowArrow(875, midY)}
-        <text class="pid-flow-label" x="926" y="${midY - 10}" text-anchor="start">MASS OUT</text>
+        <text class="pid-flow-label" x="926" y="${midY - 10}" text-anchor="start">TO TEMPER</text>
 
         ${balloons}
       </svg>`;
@@ -1601,8 +1648,8 @@
       balloon(90, midY - 52, "FI", "221", "Moulding/Inlet/FlowKgH", 140, midY, "Inlet"),
       balloon(machineCx - 100, 68, "SI", "220", "Moulding/Moulder1/CyclesPerMin", machineCx - 60, machineY, "Moulder1"),
       balloon(machineCx + 40, 68, "TI", "220", "Moulding/Moulder1/MouldTempC", machineCx + 20, machineY, "Moulder1"),
-      balloon(480, 352, "TI", "240", "Moulding/Cooling/AirTempC", 480, machineY + machineH + 8, "Cooling"),
-      balloon(850, midY - 52, "FI", "230", "Moulding/Outlet/FlowKgH", 800, midY, "Outlet"),
+      balloon(480, 352, "TI", "226", "Moulding/Cooling/AirTempC", 480, machineY + machineH + 8, "Cooling"),
+      balloon(850, midY - 52, "FI", "225", "Moulding/Outlet/FlowKgH", 800, midY, "Outlet"),
     ].join("");
 
     host.innerHTML = `
@@ -1619,14 +1666,14 @@
           <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
           <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
           <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
-          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Moulding</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Moulding / Moulder1</text>
           <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
         </g>
 
         <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — MOULDING</text>
         <text class="pid-sheet__sub" x="24" y="52">Mass in from Tempering → Moulder1 → bars to Packaging</text>
 
-        <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">MASS IN</text>
+        <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">FROM TEMPER</text>
         <line class="pid-pipe pid-pipe--main" x1="28" y1="${midY}" x2="${machineX}" y2="${midY}" />
         ${flowArrow(95, midY)}
         ${mixValve(140, midY, "Moulding/Inlet/ValveOpen", "Inlet", "XV-221")}
@@ -1641,13 +1688,15 @@
 
         <line class="pid-pipe pid-pipe--main" x1="${machineX + machineW}" y1="${midY}" x2="920" y2="${midY}" />
         ${flange(machineX + machineW, midY)}
-        ${mixValve(820, midY, "Moulding/Outlet/ValveOpen", "Outlet", "XV-230")}
+        ${mixValve(820, midY, "Moulding/Outlet/ValveOpen", "Outlet", "XV-225")}
         ${flowArrow(875, midY)}
         <text class="pid-flow-label" x="926" y="${midY - 10}" text-anchor="start">TO PACK</text>
 
         <text class="pid-flow-label" x="28" y="352" text-anchor="start">COOLING AIR</text>
         <line class="pid-pipe pid-pipe--divert" x1="140" y1="352" x2="${machineX + 60}" y2="${machineY + machineH}" />
+        ${flange(machineX + 60, machineY + machineH)}
         <line class="pid-pipe pid-pipe--divert" x1="${machineX + machineW - 60}" y1="${machineY + machineH}" x2="720" y2="352" />
+        ${flange(machineX + machineW - 60, machineY + machineH)}
 
         ${balloons}
       </svg>`;
@@ -2010,6 +2059,9 @@
       return;
     }
     const folder = (() => {
+      if (isSisterSiteTag(state.selectedTag)) {
+        return state.selectedTag.split("/")[0];
+      }
       if (isProcessAreaTag(state.selectedTag)) {
         const parts = state.selectedTag.split("/");
         return parts.length > 2 ? parts.slice(0, -1).join(" / ") : parts[0];
@@ -2195,8 +2247,11 @@
     }
     state.selectedTag = id;
     const open = new Set(state.openNodes);
-    open.add(SITE);
-    if (isProcessAreaTag(id)) {
+    open.add(EDGE_ROOT);
+    if (isSisterSiteTag(id)) {
+      open.add(id.split("/")[0]);
+    } else if (isProcessAreaTag(id)) {
+      open.add(SITE);
       const parts = id.split("/");
       let acc = SITE;
       for (let i = 0; i < parts.length - 1; i++) {
@@ -2204,6 +2259,7 @@
         open.add(acc);
       }
     } else {
+      open.add(SITE);
       open.add(AREA_ROOT);
       if (isStubTag(id)) {
         const parts = id.split("/");
