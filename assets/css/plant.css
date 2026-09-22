@@ -354,6 +354,17 @@
 .plant-tree__area > details > summary {
   color: rgb(203 213 225);
 }
+.plant-tree__area--live > details > summary .plant-tree__label::after {
+  content: "LIVE";
+  margin-left: 0.45rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--plant-good);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}
 .plant-tree__line--live > details > summary .plant-tree__label::after {
   content: "LIVE";
   margin-left: 0.45rem;
@@ -627,6 +638,62 @@
 .pid-arrow {
   fill: #94a3b8;
   stroke: none;
+}
+
+/* Mixing tank + on/off valves */
+.pid-tank {
+  cursor: pointer;
+}
+.pid-tank__shell {
+  fill: rgba(2, 6, 23, 0.92);
+  stroke: #94a3b8;
+  stroke-width: 1.75;
+}
+.pid-tank__jacket {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.45);
+  stroke-width: 1.25;
+  stroke-dasharray: 4 3;
+}
+.pid-tank__level {
+  fill: rgba(180, 120, 60, 0.45);
+  stroke: none;
+  transition: y 0.4s ease, height 0.4s ease;
+}
+.pid-tank__agitator {
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+}
+.pid-tank__hub {
+  fill: rgba(15, 23, 42, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.4;
+}
+.pid-tank.is-selected .pid-tank__shell,
+.pid-tank.is-hover .pid-tank__shell {
+  stroke: var(--color-brand-300);
+}
+
+.pid-mix-valve {
+  cursor: pointer;
+}
+.pid-mix-valve__body {
+  fill: rgba(2, 6, 23, 0.95);
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+}
+.pid-mix-valve.is-open .pid-mix-valve__body {
+  fill: rgba(52, 211, 153, 0.18);
+  stroke: #34d399;
+}
+.pid-mix-valve.is-selected .pid-mix-valve__body,
+.pid-mix-valve.is-hover .pid-mix-valve__body {
+  stroke: var(--color-brand-300);
+}
+.pid-mix-valve__pid {
+  fill: rgb(148 163 184);
+  font-size: 8px;
+  letter-spacing: 0.04em;
 }
 
 .pid-pipe-flow {

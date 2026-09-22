@@ -1,20 +1,22 @@
 /* =============================================================
    plant.js — Heuvelland chocolate plant HMI (/plant/)
-   Site → Packaging / Line# tag browser + Line3 P&ID mimic.
-   Line1/Line2: live tags only (no drawing yet). Mixing TBD.
+   Site → Packaging + Mixing tag browser; drawings switch by selection.
+   Packaging Line1/Line2: live tags only (no drawing yet).
    State persists in localStorage until "Reset line".
    ============================================================= */
 
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "samdonche.plant.v4";
+  const STORAGE_KEY = "samdonche.plant.v5";
   const TICK_MS = 1000;
   const PROVIDER = "[edge]";
   const SITE = "Heuvelland";
   const AREA = "Packaging";
+  const MIXING_AREA = "Mixing";
   const LIVE_LINE = "Line3";
   const AREA_ROOT = `${SITE}/${AREA}`;
+  const MIXING_ROOT = `${SITE}/${MIXING_AREA}`;
 
   /** @typedef {"Good"|"Uncertain"|"Bad"|"Stale"} Quality */
 
@@ -104,19 +106,52 @@
     { id: "Outfeed/Photoeye", name: "Photoeye", type: "bool", live: true },
   ];
 
+  /** Mixing tags — ids prefixed Mixing/… (chocolate mass mixer). */
+  const MIXING_TAGS = [
+    { id: "Mixing/Running", name: "Running", type: "bool", live: true },
+    { id: "Mixing/Mode", name: "Mode", type: "string", live: true },
+    { id: "Mixing/BatchId", name: "BatchId", type: "string", live: true },
+
+    { id: "Mixing/Mixer1/Running", name: "Running", type: "bool", live: true },
+    { id: "Mixing/Mixer1/LevelPct", name: "LevelPct", type: "number", unit: "%", format: (v) => v.toFixed(1), live: true },
+    { id: "Mixing/Mixer1/AgitatorRpm", name: "AgitatorRpm", type: "number", unit: "rpm", format: (v) => String(Math.round(v)), live: true },
+    { id: "Mixing/Mixer1/JacketTempC", name: "JacketTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
+    { id: "Mixing/Mixer1/MassTempC", name: "MassTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
+
+    { id: "Mixing/CocoaLiquor/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+    { id: "Mixing/CocoaLiquor/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Mixing/Sugar/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+    { id: "Mixing/Sugar/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Mixing/Outlet/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+    { id: "Mixing/Outlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)), live: true },
+
+    { id: "Mixing/Drain/ValveOpen", name: "ValveOpen", type: "bool", live: true },
+  ];
+
   /** Prefixed stub tags: Line1/OEE, Line2/Infeed/Speed, … */
   const STUB_TAGS = STUB_LINES.flatMap((line) =>
     STUB_LINE_TAGS.map((t) => ({ ...t, id: `${line.id}/${t.id}` }))
   );
 
-  const ALL_TAGS = LINE3_TAGS.concat(STUB_TAGS);
+  const ALL_TAGS = LINE3_TAGS.concat(STUB_TAGS, MIXING_TAGS);
   const TAG_BY_ID = Object.fromEntries(ALL_TAGS.map((t) => [t.id, t]));
 
   function isStubTag(rel) {
     return rel.startsWith("Line1/") || rel.startsWith("Line2/");
   }
 
+  function isMixingTag(rel) {
+    return !!rel && rel.startsWith("Mixing/");
+  }
+
+  function drawingForTag(rel) {
+    return isMixingTag(rel) ? "mixing" : "packaging";
+  }
+
   function pathOf(rel) {
+    if (isMixingTag(rel)) return `${PROVIDER}${SITE}/${rel}`;
     if (isStubTag(rel)) return `${PROVIDER}${AREA_ROOT}/${rel}`;
     return `${PROVIDER}${AREA_ROOT}/${LIVE_LINE}/${rel}`;
   }
@@ -128,6 +163,8 @@
     `${AREA_ROOT}/Line3`,
     `${AREA_ROOT}/Line3/Cartoner`,
     `${AREA_ROOT}/Line3/Checkweigher`,
+    MIXING_ROOT,
+    `${MIXING_ROOT}/Mixer1`,
   ];
 
   function defaultState() {
@@ -139,6 +176,7 @@
       overCount: 1,
       palletsDone: 47,
       selectedTag: "OEE",
+      activeDrawing: /** @type {"packaging"|"mixing"} */ ("packaging"),
       alarms: /** @type {Alarm[]} */ ([]),
       openNodes: DEFAULT_OPEN.slice(),
     };
@@ -180,6 +218,9 @@
         alarms: Array.isArray(parsed.alarms) ? parsed.alarms : [],
         openNodes: Array.isArray(parsed.openNodes) ? parsed.openNodes : base.openNodes,
         selectedTag: TAG_BY_ID[parsed.selectedTag] ? parsed.selectedTag : base.selectedTag,
+        activeDrawing: parsed.activeDrawing === "mixing" || parsed.activeDrawing === "packaging"
+          ? parsed.activeDrawing
+          : drawingForTag(TAG_BY_ID[parsed.selectedTag] ? parsed.selectedTag : base.selectedTag),
       };
     } catch (e) {
       return defaultState();
@@ -284,6 +325,35 @@
       live[`${p}Outfeed/Running`] = { value: true, quality: "Good" };
       live[`${p}Outfeed/Occupied`] = { value: occ, quality: "Good" };
     });
+
+    /* Mixing — chocolate mass mixer (independent of packaging scenarios). */
+    const mixRun = true;
+    const level = clamp(drift(62, 4, 7), 20, 92);
+    const jacket = clamp(drift(48.5, 1.2, 8), 40, 55);
+    const massT = clamp(drift(46.2, 1.0, 9), 38, 52);
+    const rpm = clamp(drift(42, 3, 10), 20, 60);
+    const cocoaOpen = level < 85;
+    const sugarOpen = level < 80;
+    const outletOpen = level > 55;
+    const cocoaFlow = cocoaOpen ? Math.max(0, drift(820, 40, 11)) : 0;
+    const sugarFlow = sugarOpen ? Math.max(0, drift(310, 25, 12)) : 0;
+    const outFlow = outletOpen ? Math.max(0, drift(980, 50, 13)) : 0;
+    const batchN = 1400 + Math.floor(tick / 90);
+    live["Mixing/Running"] = { value: mixRun, quality: "Good" };
+    live["Mixing/Mode"] = { value: "AUTO", quality: "Good" };
+    live["Mixing/BatchId"] = { value: `B-${batchN}`, quality: "Good" };
+    live["Mixing/Mixer1/Running"] = { value: mixRun, quality: "Good" };
+    live["Mixing/Mixer1/LevelPct"] = { value: level, quality: "Good" };
+    live["Mixing/Mixer1/AgitatorRpm"] = { value: rpm, quality: "Good" };
+    live["Mixing/Mixer1/JacketTempC"] = { value: jacket, quality: jacket > 52 ? "Uncertain" : "Good" };
+    live["Mixing/Mixer1/MassTempC"] = { value: massT, quality: "Good" };
+    live["Mixing/CocoaLiquor/ValveOpen"] = { value: cocoaOpen, quality: "Good" };
+    live["Mixing/CocoaLiquor/FlowKgH"] = { value: cocoaFlow, quality: "Good" };
+    live["Mixing/Sugar/ValveOpen"] = { value: sugarOpen, quality: "Good" };
+    live["Mixing/Sugar/FlowKgH"] = { value: sugarFlow, quality: "Good" };
+    live["Mixing/Outlet/ValveOpen"] = { value: outletOpen, quality: "Good" };
+    live["Mixing/Outlet/FlowKgH"] = { value: outFlow, quality: "Good" };
+    live["Mixing/Drain/ValveOpen"] = { value: false, quality: "Good" };
 
     syncScenarioAlarms();
   }
@@ -437,6 +507,39 @@
     return renderFolder(nodeKey, line.id, lineTags + equips, "plant-tree__line plant-tree__line--live");
   }
 
+  function mixingTagsUnder(prefix) {
+    const base = "Mixing/";
+    if (!prefix) {
+      return MIXING_TAGS.filter((t) => {
+        const rest = t.id.slice(base.length);
+        return !rest.includes("/");
+      });
+    }
+    const p = base + (prefix.endsWith("/") ? prefix : prefix + "/");
+    return MIXING_TAGS.filter((t) => {
+      if (!t.id.startsWith(p)) return false;
+      const rest = t.id.slice(p.length);
+      return !rest.includes("/");
+    });
+  }
+
+  function renderMixingFolder() {
+    const areaTags = mixingTagsUnder("").map((t) => renderTagButton(t.id, t)).join("");
+    const mixer = mixingTagsUnder("Mixer1").map((t) => renderTagButton(t.id, t)).join("");
+    const cocoa = mixingTagsUnder("CocoaLiquor").map((t) => renderTagButton(t.id, t)).join("");
+    const sugar = mixingTagsUnder("Sugar").map((t) => renderTagButton(t.id, t)).join("");
+    const outlet = mixingTagsUnder("Outlet").map((t) => renderTagButton(t.id, t)).join("");
+    const drain = mixingTagsUnder("Drain").map((t) => renderTagButton(t.id, t)).join("");
+    const body =
+      areaTags +
+      renderFolder(`${MIXING_ROOT}/Mixer1`, "Mixer1", mixer) +
+      renderFolder(`${MIXING_ROOT}/CocoaLiquor`, "CocoaLiquor", cocoa) +
+      renderFolder(`${MIXING_ROOT}/Sugar`, "Sugar", sugar) +
+      renderFolder(`${MIXING_ROOT}/Outlet`, "Outlet", outlet) +
+      renderFolder(`${MIXING_ROOT}/Drain`, "Drain", drain);
+    return renderFolder(MIXING_ROOT, MIXING_AREA, body, "plant-tree__area plant-tree__area--live");
+  }
+
   function buildTree() {
     const root = document.getElementById("plant-tree");
     if (!root) return;
@@ -445,7 +548,8 @@
       STUB_LINES.map(renderStubLineFolder).join("") + renderLine3Folder();
 
     const packaging = renderFolder(AREA_ROOT, AREA, lines, "plant-tree__area");
-    root.innerHTML = renderFolder(SITE, SITE, packaging, "plant-tree__site");
+    const mixing = renderMixingFolder();
+    root.innerHTML = renderFolder(SITE, SITE, packaging + mixing, "plant-tree__site");
     treeBuilt = true;
     updateTreeValues();
 
@@ -524,6 +628,11 @@
 
   function equipKeyForTag(tagId) {
     if (!tagId) return null;
+    if (isMixingTag(tagId)) {
+      const parts = tagId.split("/");
+      // Mixing/Mixer1/LevelPct → Mixer1; Mixing/CocoaLiquor/ValveOpen → CocoaLiquor
+      return parts[1] || null;
+    }
     let id = tagId;
     if (isStubTag(tagId)) id = tagId.split("/").slice(1).join("/");
     if (id.startsWith("Checkweigher/Reject")) return "Reject";
@@ -616,7 +725,7 @@
       </g>`;
   }
 
-  function buildPid() {
+  function buildPackagingPid() {
     const host = document.getElementById("plant-pid");
     if (!host) return;
 
@@ -723,6 +832,106 @@
     pidBuilt = true;
   }
 
+  function mixValve(cx, cy, tagId, equip, pidLabel) {
+    const selected = tagId === state.selectedTag ? " is-selected" : "";
+    return `
+      <g class="pid-mix-valve${selected}" data-tag="${escapeHtml(tagId)}" data-equip="${escapeHtml(equip)}" role="button" tabindex="0" aria-label="${escapeHtml(pidLabel)}">
+        <polygon class="pid-mix-valve__body" points="${cx},${cy - 11} ${cx + 11},${cy} ${cx},${cy + 11} ${cx - 11},${cy}" />
+        <text class="pid-mix-valve__pid" x="${cx}" y="${cy - 16}" text-anchor="middle">${escapeHtml(pidLabel)}</text>
+      </g>`;
+  }
+
+  function buildMixingPid() {
+    const host = document.getElementById("plant-pid");
+    if (!host) return;
+
+    const vbW = 960;
+    const vbH = 420;
+    const tankX = 380;
+    const tankY = 120;
+    const tankW = 200;
+    const tankH = 200;
+    const tankCx = tankX + tankW / 2;
+    const cocoaY = 160;
+    const sugarY = 230;
+    const outY = tankY + tankH / 2;
+    const drainX = tankCx;
+    const drainY0 = tankY + tankH;
+    const drainY1 = 360;
+
+    const balloons = [
+      balloon(tankCx - 70, 70, "LI", "110", "Mixing/Mixer1/LevelPct", tankCx - 40, tankY, "Mixer1"),
+      balloon(tankCx + 70, 70, "TI", "110", "Mixing/Mixer1/JacketTempC", tankCx + 40, tankY, "Mixer1"),
+      balloon(tankCx, 70, "SI", "110", "Mixing/Mixer1/AgitatorRpm", tankCx, tankY, "Mixer1"),
+      balloon(120, cocoaY - 50, "FI", "101", "Mixing/CocoaLiquor/FlowKgH", 200, cocoaY, "CocoaLiquor"),
+      balloon(120, sugarY + 50, "FI", "102", "Mixing/Sugar/FlowKgH", 200, sugarY, "Sugar"),
+      balloon(760, outY - 50, "FI", "130", "Mixing/Outlet/FlowKgH", 700, outY, "Outlet"),
+    ].join("");
+
+    host.innerHTML = `
+      <svg class="pid-svg pid-svg--mixing is-running" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Heuvelland Mixing Mixer1 P and ID">
+        <title>Heuvelland Mixing — Mixer1</title>
+        <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
+        <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
+
+        <g class="pid-titleblock">
+          <rect class="pid-titleblock__box" x="${vbW - 220}" y="${vbH - 56}" width="208" height="44" />
+          <line class="pid-sheet__rule" x1="${vbW - 220}" y1="${vbH - 34}" x2="${vbW - 12}" y2="${vbH - 34}" />
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 42}">DWG</text>
+          <text class="pid-titleblock__v" x="${vbW - 180}" y="${vbH - 42}">MIX-110</text>
+          <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
+          <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
+          <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
+          <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Mixing</text>
+          <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
+        </g>
+
+        <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — CHOCOLATE MASS</text>
+        <text class="pid-sheet__sub" x="24" y="52">Cocoa liquor + sugar → Mixer1 → mass out (tempering next)</text>
+
+        <text class="pid-flow-label" x="28" y="${cocoaY - 10}" text-anchor="start">COCOA LIQUOR</text>
+        <line class="pid-pipe pid-pipe--main" x1="28" y1="${cocoaY}" x2="${tankX}" y2="${cocoaY}" />
+        ${flowArrow(140, cocoaY)}
+        ${mixValve(220, cocoaY, "Mixing/CocoaLiquor/ValveOpen", "CocoaLiquor", "XV-101")}
+        ${flange(tankX, cocoaY)}
+
+        <text class="pid-flow-label" x="28" y="${sugarY - 10}" text-anchor="start">SUGAR</text>
+        <line class="pid-pipe pid-pipe--main" x1="28" y1="${sugarY}" x2="${tankX}" y2="${sugarY}" />
+        ${flowArrow(140, sugarY)}
+        ${mixValve(220, sugarY, "Mixing/Sugar/ValveOpen", "Sugar", "XV-102")}
+        ${flange(tankX, sugarY)}
+
+        <g class="pid-tank pid-equip--run" data-equip="Mixer1" data-tag="Mixing/Mixer1/Running" role="button" tabindex="0">
+          <rect class="pid-tank__shell" x="${tankX}" y="${tankY}" width="${tankW}" height="${tankH}" rx="8" />
+          <rect class="pid-tank__jacket" x="${tankX + 10}" y="${tankY + 14}" width="${tankW - 20}" height="${tankH - 28}" rx="4" />
+          <rect class="pid-tank__level" data-pid-level x="${tankX + 18}" y="${tankY + 80}" width="${tankW - 36}" height="110" rx="2" />
+          <line class="pid-tank__agitator" x1="${tankCx}" y1="${tankY + 28}" x2="${tankCx}" y2="${tankY + tankH - 28}" />
+          <circle class="pid-tank__hub" cx="${tankCx}" cy="${tankY + 40}" r="7" />
+          <text class="pid-equip__pid" x="${tankCx}" y="${tankY - 10}" text-anchor="middle">MIX-110</text>
+          <text class="pid-equip__name" x="${tankCx}" y="${tankY + tankH + 18}" text-anchor="middle">Mixer1</text>
+        </g>
+
+        <line class="pid-pipe pid-pipe--main" x1="${tankX + tankW}" y1="${outY}" x2="860" y2="${outY}" />
+        ${flange(tankX + tankW, outY)}
+        ${mixValve(700, outY, "Mixing/Outlet/ValveOpen", "Outlet", "XV-130")}
+        ${flowArrow(780, outY)}
+        <text class="pid-flow-label" x="870" y="${outY - 10}" text-anchor="start">MASS OUT</text>
+
+        <line class="pid-pipe pid-pipe--divert" x1="${drainX}" y1="${drainY0}" x2="${drainX}" y2="${drainY1}" />
+        ${mixValve(drainX, drainY0 + 28, "Mixing/Drain/ValveOpen", "Drain", "XV-120")}
+        <text class="pid-flow-label" x="${drainX + 18}" y="${drainY1}" text-anchor="start">DRAIN</text>
+
+        ${balloons}
+      </svg>`;
+
+    pidBuilt = true;
+  }
+
+  function buildPid() {
+    if (state.activeDrawing === "mixing") buildMixingPid();
+    else buildPackagingPid();
+  }
+
   function clearPidHover() {
     document.querySelectorAll(".is-hover").forEach((el) => el.classList.remove("is-hover"));
     pidHover = null;
@@ -750,23 +959,65 @@
     const starved = state.scenario === "starved";
     const svg = host.querySelector(".pid-svg");
     if (!svg) return;
+    const mixing = state.activeDrawing === "mixing";
 
     svg.classList.remove("is-running", "is-fault", "is-warn");
-    svg.classList.add(jam ? "is-fault" : starved ? "is-warn" : "is-running");
+    if (mixing) svg.classList.add("is-running");
+    else svg.classList.add(jam ? "is-fault" : starved ? "is-warn" : "is-running");
 
     const flow = svg.querySelector("[data-pid-flow]");
-    if (flow) flow.style.display = (!jam && !starved && !reducedMotion) ? "" : "none";
+    if (flow) flow.style.display = (!mixing && !jam && !starved && !reducedMotion) ? "" : "none";
 
-    EQUIPMENT.forEach((eq) => {
-      const g = svg.querySelector(`.pid-equip[data-equip="${eq.id}"]`);
-      if (!g) return;
-      const st = equipState(eq.id);
-      g.classList.remove("pid-equip--run", "pid-equip--fault", "pid-equip--warn", "pid-equip--idle", "is-selected", "is-hover");
-      g.classList.add(`pid-equip--${st}`);
-      if (state.selectedTag.startsWith(eq.id + "/") || state.selectedTag === `${eq.id}/Running`) {
-        g.classList.add("is-selected");
+    if (!mixing) {
+      EQUIPMENT.forEach((eq) => {
+        const g = svg.querySelector(`.pid-equip[data-equip="${eq.id}"]`);
+        if (!g) return;
+        const st = equipState(eq.id);
+        g.classList.remove("pid-equip--run", "pid-equip--fault", "pid-equip--warn", "pid-equip--idle", "is-selected", "is-hover");
+        g.classList.add(`pid-equip--${st}`);
+        if (state.selectedTag.startsWith(eq.id + "/") || state.selectedTag === `${eq.id}/Running`) {
+          g.classList.add("is-selected");
+        }
+      });
+
+      const rejectActive = !!(live["Checkweigher/Reject/Active"] || {}).value;
+      const rejectSel = state.selectedTag.startsWith("Checkweigher/Reject");
+      const valve = svg.querySelector(".pid-valve");
+      const bin = svg.querySelector(".pid-bin");
+      if (valve) {
+        valve.classList.toggle("is-active", rejectActive);
+        valve.classList.toggle("is-selected", rejectSel);
+        valve.classList.remove("is-hover");
       }
-    });
+      if (bin) {
+        bin.classList.toggle("is-selected", rejectSel);
+        bin.classList.remove("is-hover");
+        const count = bin.querySelector("[data-pid-reject-count]");
+        if (count) count.textContent = String(Math.round(live["Checkweigher/Reject/Count"]?.value ?? state.rejectCount));
+      }
+    } else {
+      const tank = svg.querySelector(".pid-tank");
+      if (tank) {
+        tank.classList.remove("is-selected", "is-hover");
+        if (state.selectedTag.startsWith("Mixing/Mixer1")) tank.classList.add("is-selected");
+      }
+      const level = (live["Mixing/Mixer1/LevelPct"] || {}).value ?? 50;
+      const levelEl = svg.querySelector("[data-pid-level]");
+      if (levelEl) {
+        const tankH = 200 - 28;
+        const h = Math.max(8, (tankH * level) / 100);
+        const top = 120 + 14 + (tankH - h);
+        levelEl.setAttribute("y", String(top));
+        levelEl.setAttribute("height", String(h));
+      }
+      svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
+        const tagId = g.getAttribute("data-tag");
+        const open = !!(live[tagId] || {}).value;
+        g.classList.toggle("is-open", open);
+        g.classList.toggle("is-selected", tagId === state.selectedTag);
+        g.classList.remove("is-hover");
+      });
+    }
 
     svg.querySelectorAll(".pid-balloon").forEach((g) => {
       const tagId = g.getAttribute("data-tag");
@@ -778,23 +1029,6 @@
       if (valEl) valEl.textContent = liveReadout(tagId);
     });
 
-    const rejectActive = !!(live["Checkweigher/Reject/Active"] || {}).value;
-    const rejectSel = state.selectedTag.startsWith("Checkweigher/Reject");
-    const valve = svg.querySelector(".pid-valve");
-    const bin = svg.querySelector(".pid-bin");
-    if (valve) {
-      valve.classList.toggle("is-active", rejectActive);
-      valve.classList.toggle("is-selected", rejectSel);
-      valve.classList.remove("is-hover");
-    }
-    if (bin) {
-      bin.classList.toggle("is-selected", rejectSel);
-      bin.classList.remove("is-hover");
-      const count = bin.querySelector("[data-pid-reject-count]");
-      if (count) count.textContent = String(Math.round(live["Checkweigher/Reject/Count"]?.value ?? state.rejectCount));
-    }
-
-    // re-apply hover if any
     if (pidHover) applyPidHover(pidHover.tagId, pidHover.equip);
   }
 
@@ -805,6 +1039,7 @@
   function renderKpis() {
     const jam = state.scenario === "jam" && !state.cartonerJamCleared;
     const starved = state.scenario === "starved";
+    const mixing = state.activeDrawing === "mixing";
     const setKpi = (id, text, tone) => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -812,11 +1047,37 @@
       el.removeAttribute("data-tone");
       if (tone) el.setAttribute("data-tone", tone);
     };
-    const oee = live.OEE?.value ?? 0;
-    setKpi("kpi-oee", `${oee.toFixed(1)}%`, jam ? "bad" : starved ? "warn" : oee >= 80 ? "good" : "warn");
-    setKpi("kpi-thru", String(Math.round(live.Throughput?.value ?? 0)), jam ? "bad" : starved ? "warn" : "good");
-    setKpi("kpi-mode", String(live.Mode?.value ?? "—"), jam ? "bad" : starved ? "warn" : "good");
-    setKpi("kpi-reject", String(Math.round(live["Checkweigher/Reject/Count"]?.value ?? 0)), "warn");
+    const setLabel = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+
+    if (mixing) {
+      const level = live["Mixing/Mixer1/LevelPct"]?.value ?? 0;
+      const jacket = live["Mixing/Mixer1/JacketTempC"]?.value ?? 0;
+      const rpm = live["Mixing/Mixer1/AgitatorRpm"]?.value ?? 0;
+      setLabel("kpi-a-label", "Level");
+      setLabel("kpi-b-label", "Jacket");
+      setLabel("kpi-c-label", "RPM");
+      setLabel("kpi-d-label", "Mode");
+      setKpi("kpi-a", `${level.toFixed(1)}%`, level > 88 ? "warn" : "good");
+      setKpi("kpi-b", `${jacket.toFixed(1)}°C`, jacket > 52 ? "warn" : "good");
+      setKpi("kpi-c", String(Math.round(rpm)), "good");
+      setKpi("kpi-d", String(live["Mixing/Mode"]?.value ?? "—"), "good");
+    } else {
+      const oee = live.OEE?.value ?? 0;
+      setLabel("kpi-a-label", "OEE");
+      setLabel("kpi-b-label", "Thru");
+      setLabel("kpi-c-label", "Mode");
+      setLabel("kpi-d-label", "Rejects");
+      setKpi("kpi-a", `${oee.toFixed(1)}%`, jam ? "bad" : starved ? "warn" : oee >= 80 ? "good" : "warn");
+      setKpi("kpi-b", String(Math.round(live.Throughput?.value ?? 0)), jam ? "bad" : starved ? "warn" : "good");
+      setKpi("kpi-c", String(live.Mode?.value ?? "—"), jam ? "bad" : starved ? "warn" : "good");
+      setKpi("kpi-d", String(Math.round(live["Checkweigher/Reject/Count"]?.value ?? 0)), "warn");
+    }
+
+    const pkgToolbar = document.querySelector('[data-toolbar-area="packaging"]');
+    if (pkgToolbar) pkgToolbar.hidden = mixing;
 
     document.querySelectorAll("[data-scenario]").forEach((btn) => {
       const sc = btn.getAttribute("data-scenario");
@@ -824,13 +1085,16 @@
       btn.classList.toggle("is-active", active);
     });
 
+    const title = document.querySelector(".plant-hmi__title h1");
+    if (title) title.textContent = mixing ? "Heuvelland · Mixing" : "Heuvelland · Line 3";
+
     const scanDot = document.getElementById("plant-scan-dot");
     const scanLabel = document.getElementById("plant-scan-label");
     if (scanDot && scanLabel) {
       scanDot.classList.remove("is-fault", "is-warn");
-      if (jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
-      else if (starved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
-      else { scanLabel.textContent = "Scanning"; }
+      if (!mixing && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
+      else if (!mixing && starved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
+      else { scanLabel.textContent = mixing ? "Mixing" : "Scanning"; }
     }
   }
 
@@ -844,6 +1108,10 @@
       return;
     }
     const folder = (() => {
+      if (isMixingTag(state.selectedTag)) {
+        const parts = state.selectedTag.split("/");
+        return parts.length > 2 ? parts.slice(0, -1).join(" / ") : "Mixing";
+      }
       if (isStubTag(state.selectedTag)) {
         const parts = state.selectedTag.split("/");
         return parts.length > 2 ? parts.slice(0, -1).join(" / ") : parts[0];
@@ -984,24 +1252,40 @@
 
   function selectTag(id) {
     if (!id || !TAG_BY_ID[id]) return;
+    const nextDrawing = drawingForTag(id);
+    if (nextDrawing !== state.activeDrawing) {
+      state.activeDrawing = nextDrawing;
+      pidBuilt = false;
+      clearPidHover();
+    }
     state.selectedTag = id;
     const open = new Set(state.openNodes);
     open.add(SITE);
-    open.add(AREA_ROOT);
-    if (isStubTag(id)) {
-      const parts = id.split("/");
-      let acc = AREA_ROOT;
+    if (isMixingTag(id)) {
+      open.add(MIXING_ROOT);
+      const parts = id.split("/"); // Mixing, Mixer1, LevelPct
+      let acc = SITE;
       for (let i = 0; i < parts.length - 1; i++) {
         acc += "/" + parts[i];
         open.add(acc);
       }
     } else {
-      open.add(`${AREA_ROOT}/${LIVE_LINE}`);
-      const parts = id.split("/");
-      let acc = `${AREA_ROOT}/${LIVE_LINE}`;
-      for (let i = 0; i < parts.length - 1; i++) {
-        acc += "/" + parts[i];
-        open.add(acc);
+      open.add(AREA_ROOT);
+      if (isStubTag(id)) {
+        const parts = id.split("/");
+        let acc = AREA_ROOT;
+        for (let i = 0; i < parts.length - 1; i++) {
+          acc += "/" + parts[i];
+          open.add(acc);
+        }
+      } else {
+        open.add(`${AREA_ROOT}/${LIVE_LINE}`);
+        const parts = id.split("/");
+        let acc = `${AREA_ROOT}/${LIVE_LINE}`;
+        for (let i = 0; i < parts.length - 1; i++) {
+          acc += "/" + parts[i];
+          open.add(acc);
+        }
       }
     }
     state.openNodes = [...open];
@@ -1009,6 +1293,7 @@
     treeBuilt = false;
     renderTree();
     paintPid();
+    renderKpis();
     renderDetail();
   }
 
@@ -1038,6 +1323,10 @@
       if (!btn) return;
       const id = btn.getAttribute("data-tag");
       if (!id || isStubTag(id)) {
+        clearPidHover();
+        return;
+      }
+      if (drawingForTag(id) !== state.activeDrawing) {
         clearPidHover();
         return;
       }
