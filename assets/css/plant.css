@@ -555,17 +555,21 @@
 .plant-pid {
   flex: 1;
   min-height: 16rem;
-  overflow: auto;
+  overflow: hidden;
   border: 0;
   border-radius: 0;
   background: rgba(2, 6, 23, 0.35);
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
 }
 
 .pid-svg {
   display: block;
   width: 100%;
-  min-width: 56rem;
-  height: auto;
+  height: 100%;
+  min-width: 0;
+  min-height: 16rem;
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
 }
 
@@ -723,6 +727,35 @@
 .pid-tunnel.is-selected .pid-tunnel__shell,
 .pid-tunnel.is-hover .pid-tunnel__shell {
   stroke: var(--color-brand-300);
+}
+.pid-tunnel.is-fault .pid-tunnel__shell {
+  stroke: #f87171;
+}
+.pid-tunnel.is-warn .pid-tunnel__shell {
+  stroke: #fbbf24;
+}
+.pid-tunnel__zone.is-warm {
+  fill: rgba(248, 113, 113, 0.12);
+}
+.pid-tunnel__belt.is-stopped {
+  stroke: #fbbf24;
+  stroke-dasharray: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pid-svg.is-running .pid-tunnel__belt:not(.is-stopped) {
+    animation: pid-belt 1.4s linear infinite;
+  }
+}
+
+@keyframes pid-belt {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -28; }
+}
+
+.pid-mix-valve.is-open .pid-mix-valve__body {
+  fill: rgba(110, 231, 183, 0.12);
+  stroke: #6ee7b7;
 }
 
 .pid-pipe-flow {

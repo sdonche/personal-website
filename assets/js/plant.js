@@ -1,14 +1,15 @@
 /* =============================================================
    plant.js — Heuvelland chocolate plant HMI (/plant/)
-   Site → Packaging + Mixing tag browser; drawings switch by selection.
+   Site → Packaging + Mixing + Tempering tag browser; drawings switch by selection.
    Packaging Line1/Line2: live tags only (no drawing yet).
+   Cross-area BatchId + Mixing/Tempering faults starve Packaging feed.
    State persists in localStorage until "Reset line".
    ============================================================= */
 
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "samdonche.plant.v6";
+  const STORAGE_KEY = "samdonche.plant.v7";
   const TICK_MS = 1000;
   const PROVIDER = "[edge]";
   const SITE = "Heuvelland";
@@ -70,6 +71,7 @@
     { id: "OEE", name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1), live: true },
     { id: "Throughput", name: "Throughput", type: "number", unit: "cpm", format: (v) => String(Math.round(v)), live: true },
     { id: "SpeedSP", name: "SpeedSP", type: "number", unit: "cpm", format: (v) => String(Math.round(v)), live: true },
+    { id: "BatchId", name: "BatchId", type: "string", live: true },
 
     { id: "Infeed/Running", name: "Running", type: "bool", live: true },
     { id: "Infeed/Speed", name: "Speed", type: "number", unit: "m/min", format: (v) => v.toFixed(1), live: true },
@@ -136,6 +138,7 @@
   const TEMPERING_TAGS = [
     { id: "Tempering/Running", name: "Running", type: "bool", live: true },
     { id: "Tempering/Mode", name: "Mode", type: "string", live: true },
+    { id: "Tempering/BatchId", name: "BatchId", type: "string", live: true },
 
     { id: "Tempering/Temper1/Running", name: "Running", type: "bool", live: true },
     { id: "Tempering/Temper1/BeltSpeed", name: "BeltSpeed", type: "number", unit: "m/min", format: (v) => v.toFixed(1), live: true },
@@ -203,6 +206,7 @@
     return {
       scenario: /** @type {null|"jam"|"starved"} */ (null),
       mixScenario: /** @type {null|"overtemp"|"valve"} */ (null),
+      temperScenario: /** @type {null|"warm"|"belt"} */ (null),
       cartonerJamCleared: false,
       rejectCount: 12,
       underCount: 3,
@@ -257,6 +261,9 @@
         mixScenario: parsed.mixScenario === "overtemp" || parsed.mixScenario === "valve"
           ? parsed.mixScenario
           : null,
+        temperScenario: parsed.temperScenario === "warm" || parsed.temperScenario === "belt"
+          ? parsed.temperScenario
+          : null,
       };
     } catch (e) {
       return defaultState();
@@ -280,44 +287,57 @@
   function computeLive() {
     const jam = state.scenario === "jam" && !state.cartonerJamCleared;
     const starved = state.scenario === "starved";
-    const lineOk = !jam && !starved;
+    const mixOver = state.mixScenario === "overtemp";
+    const mixValve = state.mixScenario === "valve";
+    const mixFault = mixOver || mixValve;
+    const temperWarm = state.temperScenario === "warm";
+    const temperBelt = state.temperScenario === "belt";
+    const temperFault = temperWarm || temperBelt;
+    /* Upstream hold starves packaging feed (shared chocolate mass path). */
+    const upstreamHold = mixFault || temperBelt;
+    const lineOk = !jam && !starved && !upstreamHold;
+    const feedStarved = starved || upstreamHold;
+    const batchId = `B-${1400 + Math.floor(tick / 90)}`;
 
     const speedSp = 120;
-    const cartonerSpeed = jam ? 0 : starved ? drift(38, 4, 1) : drift(118, 3, 1);
-    const infeedSpeed = starved ? drift(4, 1.2, 2) : jam ? drift(22, 3, 2) : drift(28, 1.5, 2);
-    const caseSpeed = jam ? 0 : starved ? drift(9, 1, 3) : drift(29.5, 0.8, 3);
-    const oee = jam ? drift(42, 2, 0) : starved ? drift(61, 2.5, 0) : drift(87.4, 1.2, 0);
-    const throughput = jam ? 0 : starved ? drift(36, 3, 4) : drift(116, 2.5, 4);
+    const cartonerSpeed = jam ? 0 : feedStarved ? drift(38, 4, 1) : drift(118, 3, 1);
+    const infeedSpeed = feedStarved ? drift(4, 1.2, 2) : jam ? drift(22, 3, 2) : drift(28, 1.5, 2);
+    const caseSpeed = jam ? 0 : feedStarved ? drift(9, 1, 3) : drift(29.5, 0.8, 3);
+    const oee = jam ? drift(42, 2, 0) : feedStarved ? drift(61, 2.5, 0) : drift(87.4, 1.2, 0);
+    const throughput = jam ? 0 : feedStarved ? drift(36, 3, 4) : drift(116, 2.5, 4);
     const weight = jam ? 0 : drift(0.452, 0.008, 5);
 
     if (lineOk && Math.random() < 0.08) state.rejectCount += 1;
     if (lineOk && Math.random() < 0.03) state.underCount += 1;
     if (lineOk && tick % 48 === 0) state.palletsDone += 1;
 
-    const photoIn = !starved && Math.random() > 0.15;
+    const photoIn = !feedStarved && Math.random() > 0.15;
     const photoOut = lineOk && Math.random() > 0.25;
     const rejectActive = !lineOk ? false : Math.random() < 0.04;
+    const pkgMode = jam ? "FAULT" : feedStarved ? "STARVED" : "AUTO";
+    const pkgQ = jam ? "Bad" : feedStarved ? "Uncertain" : "Good";
 
     live = {
-      Running: { value: lineOk, quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
-      Mode: { value: jam ? "FAULT" : starved ? "STARVED" : "AUTO", quality: jam ? "Bad" : "Good" },
-      OEE: { value: clamp(oee, 0, 100), quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
-      Throughput: { value: Math.max(0, throughput), quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
+      Running: { value: lineOk, quality: pkgQ },
+      Mode: { value: pkgMode, quality: jam ? "Bad" : "Good" },
+      OEE: { value: clamp(oee, 0, 100), quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
+      Throughput: { value: Math.max(0, throughput), quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
       SpeedSP: { value: speedSp, quality: "Good" },
+      BatchId: { value: batchId, quality: "Good" },
 
-      "Infeed/Running": { value: !starved, quality: starved ? "Uncertain" : "Good" },
-      "Infeed/Speed": { value: Math.max(0, infeedSpeed), quality: starved ? "Uncertain" : "Good" },
+      "Infeed/Running": { value: !feedStarved, quality: feedStarved ? "Uncertain" : "Good" },
+      "Infeed/Speed": { value: Math.max(0, infeedSpeed), quality: feedStarved ? "Uncertain" : "Good" },
       "Infeed/Jam": { value: false, quality: "Good" },
-      "Infeed/Photoeye": { value: photoIn, quality: starved ? "Uncertain" : "Good" },
-      "Infeed/Starved": { value: starved, quality: starved ? "Uncertain" : "Good" },
+      "Infeed/Photoeye": { value: photoIn, quality: feedStarved ? "Uncertain" : "Good" },
+      "Infeed/Starved": { value: feedStarved, quality: feedStarved ? "Uncertain" : "Good" },
 
-      "Cartoner/Running": { value: !jam && !starved, quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
-      "Cartoner/Speed": { value: Math.max(0, cartonerSpeed), quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
+      "Cartoner/Running": { value: !jam && !feedStarved, quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
+      "Cartoner/Speed": { value: Math.max(0, cartonerSpeed), quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
       "Cartoner/Jam": { value: jam, quality: jam ? "Bad" : "Good" },
-      "Cartoner/CartonsPerMin": { value: Math.max(0, cartonerSpeed), quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
+      "Cartoner/CartonsPerMin": { value: Math.max(0, cartonerSpeed), quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
       "Cartoner/FaultCode": { value: jam ? 41 : 0, quality: jam ? "Bad" : "Good" },
 
-      "Checkweigher/Running": { value: !jam, quality: jam ? "Stale" : starved ? "Uncertain" : "Good" },
+      "Checkweigher/Running": { value: !jam, quality: jam ? "Stale" : feedStarved ? "Uncertain" : "Good" },
       "Checkweigher/WeightKg": { value: Math.max(0, weight), quality: jam ? "Stale" : "Good" },
       "Checkweigher/InSpec": { value: !rejectActive && !jam, quality: jam ? "Stale" : "Good" },
       "Checkweigher/UnderCount": { value: state.underCount, quality: "Good" },
@@ -327,24 +347,23 @@
       "Checkweigher/Reject/Active": { value: rejectActive, quality: rejectActive ? "Uncertain" : "Good" },
       "Checkweigher/Reject/Divert": { value: rejectActive, quality: rejectActive ? "Uncertain" : "Good" },
 
-      "CasePacker/Running": { value: !jam && !starved, quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
-      "CasePacker/Speed": { value: Math.max(0, caseSpeed * 4), quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
-      "CasePacker/CasesPerMin": { value: Math.max(0, caseSpeed), quality: jam ? "Bad" : starved ? "Uncertain" : "Good" },
+      "CasePacker/Running": { value: !jam && !feedStarved, quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
+      "CasePacker/Speed": { value: Math.max(0, caseSpeed * 4), quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
+      "CasePacker/CasesPerMin": { value: Math.max(0, caseSpeed), quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
       "CasePacker/Jam": { value: false, quality: "Good" },
 
-      "Palletizer/Running": { value: !jam && !starved, quality: jam ? "Stale" : starved ? "Uncertain" : "Good" },
+      "Palletizer/Running": { value: !jam && !feedStarved, quality: jam ? "Stale" : feedStarved ? "Uncertain" : "Good" },
       "Palletizer/Layers": { value: jam ? 0 : Math.floor(((tick / 6) % 8) + 1), quality: jam ? "Stale" : "Good" },
       "Palletizer/PalletsDone": { value: state.palletsDone, quality: "Good" },
       "Palletizer/Jam": { value: false, quality: "Good" },
 
-      "Outfeed/Running": { value: !jam && !starved, quality: jam ? "Stale" : starved ? "Uncertain" : "Good" },
+      "Outfeed/Running": { value: !jam && !feedStarved, quality: jam ? "Stale" : feedStarved ? "Uncertain" : "Good" },
       "Outfeed/Occupied": { value: photoOut, quality: jam ? "Stale" : "Good" },
       "Outfeed/Photoeye": { value: photoOut, quality: jam ? "Stale" : "Good" },
     };
 
-    /* Sibling lines: independent healthy drift (scenarios only hit Line3). */
     STUB_LINES.forEach((line) => {
-      const oee = clamp(drift(line.oeeBase, 1.4, line.phase), 0, 100);
+      const oeeS = clamp(drift(line.oeeBase, 1.4, line.phase), 0, 100);
       const thru = Math.max(0, drift(line.thruBase, 2.2, line.phase + 2));
       const infeed = Math.max(0, drift(24 + line.phase * 0.1, 1.4, line.phase + 4));
       const photo = Math.random() > 0.18;
@@ -352,7 +371,7 @@
       const p = `${line.id}/`;
       live[`${p}Running`] = { value: true, quality: "Good" };
       live[`${p}Mode`] = { value: "AUTO", quality: "Good" };
-      live[`${p}OEE`] = { value: oee, quality: "Good" };
+      live[`${p}OEE`] = { value: oeeS, quality: "Good" };
       live[`${p}Throughput`] = { value: thru, quality: "Good" };
       live[`${p}SpeedSP`] = { value: line.speedSp, quality: "Good" };
       live[`${p}Infeed/Running`] = { value: true, quality: "Good" };
@@ -362,10 +381,7 @@
       live[`${p}Outfeed/Occupied`] = { value: occ, quality: "Good" };
     });
 
-    /* Mixing — chocolate mass mixer. */
-    const mixOver = state.mixScenario === "overtemp";
-    const mixValve = state.mixScenario === "valve";
-    const mixFault = mixOver || mixValve;
+    /* Mixing */
     const mixRun = !mixFault;
     const level = clamp(drift(mixValve ? 38 : 62, 4, 7), 18, 92);
     const jacket = mixOver ? clamp(drift(62, 1.5, 8), 58, 68) : clamp(drift(48.5, 1.2, 8), 40, 55);
@@ -377,13 +393,12 @@
     if (mixValve) cocoaOpen = false;
     const cocoaFlow = cocoaOpen ? Math.max(0, drift(820, 40, 11)) : 0;
     const sugarFlow = sugarOpen ? Math.max(0, drift(310, 25, 12)) : 0;
-    const outFlow = outletOpen ? Math.max(0, drift(980, 50, 13)) : 0;
-    const batchN = 1400 + Math.floor(tick / 90);
+    const mixOutFlow = outletOpen ? Math.max(0, drift(980, 50, 13)) : 0;
     const mixMode = mixOver ? "FAULT" : mixValve ? "HOLD" : "AUTO";
     const mixQ = mixOver ? "Bad" : mixValve ? "Uncertain" : "Good";
     live["Mixing/Running"] = { value: mixRun, quality: mixQ };
     live["Mixing/Mode"] = { value: mixMode, quality: mixQ };
-    live["Mixing/BatchId"] = { value: `B-${batchN}`, quality: "Good" };
+    live["Mixing/BatchId"] = { value: batchId, quality: "Good" };
     live["Mixing/Mixer1/Running"] = { value: mixRun, quality: mixQ };
     live["Mixing/Mixer1/LevelPct"] = { value: level, quality: mixValve ? "Uncertain" : "Good" };
     live["Mixing/Mixer1/AgitatorRpm"] = { value: rpm, quality: mixFault ? "Uncertain" : "Good" };
@@ -393,37 +408,41 @@
     live["Mixing/CocoaLiquor/FlowKgH"] = { value: cocoaFlow, quality: mixValve ? "Bad" : "Good" };
     live["Mixing/Sugar/ValveOpen"] = { value: sugarOpen, quality: "Good" };
     live["Mixing/Sugar/FlowKgH"] = { value: sugarFlow, quality: "Good" };
-    live["Mixing/Outlet/ValveOpen"] = { value: outletOpen, quality: "Good" };
-    live["Mixing/Outlet/FlowKgH"] = { value: outFlow, quality: "Good" };
+    live["Mixing/Outlet/ValveOpen"] = { value: outletOpen, quality: mixFault ? "Uncertain" : "Good" };
+    live["Mixing/Outlet/FlowKgH"] = { value: mixOutFlow, quality: mixFault ? "Bad" : "Good" };
     live["Mixing/Drain/ValveOpen"] = { value: false, quality: "Good" };
 
-    /* Tempering — cooling tunnel (downstream of Mixing). */
-    const temperRun = true;
-    const z1 = clamp(drift(32.5, 0.8, 14), 28, 36);
-    const z2 = clamp(drift(29.0, 0.7, 15), 26, 33);
-    const z3 = clamp(drift(27.2, 0.6, 16), 24, 31);
-    const massOut = clamp(drift(28.4, 0.5, 17), 25, 32);
-    const belt = clamp(drift(4.2, 0.25, 18), 2.5, 6);
-    const inOpen = true;
-    const outOpen = true;
-    const inFlow = Math.max(0, drift(960, 40, 19));
-    const tOutFlow = Math.max(0, drift(950, 35, 20));
-    const cwFlow = clamp(drift(12.5, 0.8, 21), 8, 18);
-    const cwSupply = clamp(drift(6.5, 0.4, 22), 4, 9);
-    live["Tempering/Running"] = { value: temperRun, quality: "Good" };
-    live["Tempering/Mode"] = { value: "AUTO", quality: "Good" };
-    live["Tempering/Temper1/Running"] = { value: temperRun, quality: "Good" };
-    live["Tempering/Temper1/BeltSpeed"] = { value: belt, quality: "Good" };
-    live["Tempering/Temper1/Zone1TempC"] = { value: z1, quality: "Good" };
-    live["Tempering/Temper1/Zone2TempC"] = { value: z2, quality: "Good" };
-    live["Tempering/Temper1/Zone3TempC"] = { value: z3, quality: "Good" };
-    live["Tempering/Temper1/MassTempC"] = { value: massOut, quality: "Good" };
-    live["Tempering/Inlet/ValveOpen"] = { value: inOpen, quality: "Good" };
-    live["Tempering/Inlet/FlowKgH"] = { value: inFlow, quality: "Good" };
-    live["Tempering/Outlet/ValveOpen"] = { value: outOpen, quality: "Good" };
-    live["Tempering/Outlet/FlowKgH"] = { value: tOutFlow, quality: "Good" };
-    live["Tempering/ChilledWater/FlowM3H"] = { value: cwFlow, quality: "Good" };
-    live["Tempering/ChilledWater/SupplyTempC"] = { value: cwSupply, quality: "Good" };
+    /* Tempering — inlet tracks Mixing mass out. */
+    const temperStarve = mixFault;
+    const temperRun = !temperBelt && !temperStarve;
+    const z1 = temperWarm ? clamp(drift(38, 0.9, 14), 35, 42) : clamp(drift(32.5, 0.8, 14), 28, 36);
+    const z2 = temperWarm ? clamp(drift(36, 0.8, 15), 33, 40) : clamp(drift(29.0, 0.7, 15), 26, 33);
+    const z3 = temperWarm ? clamp(drift(34, 0.7, 16), 31, 38) : clamp(drift(27.2, 0.6, 16), 24, 31);
+    const massOut = temperWarm ? clamp(drift(35, 0.6, 17), 32, 38) : clamp(drift(28.4, 0.5, 17), 25, 32);
+    const belt = temperBelt ? 0 : temperStarve ? clamp(drift(1.2, 0.3, 18), 0.4, 2) : clamp(drift(4.2, 0.25, 18), 2.5, 6);
+    const inOpen = !temperStarve;
+    const outOpen = temperRun;
+    const inFlow = temperStarve ? 0 : Math.max(0, mixOutFlow * 0.97 + drift(0, 20, 19));
+    const tOutFlow = temperRun ? Math.max(0, inFlow * 0.98 + drift(0, 15, 20)) : 0;
+    const cwFlow = clamp(drift(temperWarm ? 8 : 12.5, 0.8, 21), 6, 18);
+    const cwSupply = clamp(drift(temperWarm ? 9.5 : 6.5, 0.4, 22), 4, 11);
+    const temperMode = temperWarm ? "FAULT" : temperBelt ? "HOLD" : temperStarve ? "STARVED" : "AUTO";
+    const temperQ = temperWarm ? "Bad" : temperBelt || temperStarve ? "Uncertain" : "Good";
+    live["Tempering/Running"] = { value: temperRun, quality: temperQ };
+    live["Tempering/Mode"] = { value: temperMode, quality: temperQ };
+    live["Tempering/BatchId"] = { value: batchId, quality: "Good" };
+    live["Tempering/Temper1/Running"] = { value: temperRun, quality: temperQ };
+    live["Tempering/Temper1/BeltSpeed"] = { value: belt, quality: temperBelt ? "Bad" : temperStarve ? "Uncertain" : "Good" };
+    live["Tempering/Temper1/Zone1TempC"] = { value: z1, quality: temperWarm ? "Bad" : "Good" };
+    live["Tempering/Temper1/Zone2TempC"] = { value: z2, quality: temperWarm ? "Bad" : "Good" };
+    live["Tempering/Temper1/Zone3TempC"] = { value: z3, quality: temperWarm ? "Bad" : "Good" };
+    live["Tempering/Temper1/MassTempC"] = { value: massOut, quality: temperWarm ? "Bad" : "Good" };
+    live["Tempering/Inlet/ValveOpen"] = { value: inOpen, quality: temperStarve ? "Uncertain" : "Good" };
+    live["Tempering/Inlet/FlowKgH"] = { value: Math.max(0, inFlow), quality: temperStarve ? "Bad" : "Good" };
+    live["Tempering/Outlet/ValveOpen"] = { value: outOpen, quality: temperBelt ? "Uncertain" : "Good" };
+    live["Tempering/Outlet/FlowKgH"] = { value: Math.max(0, tOutFlow), quality: temperBelt || temperStarve ? "Bad" : "Good" };
+    live["Tempering/ChilledWater/FlowM3H"] = { value: cwFlow, quality: temperWarm ? "Uncertain" : "Good" };
+    live["Tempering/ChilledWater/SupplyTempC"] = { value: cwSupply, quality: temperWarm ? "Uncertain" : "Good" };
 
     syncScenarioAlarms();
   }
@@ -462,6 +481,42 @@
         severity: /** @type {const} */ ("warning"),
       });
     }
+    if (state.mixScenario === "overtemp" || state.mixScenario === "valve") {
+      want.push({
+        id: "alm-temper-upstream",
+        path: pathOf("Tempering/Inlet/FlowKgH"),
+        message: "Tempering starved — Mixing mass out stopped",
+        severity: /** @type {const} */ ("warning"),
+      });
+      want.push({
+        id: "alm-pack-upstream",
+        path: pathOf("Infeed/Starved"),
+        message: "Packaging Line3 starved — upstream mass hold",
+        severity: /** @type {const} */ ("warning"),
+      });
+    }
+    if (state.temperScenario === "warm") {
+      want.push({
+        id: "alm-temper-warm",
+        path: pathOf("Tempering/Temper1/Zone1TempC"),
+        message: "Temper1 zones too warm — mass not set",
+        severity: /** @type {const} */ ("critical"),
+      });
+    }
+    if (state.temperScenario === "belt") {
+      want.push({
+        id: "alm-temper-belt",
+        path: pathOf("Tempering/Temper1/BeltSpeed"),
+        message: "Temper1 belt stopped — tunnel hold",
+        severity: /** @type {const} */ ("warning"),
+      });
+      want.push({
+        id: "alm-pack-temper",
+        path: pathOf("Infeed/Starved"),
+        message: "Packaging Line3 starved — Tempering belt hold",
+        severity: /** @type {const} */ ("warning"),
+      });
+    }
     const byId = new Map(state.alarms.map((a) => [a.id, a]));
     state.alarms = want.map((w) => {
       const prev = byId.get(w.id);
@@ -488,7 +543,9 @@
 
   function equipState(id) {
     const jam = state.scenario === "jam" && !state.cartonerJamCleared;
-    const starved = state.scenario === "starved";
+    const starved = state.scenario === "starved"
+      || state.mixScenario != null
+      || state.temperScenario === "belt";
     if (id === "Cartoner" && jam) return "fault";
     if (id === "Infeed" && starved) return "warn";
     if (jam) {
@@ -909,7 +966,7 @@
     ].join("");
 
     host.innerHTML = `
-      <svg class="pid-svg is-running" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Line 3 packaging P and ID">
+      <svg class="pid-svg is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Line 3 packaging P and ID">
         <title>Heuvelland Packaging Line 3 — P&amp;ID</title>
 
         <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
@@ -964,29 +1021,33 @@
 
     const vbW = 960;
     const vbH = 420;
-    const tankX = 380;
-    const tankY = 120;
-    const tankW = 200;
-    const tankH = 200;
+    const tankX = 340;
+    const tankY = 88;
+    const tankW = 260;
+    const tankH = 240;
     const tankCx = tankX + tankW / 2;
-    const cocoaY = 160;
+    const cocoaY = 140;
     const sugarY = 230;
     const outY = tankY + tankH / 2;
     const drainX = tankCx;
     const drainY0 = tankY + tankH;
-    const drainY1 = 360;
+    const drainY1 = 372;
+    const jacketInset = 12;
+    const levelInset = 22;
+    const levelTop = tankY + jacketInset + 8;
+    const levelInnerH = tankH - jacketInset * 2 - 16;
 
     const balloons = [
-      balloon(tankCx - 70, 70, "LI", "110", "Mixing/Mixer1/LevelPct", tankCx - 40, tankY, "Mixer1"),
-      balloon(tankCx + 70, 70, "TI", "110", "Mixing/Mixer1/JacketTempC", tankCx + 40, tankY, "Mixer1"),
-      balloon(tankCx, 70, "SI", "110", "Mixing/Mixer1/AgitatorRpm", tankCx, tankY, "Mixer1"),
-      balloon(120, cocoaY - 50, "FI", "101", "Mixing/CocoaLiquor/FlowKgH", 200, cocoaY, "CocoaLiquor"),
-      balloon(120, sugarY + 50, "FI", "102", "Mixing/Sugar/FlowKgH", 200, sugarY, "Sugar"),
-      balloon(760, outY - 50, "FI", "130", "Mixing/Outlet/FlowKgH", 700, outY, "Outlet"),
+      balloon(tankCx - 90, 52, "LI", "110", "Mixing/Mixer1/LevelPct", tankCx - 50, tankY, "Mixer1"),
+      balloon(tankCx + 90, 52, "TI", "110", "Mixing/Mixer1/JacketTempC", tankCx + 50, tankY, "Mixer1"),
+      balloon(tankCx, 52, "SI", "110", "Mixing/Mixer1/AgitatorRpm", tankCx, tankY, "Mixer1"),
+      balloon(100, cocoaY - 48, "FI", "101", "Mixing/CocoaLiquor/FlowKgH", 190, cocoaY, "CocoaLiquor"),
+      balloon(100, sugarY + 52, "FI", "102", "Mixing/Sugar/FlowKgH", 190, sugarY, "Sugar"),
+      balloon(800, outY - 52, "FI", "130", "Mixing/Outlet/FlowKgH", 720, outY, "Outlet"),
     ].join("");
 
     host.innerHTML = `
-      <svg class="pid-svg pid-svg--mixing is-running" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Heuvelland Mixing Mixer1 P and ID">
+      <svg class="pid-svg pid-svg--mixing is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heuvelland Mixing Mixer1 P and ID">
         <title>Heuvelland Mixing — Mixer1</title>
         <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
         <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
@@ -1008,35 +1069,35 @@
 
         <text class="pid-flow-label" x="28" y="${cocoaY - 10}" text-anchor="start">COCOA LIQUOR</text>
         <line class="pid-pipe pid-pipe--main" x1="28" y1="${cocoaY}" x2="${tankX}" y2="${cocoaY}" />
-        ${flowArrow(140, cocoaY)}
-        ${mixValve(220, cocoaY, "Mixing/CocoaLiquor/ValveOpen", "CocoaLiquor", "XV-101")}
+        ${flowArrow(130, cocoaY)}
+        ${mixValve(210, cocoaY, "Mixing/CocoaLiquor/ValveOpen", "CocoaLiquor", "XV-101")}
         ${flange(tankX, cocoaY)}
 
         <text class="pid-flow-label" x="28" y="${sugarY - 10}" text-anchor="start">SUGAR</text>
         <line class="pid-pipe pid-pipe--main" x1="28" y1="${sugarY}" x2="${tankX}" y2="${sugarY}" />
-        ${flowArrow(140, sugarY)}
-        ${mixValve(220, sugarY, "Mixing/Sugar/ValveOpen", "Sugar", "XV-102")}
+        ${flowArrow(130, sugarY)}
+        ${mixValve(210, sugarY, "Mixing/Sugar/ValveOpen", "Sugar", "XV-102")}
         ${flange(tankX, sugarY)}
 
         <g class="pid-tank pid-equip--run" data-equip="Mixer1" data-tag="Mixing/Mixer1/Running" role="button" tabindex="0">
-          <rect class="pid-tank__shell" x="${tankX}" y="${tankY}" width="${tankW}" height="${tankH}" rx="8" />
-          <rect class="pid-tank__jacket" x="${tankX + 10}" y="${tankY + 14}" width="${tankW - 20}" height="${tankH - 28}" rx="4" />
-          <rect class="pid-tank__level" data-pid-level x="${tankX + 18}" y="${tankY + 80}" width="${tankW - 36}" height="110" rx="2" />
-          <line class="pid-tank__agitator" x1="${tankCx}" y1="${tankY + 28}" x2="${tankCx}" y2="${tankY + tankH - 28}" />
-          <circle class="pid-tank__hub" cx="${tankCx}" cy="${tankY + 40}" r="7" />
-          <text class="pid-equip__pid" x="${tankCx}" y="${tankY - 10}" text-anchor="middle">MIX-110</text>
-          <text class="pid-equip__name" x="${tankCx}" y="${tankY + tankH + 18}" text-anchor="middle">Mixer1</text>
+          <rect class="pid-tank__shell" x="${tankX}" y="${tankY}" width="${tankW}" height="${tankH}" rx="10" />
+          <rect class="pid-tank__jacket" x="${tankX + jacketInset}" y="${tankY + jacketInset}" width="${tankW - jacketInset * 2}" height="${tankH - jacketInset * 2}" rx="5" />
+          <rect class="pid-tank__level" data-pid-level data-tank-top="${levelTop}" data-tank-inner-h="${levelInnerH}" x="${tankX + levelInset}" y="${levelTop + levelInnerH * 0.4}" width="${tankW - levelInset * 2}" height="${levelInnerH * 0.6}" rx="2" />
+          <line class="pid-tank__agitator" x1="${tankCx}" y1="${tankY + 32}" x2="${tankCx}" y2="${tankY + tankH - 32}" />
+          <circle class="pid-tank__hub" cx="${tankCx}" cy="${tankY + 44}" r="8" />
+          <text class="pid-equip__pid" x="${tankCx}" y="${tankY - 12}" text-anchor="middle">MIX-110</text>
+          <text class="pid-equip__name" x="${tankCx}" y="${tankY + tankH + 20}" text-anchor="middle">Mixer1</text>
         </g>
 
-        <line class="pid-pipe pid-pipe--main" x1="${tankX + tankW}" y1="${outY}" x2="860" y2="${outY}" />
+        <line class="pid-pipe pid-pipe--main" x1="${tankX + tankW}" y1="${outY}" x2="880" y2="${outY}" />
         ${flange(tankX + tankW, outY)}
-        ${mixValve(700, outY, "Mixing/Outlet/ValveOpen", "Outlet", "XV-130")}
-        ${flowArrow(780, outY)}
-        <text class="pid-flow-label" x="870" y="${outY - 10}" text-anchor="start">MASS OUT</text>
+        ${mixValve(720, outY, "Mixing/Outlet/ValveOpen", "Outlet", "XV-130")}
+        ${flowArrow(800, outY)}
+        <text class="pid-flow-label" x="888" y="${outY - 10}" text-anchor="start">MASS OUT</text>
 
         <line class="pid-pipe pid-pipe--divert" x1="${drainX}" y1="${drainY0}" x2="${drainX}" y2="${drainY1}" />
-        ${mixValve(drainX, drainY0 + 28, "Mixing/Drain/ValveOpen", "Drain", "XV-120")}
-        <text class="pid-flow-label" x="${drainX + 18}" y="${drainY1}" text-anchor="start">DRAIN</text>
+        ${mixValve(drainX, drainY0 + 32, "Mixing/Drain/ValveOpen", "Drain", "XV-120")}
+        <text class="pid-flow-label" x="${drainX + 20}" y="${drainY1}" text-anchor="start">DRAIN</text>
 
         ${balloons}
       </svg>`;
@@ -1050,10 +1111,10 @@
 
     const vbW = 960;
     const vbH = 420;
-    const tunnelX = 220;
-    const tunnelY = 150;
-    const tunnelW = 520;
-    const tunnelH = 120;
+    const tunnelX = 170;
+    const tunnelY = 118;
+    const tunnelW = 620;
+    const tunnelH = 160;
     const zoneW = tunnelW / 3;
     const midY = tunnelY + tunnelH / 2;
     const inY = midY;
@@ -1063,22 +1124,22 @@
       const x = tunnelX + i * zoneW;
       const label = `Z${i + 1}`;
       return `
-        <rect class="pid-tunnel__zone" x="${x}" y="${tunnelY}" width="${zoneW}" height="${tunnelH}" />
-        <text class="pid-tunnel__zone-label" x="${x + zoneW / 2}" y="${tunnelY + 22}" text-anchor="middle">${label}</text>`;
+        <rect class="pid-tunnel__zone" data-zone="${i + 1}" x="${x}" y="${tunnelY}" width="${zoneW}" height="${tunnelH}" />
+        <text class="pid-tunnel__zone-label" x="${x + zoneW / 2}" y="${tunnelY + 26}" text-anchor="middle">${label}</text>`;
     }).join("");
 
     const balloons = [
-      balloon(tunnelX + zoneW * 0.5, 86, "TI", "211", "Tempering/Temper1/Zone1TempC", tunnelX + zoneW * 0.5, tunnelY, "Temper1"),
-      balloon(tunnelX + zoneW * 1.5, 86, "TI", "212", "Tempering/Temper1/Zone2TempC", tunnelX + zoneW * 1.5, tunnelY, "Temper1"),
-      balloon(tunnelX + zoneW * 2.5, 86, "TI", "213", "Tempering/Temper1/Zone3TempC", tunnelX + zoneW * 2.5, tunnelY, "Temper1"),
-      balloon(tunnelX + tunnelW / 2, 320, "SI", "210", "Tempering/Temper1/BeltSpeed", tunnelX + tunnelW / 2, tunnelY + tunnelH, "Temper1"),
-      balloon(110, inY - 50, "FI", "201", "Tempering/Inlet/FlowKgH", 170, inY, "Inlet"),
-      balloon(820, outY - 50, "FI", "230", "Tempering/Outlet/FlowKgH", 760, outY, "Outlet"),
-      balloon(480, 340, "TI", "240", "Tempering/ChilledWater/SupplyTempC", 480, tunnelY + tunnelH + 8, "ChilledWater"),
+      balloon(tunnelX + zoneW * 0.5, 68, "TI", "211", "Tempering/Temper1/Zone1TempC", tunnelX + zoneW * 0.5, tunnelY, "Temper1"),
+      balloon(tunnelX + zoneW * 1.5, 68, "TI", "212", "Tempering/Temper1/Zone2TempC", tunnelX + zoneW * 1.5, tunnelY, "Temper1"),
+      balloon(tunnelX + zoneW * 2.5, 68, "TI", "213", "Tempering/Temper1/Zone3TempC", tunnelX + zoneW * 2.5, tunnelY, "Temper1"),
+      balloon(tunnelX + tunnelW / 2, 330, "SI", "210", "Tempering/Temper1/BeltSpeed", tunnelX + tunnelW / 2, tunnelY + tunnelH, "Temper1"),
+      balloon(90, inY - 52, "FI", "201", "Tempering/Inlet/FlowKgH", 140, inY, "Inlet"),
+      balloon(850, outY - 52, "FI", "230", "Tempering/Outlet/FlowKgH", 800, outY, "Outlet"),
+      balloon(480, 352, "TI", "240", "Tempering/ChilledWater/SupplyTempC", 480, tunnelY + tunnelH + 10, "ChilledWater"),
     ].join("");
 
     host.innerHTML = `
-      <svg class="pid-svg pid-svg--tempering is-running" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Heuvelland Tempering Temper1 P and ID">
+      <svg class="pid-svg pid-svg--tempering is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heuvelland Tempering Temper1 P and ID">
         <title>Heuvelland Tempering — Temper1</title>
         <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
         <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
@@ -1100,27 +1161,27 @@
 
         <text class="pid-flow-label" x="28" y="${inY - 10}" text-anchor="start">MASS IN</text>
         <line class="pid-pipe pid-pipe--main" x1="28" y1="${inY}" x2="${tunnelX}" y2="${inY}" />
-        ${flowArrow(120, inY)}
-        ${mixValve(170, inY, "Tempering/Inlet/ValveOpen", "Inlet", "XV-201")}
+        ${flowArrow(95, inY)}
+        ${mixValve(140, inY, "Tempering/Inlet/ValveOpen", "Inlet", "XV-201")}
         ${flange(tunnelX, inY)}
 
         <g class="pid-tunnel pid-equip--run" data-equip="Temper1" data-tag="Tempering/Temper1/Running" role="button" tabindex="0">
-          <rect class="pid-tunnel__shell" x="${tunnelX}" y="${tunnelY}" width="${tunnelW}" height="${tunnelH}" rx="4" />
+          <rect class="pid-tunnel__shell" x="${tunnelX}" y="${tunnelY}" width="${tunnelW}" height="${tunnelH}" rx="5" />
           ${zones}
-          <line class="pid-tunnel__belt" x1="${tunnelX + 16}" y1="${midY}" x2="${tunnelX + tunnelW - 16}" y2="${midY}" />
-          <text class="pid-equip__pid" x="${tunnelX + tunnelW / 2}" y="${tunnelY - 10}" text-anchor="middle">TMP-210</text>
-          <text class="pid-equip__name" x="${tunnelX + tunnelW / 2}" y="${tunnelY + tunnelH + 18}" text-anchor="middle">Temper1</text>
+          <line class="pid-tunnel__belt" x1="${tunnelX + 20}" y1="${midY}" x2="${tunnelX + tunnelW - 20}" y2="${midY}" />
+          <text class="pid-equip__pid" x="${tunnelX + tunnelW / 2}" y="${tunnelY - 12}" text-anchor="middle">TMP-210</text>
+          <text class="pid-equip__name" x="${tunnelX + tunnelW / 2}" y="${tunnelY + tunnelH + 22}" text-anchor="middle">Temper1</text>
         </g>
 
-        <line class="pid-pipe pid-pipe--main" x1="${tunnelX + tunnelW}" y1="${outY}" x2="900" y2="${outY}" />
+        <line class="pid-pipe pid-pipe--main" x1="${tunnelX + tunnelW}" y1="${outY}" x2="920" y2="${outY}" />
         ${flange(tunnelX + tunnelW, outY)}
-        ${mixValve(780, outY, "Tempering/Outlet/ValveOpen", "Outlet", "XV-230")}
-        ${flowArrow(850, outY)}
-        <text class="pid-flow-label" x="908" y="${outY - 10}" text-anchor="start">TO PACK</text>
+        ${mixValve(820, outY, "Tempering/Outlet/ValveOpen", "Outlet", "XV-230")}
+        ${flowArrow(875, outY)}
+        <text class="pid-flow-label" x="926" y="${outY - 10}" text-anchor="start">TO PACK</text>
 
-        <text class="pid-flow-label" x="28" y="340" text-anchor="start">CHILLED WATER</text>
-        <line class="pid-pipe pid-pipe--divert" x1="140" y1="340" x2="${tunnelX + 40}" y2="${tunnelY + tunnelH}" />
-        <line class="pid-pipe pid-pipe--divert" x1="${tunnelX + tunnelW - 40}" y1="${tunnelY + tunnelH}" x2="700" y2="340" />
+        <text class="pid-flow-label" x="28" y="352" text-anchor="start">CHILLED WATER</text>
+        <line class="pid-pipe pid-pipe--divert" x1="140" y1="352" x2="${tunnelX + 50}" y2="${tunnelY + tunnelH}" />
+        <line class="pid-pipe pid-pipe--divert" x1="${tunnelX + tunnelW - 50}" y1="${tunnelY + tunnelH}" x2="720" y2="352" />
 
         ${balloons}
       </svg>`;
@@ -1166,15 +1227,64 @@
     const mixOver = state.mixScenario === "overtemp";
     const mixValve = state.mixScenario === "valve";
 
+    const temperWarm = state.temperScenario === "warm";
+    const temperBelt = state.temperScenario === "belt";
+
     svg.classList.remove("is-running", "is-fault", "is-warn");
     if (mixing) svg.classList.add(mixOver ? "is-fault" : mixValve ? "is-warn" : "is-running");
-    else if (tempering) svg.classList.add("is-running");
+    else if (tempering) svg.classList.add(temperWarm ? "is-fault" : temperBelt ? "is-warn" : "is-running");
     else svg.classList.add(jam ? "is-fault" : starved ? "is-warn" : "is-running");
 
     const flow = svg.querySelector("[data-pid-flow]");
-    if (flow) flow.style.display = (!mixing && !jam && !starved && !reducedMotion) ? "" : "none";
+    if (flow) flow.style.display = (!mixing && !tempering && !jam && !starved && !reducedMotion) ? "" : "none";
 
-    if (!mixing) {
+    if (mixing) {
+      const tank = svg.querySelector(".pid-tank");
+      if (tank) {
+        tank.classList.remove("is-selected", "is-hover", "is-fault", "is-warn");
+        if (state.selectedTag.startsWith("Mixing/Mixer1")) tank.classList.add("is-selected");
+        if (mixOver) tank.classList.add("is-fault");
+        else if (mixValve) tank.classList.add("is-warn");
+      }
+      const level = (live["Mixing/Mixer1/LevelPct"] || {}).value ?? 50;
+      const levelEl = svg.querySelector("[data-pid-level]");
+      if (levelEl) {
+        const tankTop = Number(levelEl.getAttribute("data-tank-top") || 134);
+        const tankH = Number(levelEl.getAttribute("data-tank-inner-h") || 172);
+        const h = Math.max(8, (tankH * level) / 100);
+        const top = tankTop + (tankH - h);
+        levelEl.setAttribute("y", String(top));
+        levelEl.setAttribute("height", String(h));
+      }
+      svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
+        const tagId = g.getAttribute("data-tag");
+        const open = !!(live[tagId] || {}).value;
+        g.classList.toggle("is-open", open);
+        g.classList.toggle("is-fault", mixValve && tagId === "Mixing/CocoaLiquor/ValveOpen");
+        g.classList.toggle("is-selected", tagId === state.selectedTag);
+        g.classList.remove("is-hover");
+      });
+    } else if (tempering) {
+      const tunnel = svg.querySelector(".pid-tunnel");
+      if (tunnel) {
+        tunnel.classList.remove("is-selected", "is-hover", "is-fault", "is-warn");
+        if (state.selectedTag.startsWith("Tempering/Temper1")) tunnel.classList.add("is-selected");
+        if (temperWarm) tunnel.classList.add("is-fault");
+        else if (temperBelt) tunnel.classList.add("is-warn");
+      }
+      svg.querySelectorAll(".pid-tunnel__zone").forEach((z) => {
+        z.classList.toggle("is-warm", temperWarm);
+      });
+      const belt = svg.querySelector(".pid-tunnel__belt");
+      if (belt) belt.classList.toggle("is-stopped", temperBelt);
+      svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
+        const tagId = g.getAttribute("data-tag");
+        const open = !!(live[tagId] || {}).value;
+        g.classList.toggle("is-open", open);
+        g.classList.toggle("is-selected", tagId === state.selectedTag);
+        g.classList.remove("is-hover");
+      });
+    } else {
       EQUIPMENT.forEach((eq) => {
         const g = svg.querySelector(`.pid-equip[data-equip="${eq.id}"]`);
         if (!g) return;
@@ -1201,44 +1311,6 @@
         const count = bin.querySelector("[data-pid-reject-count]");
         if (count) count.textContent = String(Math.round(live["Checkweigher/Reject/Count"]?.value ?? state.rejectCount));
       }
-    } else if (mixing) {
-      const tank = svg.querySelector(".pid-tank");
-      if (tank) {
-        tank.classList.remove("is-selected", "is-hover", "is-fault", "is-warn");
-        if (state.selectedTag.startsWith("Mixing/Mixer1")) tank.classList.add("is-selected");
-        if (mixOver) tank.classList.add("is-fault");
-        else if (mixValve) tank.classList.add("is-warn");
-      }
-      const level = (live["Mixing/Mixer1/LevelPct"] || {}).value ?? 50;
-      const levelEl = svg.querySelector("[data-pid-level]");
-      if (levelEl) {
-        const tankH = 200 - 28;
-        const h = Math.max(8, (tankH * level) / 100);
-        const top = 120 + 14 + (tankH - h);
-        levelEl.setAttribute("y", String(top));
-        levelEl.setAttribute("height", String(h));
-      }
-      svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
-        const tagId = g.getAttribute("data-tag");
-        const open = !!(live[tagId] || {}).value;
-        g.classList.toggle("is-open", open);
-        g.classList.toggle("is-fault", mixValve && tagId === "Mixing/CocoaLiquor/ValveOpen");
-        g.classList.toggle("is-selected", tagId === state.selectedTag);
-        g.classList.remove("is-hover");
-      });
-    } else if (tempering) {
-      const tunnel = svg.querySelector(".pid-tunnel");
-      if (tunnel) {
-        tunnel.classList.remove("is-selected", "is-hover");
-        if (state.selectedTag.startsWith("Tempering/Temper1")) tunnel.classList.add("is-selected");
-      }
-      svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
-        const tagId = g.getAttribute("data-tag");
-        const open = !!(live[tagId] || {}).value;
-        g.classList.toggle("is-open", open);
-        g.classList.toggle("is-selected", tagId === state.selectedTag);
-        g.classList.remove("is-hover");
-      });
     }
 
     svg.querySelectorAll(".pid-balloon").forEach((g) => {
@@ -1277,6 +1349,10 @@
       if (el) el.textContent = text;
     };
 
+    const temperWarm = state.temperScenario === "warm";
+    const temperBelt = state.temperScenario === "belt";
+    const feedStarved = starved || state.mixScenario != null || temperBelt;
+
     if (mixing) {
       const level = live["Mixing/Mixer1/LevelPct"]?.value ?? 0;
       const jacket = live["Mixing/Mixer1/JacketTempC"]?.value ?? 0;
@@ -1293,30 +1369,33 @@
       const z1 = live["Tempering/Temper1/Zone1TempC"]?.value ?? 0;
       const z3 = live["Tempering/Temper1/Zone3TempC"]?.value ?? 0;
       const belt = live["Tempering/Temper1/BeltSpeed"]?.value ?? 0;
+      const temperStarve = state.mixScenario != null;
       setLabel("kpi-a-label", "Zone1");
       setLabel("kpi-b-label", "Zone3");
       setLabel("kpi-c-label", "Belt");
       setLabel("kpi-d-label", "Mode");
-      setKpi("kpi-a", `${z1.toFixed(1)}°C`, "good");
-      setKpi("kpi-b", `${z3.toFixed(1)}°C`, "good");
-      setKpi("kpi-c", `${belt.toFixed(1)}`, "good");
-      setKpi("kpi-d", String(live["Tempering/Mode"]?.value ?? "—"), "good");
+      setKpi("kpi-a", `${z1.toFixed(1)}°C`, temperWarm ? "bad" : "good");
+      setKpi("kpi-b", `${z3.toFixed(1)}°C`, temperWarm ? "bad" : "good");
+      setKpi("kpi-c", `${belt.toFixed(1)}`, temperBelt ? "bad" : temperStarve ? "warn" : "good");
+      setKpi("kpi-d", String(live["Tempering/Mode"]?.value ?? "—"), temperWarm ? "bad" : temperBelt || temperStarve ? "warn" : "good");
     } else {
       const oee = live.OEE?.value ?? 0;
       setLabel("kpi-a-label", "OEE");
       setLabel("kpi-b-label", "Thru");
       setLabel("kpi-c-label", "Mode");
       setLabel("kpi-d-label", "Rejects");
-      setKpi("kpi-a", `${oee.toFixed(1)}%`, jam ? "bad" : starved ? "warn" : oee >= 80 ? "good" : "warn");
-      setKpi("kpi-b", String(Math.round(live.Throughput?.value ?? 0)), jam ? "bad" : starved ? "warn" : "good");
-      setKpi("kpi-c", String(live.Mode?.value ?? "—"), jam ? "bad" : starved ? "warn" : "good");
+      setKpi("kpi-a", `${oee.toFixed(1)}%`, jam ? "bad" : feedStarved ? "warn" : oee >= 80 ? "good" : "warn");
+      setKpi("kpi-b", String(Math.round(live.Throughput?.value ?? 0)), jam ? "bad" : feedStarved ? "warn" : "good");
+      setKpi("kpi-c", String(live.Mode?.value ?? "—"), jam ? "bad" : feedStarved ? "warn" : "good");
       setKpi("kpi-d", String(Math.round(live["Checkweigher/Reject/Count"]?.value ?? 0)), "warn");
     }
 
     const pkgToolbar = document.querySelector('[data-toolbar-area="packaging"]');
     const mixToolbar = document.querySelector('[data-toolbar-area="mixing"]');
+    const temperToolbar = document.querySelector('[data-toolbar-area="tempering"]');
     if (pkgToolbar) pkgToolbar.hidden = mixing || tempering;
     if (mixToolbar) mixToolbar.hidden = !mixing;
+    if (temperToolbar) temperToolbar.hidden = !tempering;
     document.querySelectorAll("[data-toolbar-packaging-only]").forEach((el) => {
       el.hidden = mixing || tempering;
     });
@@ -1329,6 +1408,11 @@
     document.querySelectorAll("[data-mix-scenario]").forEach((btn) => {
       const sc = btn.getAttribute("data-mix-scenario");
       const active = sc === "recover" ? state.mixScenario === null : state.mixScenario === sc;
+      btn.classList.toggle("is-active", active);
+    });
+    document.querySelectorAll("[data-temper-scenario]").forEach((btn) => {
+      const sc = btn.getAttribute("data-temper-scenario");
+      const active = sc === "recover" ? state.temperScenario === null : state.temperScenario === sc;
       btn.classList.toggle("is-active", active);
     });
 
@@ -1347,8 +1431,10 @@
       scanDot.classList.remove("is-fault", "is-warn");
       if (mixing && mixOver) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Overtemp"; }
       else if (mixing && mixValve) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Valve fault"; }
+      else if (tempering && temperWarm) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Zone warm"; }
+      else if (tempering && temperBelt) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Belt stop"; }
       else if (!mixing && !tempering && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
-      else if (!mixing && !tempering && starved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
+      else if (!mixing && !tempering && feedStarved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
       else { scanLabel.textContent = mixing ? "Mixing" : tempering ? "Tempering" : "Scanning"; }
     }
   }
@@ -1466,6 +1552,14 @@
   function setMixScenario(name) {
     if (name === "recover") state.mixScenario = null;
     else if (name === "overtemp" || name === "valve") state.mixScenario = name;
+    saveState();
+    computeLive();
+    renderAll();
+  }
+
+  function setTemperScenario(name) {
+    if (name === "recover") state.temperScenario = null;
+    else if (name === "warm" || name === "belt") state.temperScenario = name;
     saveState();
     computeLive();
     renderAll();
@@ -1624,12 +1718,14 @@
     });
 
     document.querySelector(".plant-toolbar")?.addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-action], [data-scenario], [data-mix-scenario]");
+      const btn = e.target.closest("[data-action], [data-scenario], [data-mix-scenario], [data-temper-scenario]");
       if (!btn) return;
       const sc = btn.getAttribute("data-scenario");
       const mixSc = btn.getAttribute("data-mix-scenario");
+      const temperSc = btn.getAttribute("data-temper-scenario");
       if (sc) { setScenario(sc); return; }
       if (mixSc) { setMixScenario(mixSc); return; }
+      if (temperSc) { setTemperScenario(temperSc); return; }
       const action = btn.getAttribute("data-action");
       if (action === "ack-all") ackAll();
       else if (action === "reset-reject") resetReject();
