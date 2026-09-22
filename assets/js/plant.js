@@ -414,15 +414,49 @@
     return formatValue(def, lv.value);
   }
 
-  function balloon(cx, cy, top, bot, tagId, anchorY) {
+  /** Connection ports for each equipment kind — pipes must meet these exactly. */
+  function portsFor(eq, x, y, w, h) {
+    const midY = y + h / 2;
+    if (eq.kind === "scale") {
+      return {
+        left: x + 6,
+        right: x + w - 6,
+        top: y + 4,
+        bottom: y + h - 4,
+        cx: x + w / 2,
+        midY,
+      };
+    }
+    if (eq.kind === "conveyor") {
+      return {
+        left: x,
+        right: x + w,
+        top: y + 10,
+        bottom: y + h - 10,
+        cx: x + w / 2,
+        midY,
+      };
+    }
+    return {
+      left: x,
+      right: x + w,
+      top: y,
+      bottom: y + h,
+      cx: x + w / 2,
+      midY,
+    };
+  }
+
+  function balloon(cx, cy, top, bot, tagId, anchorX, anchorY) {
     const q = (live[tagId] || {}).quality || "Stale";
     const qClass = `pid-q--${q.toLowerCase()}`;
     const selected = tagId === state.selectedTag ? " is-selected" : "";
     const val = liveReadout(tagId);
-    const leaderY2 = anchorY != null ? anchorY : cy + 42;
+    const ax = anchorX != null ? anchorX : cx;
+    const ay = anchorY != null ? anchorY : cy + 42;
     return `
       <g class="pid-balloon${selected} ${qClass}" data-tag="${escapeHtml(tagId)}" role="button" tabindex="0" aria-label="${escapeHtml(top + "-" + bot + " " + val)}">
-        <line class="pid-leader" x1="${cx}" y1="${cy + 20}" x2="${cx}" y2="${leaderY2}" />
+        <line class="pid-leader" x1="${cx}" y1="${cy + 17}" x2="${ax}" y2="${ay}" />
         <circle class="pid-balloon__ring" cx="${cx}" cy="${cy}" r="17" />
         <line class="pid-balloon__split" x1="${cx - 17}" y1="${cy}" x2="${cx + 17}" y2="${cy}" />
         <text class="pid-balloon__top" x="${cx}" y="${cy - 4}" text-anchor="middle">${escapeHtml(top)}</text>
@@ -432,16 +466,11 @@
   }
 
   function flange(x, y) {
-    return `<line class="pid-flange" x1="${x}" y1="${y - 7}" x2="${x}" y2="${y + 7}" />`;
+    return `<line class="pid-flange" x1="${x}" y1="${y - 6}" x2="${x}" y2="${y + 6}" />`;
   }
 
   function flowArrow(x, y) {
     return `<polygon class="pid-arrow" points="${x},${y} ${x - 7},${y - 4.5} ${x - 7},${y + 4.5}" />`;
-  }
-
-  function nozzleCaps(x, y, w, h) {
-    const mid = y + h / 2;
-    return `${flange(x, mid)}${flange(x + w, mid)}`;
   }
 
   function equipBlock(x, y, w, h, eq, st) {
@@ -449,6 +478,7 @@
     const selected = state.selectedTag.startsWith(eq.id + "/") || state.selectedTag === eq.id
       ? " is-selected" : "";
     const midY = y + h / 2;
+    const p = portsFor(eq, x, y, w, h);
     let body;
     if (eq.kind === "conveyor") {
       body = `
@@ -457,48 +487,43 @@
         <circle class="pid-equip__roller" cx="${x + w - 11}" cy="${midY}" r="8" />
         <line class="pid-equip__belt" x1="${x + 11}" y1="${y + 14}" x2="${x + w - 11}" y2="${y + 14}" />
         <line class="pid-equip__belt" x1="${x + 11}" y1="${y + h - 14}" x2="${x + w - 11}" y2="${y + h - 14}" />
-        <line class="pid-equip__hatch" x1="${x + 22}" y1="${midY}" x2="${x + w - 22}" y2="${midY}" />
-        ${nozzleCaps(x, y, w, h)}`;
+        <line class="pid-equip__hatch" x1="${x + 22}" y1="${midY}" x2="${x + w - 22}" y2="${midY}" />`;
     } else if (eq.kind === "scale") {
       body = `
-        <rect class="pid-equip__body" x="${x + 6}" y="${y + 4}" width="${w - 12}" height="${h - 8}" rx="1" />
+        <rect class="pid-equip__body" x="${p.left}" y="${p.top}" width="${p.right - p.left}" height="${p.bottom - p.top}" rx="1" />
         <rect class="pid-equip__platen" x="${x + 16}" y="${y + 10}" width="${w - 32}" height="8" rx="1" />
-        <line class="pid-equip__detail" x1="${x + w / 2}" y1="${y + 18}" x2="${x + w / 2}" y2="${y + h - 14}" />
-        <line class="pid-equip__detail" x1="${x + 14}" y1="${y + h - 12}" x2="${x + w - 14}" y2="${y + h - 12}" />
-        <line class="pid-equip__detail" x1="${x + 18}" y1="${y + h - 8}" x2="${x + w - 18}" y2="${y + h - 8}" />
-        ${nozzleCaps(x + 6, y, w - 12, h)}`;
+        <line class="pid-equip__detail" x1="${p.cx}" y1="${y + 18}" x2="${p.cx}" y2="${p.bottom - 10}" />
+        <line class="pid-equip__detail" x1="${x + 14}" y1="${p.bottom - 8}" x2="${x + w - 14}" y2="${p.bottom - 8}" />
+        <line class="pid-equip__detail" x1="${x + 18}" y1="${p.bottom - 4}" x2="${x + w - 18}" y2="${p.bottom - 4}" />`;
     } else if (eq.kind === "palletizer") {
       body = `
         <rect class="pid-equip__body" x="${x}" y="${y}" width="${w}" height="${h}" rx="1" />
         <rect class="pid-equip__stack" x="${x + 16}" y="${y + h - 18}" width="${w - 32}" height="6" />
         <rect class="pid-equip__stack" x="${x + 20}" y="${y + h - 26}" width="${w - 40}" height="6" />
         <rect class="pid-equip__stack" x="${x + 24}" y="${y + h - 34}" width="${w - 48}" height="6" />
-        <line class="pid-equip__detail" x1="${x + 10}" y1="${y + 10}" x2="${x + w - 10}" y2="${y + 10}" />
-        ${nozzleCaps(x, y, w, h)}`;
+        <line class="pid-equip__detail" x1="${x + 10}" y1="${y + 10}" x2="${x + w - 10}" y2="${y + 10}" />`;
     } else {
-      // packaging machine
       body = `
         <rect class="pid-equip__body" x="${x}" y="${y}" width="${w}" height="${h}" rx="1" />
         <rect class="pid-equip__detail" x="${x + 8}" y="${y + 10}" width="${w - 16}" height="${h - 20}" rx="1" />
-        <line class="pid-equip__detail" x1="${x + 8}" y1="${midY}" x2="${x + w - 8}" y2="${midY}" />
-        ${nozzleCaps(x, y, w, h)}`;
+        <line class="pid-equip__detail" x1="${x + 8}" y1="${midY}" x2="${x + w - 8}" y2="${midY}" />`;
     }
     return `
       <g class="pid-equip pid-equip--${st}${selected}" data-equip="${escapeHtml(eq.id)}" data-tag="${escapeHtml(tagId)}" role="button" tabindex="0">
         ${body}
-        <text class="pid-equip__pid" x="${x + w / 2}" y="${y - 8}" text-anchor="middle">${escapeHtml(eq.pid)}</text>
-        <text class="pid-equip__name" x="${x + w / 2}" y="${y + h + 14}" text-anchor="middle">${escapeHtml(eq.label)}</text>
+        <text class="pid-equip__pid" x="${p.cx}" y="${p.top - 8}" text-anchor="middle">${escapeHtml(eq.pid)}</text>
+        <text class="pid-equip__name" x="${p.cx}" y="${p.bottom + 14}" text-anchor="middle">${escapeHtml(eq.label)}</text>
       </g>`;
   }
 
-  function divertValve(cx, cy, active, selected) {
-    // 3-way divert: triangle on vertical stem
+  function divertValve(cx, cyTop, cyBot, active, selected) {
+    const mid = (cyTop + cyBot) / 2;
     return `
       <g class="pid-valve${selected}${active ? " is-active" : ""}" data-tag="Checkweigher/Reject/Divert" role="button" tabindex="0" aria-label="Reject divert valve RJ-321">
-        <line class="pid-pipe" x1="${cx}" y1="${cy - 22}" x2="${cx}" y2="${cy - 10}" />
-        <polygon class="pid-valve__body" points="${cx},${cy - 10} ${cx - 12},${cy + 10} ${cx + 12},${cy + 10}" />
-        <line class="pid-pipe pid-pipe--divert" x1="${cx}" y1="${cy + 10}" x2="${cx}" y2="${cy + 34}" />
-        <text class="pid-valve__pid" x="${cx + 18}" y="${cy + 4}" text-anchor="start">RJ-321</text>
+        <line class="pid-pipe pid-pipe--divert" x1="${cx}" y1="${cyTop}" x2="${cx}" y2="${mid - 10}" />
+        <polygon class="pid-valve__body" points="${cx},${mid - 10} ${cx - 11},${mid + 10} ${cx + 11},${mid + 10}" />
+        <line class="pid-pipe pid-pipe--divert" x1="${cx}" y1="${mid + 10}" x2="${cx}" y2="${cyBot}" />
+        <text class="pid-valve__pid" x="${cx + 16}" y="${mid + 4}" text-anchor="start">RJ-321</text>
       </g>`;
   }
 
@@ -510,63 +535,80 @@
     const starved = state.scenario === "starved";
     const flowClass = jam ? "is-fault" : starved ? "is-warn" : "is-running";
 
-    // Sheet coordinates
     const vbW = 960;
     const vbH = 420;
     const y = 178;
     const h = 58;
     const w = 92;
-    const xs = [56, 198, 340, 500, 642, 784];
-    const midY = y + h / 2;
-    const rejectX = xs[2] + w / 2;
-    const valveY = y + h + 48;
-    const binY = 350;
+    // Spacing chosen so port.right[i] → port.left[i+1] has a clear ~46px pipe run
+    const xs = [64, 202, 340, 496, 634, 772];
 
-    const pipes = xs.map((x, i) => {
-      if (i === xs.length - 1) return "";
-      const x1 = x + w;
-      const x2 = xs[i + 1];
+    const layout = EQUIPMENT.map((eq, i) => {
+      const x = xs[i];
+      return { eq, x, y, w, h, ports: portsFor(eq, x, y, w, h) };
+    });
+
+    const midY = layout[0].ports.midY;
+    const weigh = layout[2];
+    const rejectX = weigh.ports.cx;
+    const valveTop = weigh.ports.bottom;
+    const binTop = 332;
+    const valveBot = binTop - 18;
+
+    const pipes = layout.map((node, i) => {
+      if (i === layout.length - 1) return "";
+      const next = layout[i + 1];
+      const x1 = node.ports.right;
+      const x2 = next.ports.left;
       const mid = (x1 + x2) / 2;
       return `
         <line class="pid-pipe pid-pipe--main" x1="${x1}" y1="${midY}" x2="${x2}" y2="${midY}" />
         ${flange(x1, midY)}${flange(x2, midY)}
-        ${flowArrow(mid + 4, midY)}`;
+        ${flowArrow(mid + 3, midY)}`;
     }).join("");
 
+    const inletX0 = layout[0].ports.left - 28;
+    const inlet = `
+      <line class="pid-pipe pid-pipe--main" x1="${inletX0}" y1="${midY}" x2="${layout[0].ports.left}" y2="${midY}" />
+      ${flange(layout[0].ports.left, midY)}
+      <text class="pid-flow-label" x="${inletX0}" y="${midY - 10}" text-anchor="start">PRODUCT</text>
+      ${flowArrow(inletX0 + 14, midY)}`;
+
+    const last = layout[layout.length - 1];
+    const outletX1 = last.ports.right + 28;
+    const outlet = `
+      <line class="pid-pipe pid-pipe--main" x1="${last.ports.right}" y1="${midY}" x2="${outletX1}" y2="${midY}" />
+      ${flange(last.ports.right, midY)}
+      ${flowArrow(outletX1 - 2, midY)}`;
+
     const flowAnim = (!jam && !starved && !reducedMotion)
-      ? `<line class="pid-pipe-flow" x1="${xs[0]}" y1="${midY}" x2="${xs[5] + w}" y2="${midY}" />`
+      ? `<line class="pid-pipe-flow" x1="${inletX0}" y1="${midY}" x2="${outletX1}" y2="${midY}" />`
       : "";
 
-    const equips = EQUIPMENT.map((eq, i) =>
-      equipBlock(xs[i], y, w, h, eq, equipState(eq.id))
+    const equips = layout.map((n) =>
+      equipBlock(n.x, n.y, n.w, n.h, n.eq, equipState(n.eq.id))
     ).join("");
 
-    // Five key balloons only
+    const cart = layout[1];
     const balloons = [
-      balloon(xs[0] + w / 2, 88, "SI", "301", "Infeed/Speed", y - 2),
-      balloon(xs[1] + w / 2 - 28, 88, "SC", "310", "Cartoner/Speed", y - 2),
-      balloon(xs[1] + w / 2 + 28, 88, "YA", "310", "Cartoner/Jam", y - 2),
-      balloon(xs[2] + w / 2, 88, "WT", "320", "Checkweigher/WeightKg", y - 2),
-      balloon(rejectX + 56, valveY + 8, "XI", "321", "Checkweigher/Reject/Divert", valveY + 10),
+      balloon(layout[0].ports.cx, 86, "SI", "301", "Infeed/Speed", layout[0].ports.cx, layout[0].ports.top),
+      balloon(cart.ports.cx - 26, 86, "SC", "310", "Cartoner/Speed", cart.ports.cx - 14, cart.ports.top),
+      balloon(cart.ports.cx + 26, 86, "YA", "310", "Cartoner/Jam", cart.ports.cx + 14, cart.ports.top),
+      balloon(weigh.ports.cx, 86, "WT", "320", "Checkweigher/WeightKg", weigh.ports.cx, weigh.ports.top),
+      balloon(rejectX + 54, (valveTop + valveBot) / 2, "XI", "321", "Checkweigher/Reject/Divert", rejectX + 12, (valveTop + valveBot) / 2),
     ].join("");
 
     const rejectActive = !!(live["Checkweigher/Reject/Active"] || {}).value;
     const rejectSel = state.selectedTag.startsWith("Checkweigher/Reject") ? " is-selected" : "";
     const rejectCount = Math.round(live["Checkweigher/Reject/Count"]?.value ?? state.rejectCount);
 
-    const productLabel = `
-      <text class="pid-flow-label" x="${xs[0] - 8}" y="${midY - 12}" text-anchor="start">PRODUCT</text>
-      <polygon class="pid-arrow pid-arrow--lg" points="${xs[0] - 4},${midY} ${xs[0] - 14},${midY - 5} ${xs[0] - 14},${midY + 5}" />`;
-
     host.innerHTML = `
       <svg class="pid-svg ${flowClass}" viewBox="0 0 ${vbW} ${vbH}" role="img" aria-label="Line 3 packaging P and ID">
         <title>Packaging Line 3 — P&amp;ID</title>
 
-        <!-- Drawing border -->
         <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
         <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
 
-        <!-- Title block -->
         <g class="pid-titleblock">
           <rect class="pid-titleblock__box" x="${vbW - 220}" y="${vbH - 56}" width="208" height="44" />
           <line class="pid-sheet__rule" x1="${vbW - 220}" y1="${vbH - 34}" x2="${vbW - 12}" y2="${vbH - 34}" />
@@ -582,18 +624,17 @@
         <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — PRIMARY PACK</text>
         <text class="pid-sheet__sub" x="24" y="52">Click equipment or instrument balloons to select tags</text>
 
-        ${productLabel}
-        ${pipes}
-        ${flowAnim}
         ${equips}
+        ${inlet}
+        ${pipes}
+        ${outlet}
+        ${flowAnim}
 
-        <!-- Reject branch -->
-        <line class="pid-pipe pid-pipe--divert" x1="${rejectX}" y1="${y + h}" x2="${rejectX}" y2="${valveY - 22}" />
-        ${divertValve(rejectX, valveY, rejectActive, rejectSel)}
+        ${divertValve(rejectX, valveTop, valveBot, rejectActive, rejectSel)}
         <g class="pid-bin${rejectSel}" data-tag="Checkweigher/Reject/Count" role="button" tabindex="0">
-          <path class="pid-bin__body" d="M${rejectX - 26},${binY - 18} L${rejectX + 26},${binY - 18} L${rejectX + 20},${binY + 14} L${rejectX - 20},${binY + 14} Z" />
-          <text class="pid-bin__label" x="${rejectX}" y="${binY + 2}" text-anchor="middle">REJECT</text>
-          <text class="pid-bin__count" x="${rejectX}" y="${binY + 28}" text-anchor="middle">${rejectCount}</text>
+          <path class="pid-bin__body" d="M${rejectX - 26},${binTop} L${rejectX + 26},${binTop} L${rejectX + 20},${binTop + 30} L${rejectX - 20},${binTop + 30} Z" />
+          <text class="pid-bin__label" x="${rejectX}" y="${binTop + 18}" text-anchor="middle">REJECT</text>
+          <text class="pid-bin__count" x="${rejectX}" y="${binTop + 44}" text-anchor="middle">${rejectCount}</text>
         </g>
 
         ${balloons}
