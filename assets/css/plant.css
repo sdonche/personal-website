@@ -431,6 +431,15 @@
   border-radius: 2px;
   vertical-align: middle;
 }
+.plant-tree__site--offline.plant-tree__site--spark > details > summary .plant-tree__label::after {
+  content: "FLAP";
+  color: var(--plant-uncertain);
+  border-color: rgba(251, 191, 36, 0.45);
+}
+.plant-tree__site--offline.plant-tree__site--spark > details > summary {
+  color: rgb(226 232 240);
+  font-weight: 600;
+}
 .plant-tree__site--offline > details > summary {
   color: rgb(100 116 139);
   font-weight: 500;
@@ -514,6 +523,92 @@
   gap: 0.4rem;
   padding: 0.55rem 0.75rem;
   border-bottom: 1px solid var(--plant-stroke);
+}
+
+.plant-batch-trail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid var(--plant-stroke);
+  background: rgba(2, 6, 23, 0.45);
+}
+.plant-batch-trail__id {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: rgb(165 243 252);
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 0;
+}
+.plant-batch-trail__id:hover {
+  color: var(--color-brand-300, #67e8f9);
+}
+.plant-batch-trail__steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.plant-batch-trail__steps li {
+  display: inline-flex;
+  align-items: center;
+}
+.plant-batch-trail__steps li + li::before {
+  content: "→";
+  margin: 0 0.28rem;
+  color: rgb(71 85 105);
+  font-size: 0.65rem;
+}
+.plant-batch-trail__steps button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: rgb(100 116 139);
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 0.1rem 0.15rem;
+}
+.plant-batch-trail__steps li.is-done button {
+  color: rgb(110 231 183);
+}
+.plant-batch-trail__steps li.is-here button {
+  color: rgb(165 243 252);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+.plant-batch-trail__steps button.is-active {
+  color: var(--color-brand-300, #67e8f9);
+}
+.plant-batch-trail__steps button:hover {
+  color: rgb(226 232 240);
+}
+
+.plant-pid-alarm {
+  margin: 0.35rem 0.75rem 0;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: rgba(127, 29, 29, 0.25);
+  color: rgb(254 202 202);
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+}
+.plant-pid-alarm[data-severity="warning"] {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(120, 53, 15, 0.28);
+  color: rgb(253 230 138);
 }
 
 .plant-toolbar__group {
@@ -882,6 +977,35 @@
 .pid-moulder.is-selected .pid-moulder__shell,
 .pid-moulder.is-hover .pid-moulder__shell {
   stroke: var(--color-brand-300);
+}
+.pid-refiner.is-fault .pid-refiner__shell,
+.pid-moulder.is-fault .pid-moulder__shell,
+.pid-tank.is-alarm .pid-tank__shell,
+.pid-refiner.is-alarm .pid-refiner__shell,
+.pid-moulder.is-alarm .pid-moulder__shell,
+.pid-tunnel.is-alarm .pid-tunnel__shell,
+.pid-equip.is-alarm .pid-equip__body {
+  stroke: #f87171;
+}
+.pid-refiner.is-warn .pid-refiner__shell,
+.pid-moulder.is-warn .pid-moulder__shell {
+  stroke: #fbbf24;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pid-tank.is-alarm .pid-tank__shell,
+  .pid-refiner.is-alarm .pid-refiner__shell,
+  .pid-moulder.is-alarm .pid-moulder__shell,
+  .pid-tunnel.is-alarm .pid-tunnel__shell,
+  .pid-equip.is-alarm .pid-equip__body,
+  .pid-mix-valve.is-alarm .pid-mix-valve__body {
+    animation: pid-alarm-pulse 1.1s ease-in-out infinite;
+  }
+}
+
+@keyframes pid-alarm-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
 }
 
 .pid-mix-valve.is-open .pid-mix-valve__body {
