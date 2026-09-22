@@ -897,6 +897,35 @@
   pointer-events: none;
 }
 
+.pid-batch {
+  cursor: pointer;
+}
+.pid-batch__k {
+  fill: rgb(100 116 139);
+  font-size: 8px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.08em;
+}
+.pid-batch__v {
+  fill: rgb(165 243 252);
+  font-size: 11px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 600;
+}
+.pid-batch.is-selected .pid-batch__v {
+  fill: var(--color-brand-300, #67e8f9);
+}
+
+.pid-pump__body {
+  fill: rgba(2, 6, 23, 0.95);
+  stroke: #94a3b8;
+  stroke-width: 1.4;
+}
+.pid-pump__tri {
+  fill: #94a3b8;
+  stroke: none;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .pid-svg.is-running .pid-pipe-flow {
     animation: pid-flow 1.2s linear infinite;
