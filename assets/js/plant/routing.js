@@ -40,11 +40,13 @@ Plant.applyHashState = function applyHashState(opts) {
   const { drawing, fault } = Plant.parseHash();
   if (!drawing) return false;
   let faultChanged = false;
+  let faultAliased = false;
   if (drawing !== "overview") {
     const meta = Plant.DRAWING_FAULTS[drawing];
     let resolvedFault = fault;
     if (drawing === "tempering" && fault) {
       resolvedFault = Plant.normalizeTemperScenario(fault) || fault;
+      if (resolvedFault !== fault) faultAliased = true;
     }
     if (meta && resolvedFault && meta.values.includes(resolvedFault)) {
       if (Plant.state[meta.field] !== resolvedFault) {
@@ -63,7 +65,8 @@ Plant.applyHashState = function applyHashState(opts) {
   }
   Plant.setActiveDrawing(drawing, { skipHash: true });
   if (faultChanged) Plant.renderAll();
-  if (!skipHash) Plant.syncHash(drawing);
+  /* Rewrite legacy aliases (e.g. belt→drive) even when skipHash. */
+  if (!skipHash || faultAliased) Plant.syncHash(drawing);
   return true;
 }
 
