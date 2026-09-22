@@ -49,12 +49,21 @@
 
 .plant-hmi__header {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem 1.25rem;
-  padding: 0.65rem 0.85rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem 0.6rem;
   border-bottom: 1px solid var(--plant-stroke);
   background: rgba(2, 6, 23, 0.55);
+  flex-shrink: 0;
+}
+
+.plant-hmi__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1.25rem;
+  min-height: 1.75rem;
 }
 
 .plant-hmi__title {
@@ -75,27 +84,36 @@
 }
 
 .plant-area-nav {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.15rem;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
   border: 1px solid var(--plant-stroke);
   background: rgba(2, 6, 23, 0.45);
+  overflow-x: auto;
 }
 
 .plant-area-nav__btn {
   appearance: none;
+  flex: 1 1 0;
   border: 0;
+  border-right: 1px solid var(--plant-stroke);
   background: transparent;
   color: rgb(148 163 184);
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
   font-size: 0.62rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 0.35rem 0.65rem;
+  padding: 0.45rem 0.75rem;
   cursor: pointer;
   transition: color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.plant-area-nav__btn:last-child {
+  border-right: 0;
 }
 
 .plant-area-nav__btn:hover {
@@ -104,7 +122,7 @@
 
 .plant-area-nav__btn:focus-visible {
   outline: 2px solid var(--color-brand-400);
-  outline-offset: 1px;
+  outline-offset: -2px;
 }
 
 .plant-area-nav__btn.is-active {
@@ -414,6 +432,20 @@
   padding: 0.05rem 0.28rem;
   border-radius: 2px;
   vertical-align: middle;
+}
+.plant-tree__area--stub > details > summary .plant-tree__label::after {
+  content: "OFFLINE";
+  margin-left: 0.45rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--plant-stale);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.plant-tree__area--stub > details > summary {
+  color: rgb(100 116 139);
 }
 .plant-tree__line--live > details > summary .plant-tree__label::after {
   content: "LIVE";

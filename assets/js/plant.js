@@ -1,7 +1,7 @@
 /* =============================================================
    plant.js — Heuvelland chocolate plant HMI (/plant/)
-   Site → Packaging + Mixing + Tempering tag browser; drawings switch by selection.
-   Packaging Line1/Line2: live tags only (no drawing yet).
+   Process order: Mixing → Refining → Conching → Tempering → Moulding → Packaging.
+   Drawings today: Mixing, Tempering, Packaging Line3. Other areas are tag stubs.
    Cross-area BatchId + Mixing/Tempering faults starve Packaging feed.
    State persists in localStorage until "Reset line".
    ============================================================= */
@@ -9,7 +9,7 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "samdonche.plant.v7";
+  const STORAGE_KEY = "samdonche.plant.v8";
   const TICK_MS = 1000;
   const PROVIDER = "[edge]";
   const SITE = "Heuvelland";
@@ -20,6 +20,53 @@
   const AREA_ROOT = `${SITE}/${AREA}`;
   const MIXING_ROOT = `${SITE}/${MIXING_AREA}`;
   const TEMPERING_ROOT = `${SITE}/${TEMPERING_AREA}`;
+
+  /**
+   * Plant areas in mass-flow order (chocolate bars).
+   * `drawing` is set when a P&ID exists; null = tag browser stub only.
+   */
+  const PLANT_AREAS = [
+    { id: "Mixing", drawing: "mixing", live: true },
+    { id: "Refining", drawing: null, live: false },
+    { id: "Conching", drawing: null, live: false },
+    { id: "Tempering", drawing: "tempering", live: true },
+    { id: "Moulding", drawing: null, live: false },
+    { id: "Packaging", drawing: "packaging", live: true },
+  ];
+
+  /** Stub areas awaiting P&IDs — thin offline tag sets. */
+  const STUB_AREAS = [
+    {
+      id: "Refining",
+      equip: "Refiner1",
+      tags: [
+        { id: "Running", name: "Running", type: "bool" },
+        { id: "Mode", name: "Mode", type: "string" },
+        { id: "Refiner1/Running", name: "Running", type: "bool" },
+        { id: "Refiner1/LoadPct", name: "LoadPct", type: "number", unit: "%", format: (v) => v.toFixed(1) },
+      ],
+    },
+    {
+      id: "Conching",
+      equip: "Conche1",
+      tags: [
+        { id: "Running", name: "Running", type: "bool" },
+        { id: "Mode", name: "Mode", type: "string" },
+        { id: "Conche1/Running", name: "Running", type: "bool" },
+        { id: "Conche1/TempC", name: "TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
+      ],
+    },
+    {
+      id: "Moulding",
+      equip: "Moulder1",
+      tags: [
+        { id: "Running", name: "Running", type: "bool" },
+        { id: "Mode", name: "Mode", type: "string" },
+        { id: "Moulder1/Running", name: "Running", type: "bool" },
+        { id: "Moulder1/CyclesPerMin", name: "CyclesPerMin", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
+      ],
+    },
+  ];
 
   /** @typedef {"Good"|"Uncertain"|"Bad"|"Stale"} Quality */
 
@@ -162,8 +209,14 @@
     STUB_LINE_TAGS.map((t) => ({ ...t, id: `${line.id}/${t.id}` }))
   );
 
-  const ALL_TAGS = LINE3_TAGS.concat(STUB_TAGS, MIXING_TAGS, TEMPERING_TAGS);
+  /** Prefixed offline area tags: Refining/Running, Moulding/Moulder1/… */
+  const STUB_AREA_TAGS = STUB_AREAS.flatMap((area) =>
+    area.tags.map((t) => ({ ...t, id: `${area.id}/${t.id}`, live: false }))
+  );
+
+  const ALL_TAGS = LINE3_TAGS.concat(STUB_TAGS, MIXING_TAGS, TEMPERING_TAGS, STUB_AREA_TAGS);
   const TAG_BY_ID = Object.fromEntries(ALL_TAGS.map((t) => [t.id, t]));
+  const STUB_AREA_IDS = new Set(STUB_AREAS.map((a) => a.id));
 
   function isStubTag(rel) {
     return rel.startsWith("Line1/") || rel.startsWith("Line2/");
@@ -177,14 +230,28 @@
     return !!rel && rel.startsWith("Tempering/");
   }
 
+  function isStubAreaTag(rel) {
+    if (!rel) return false;
+    const area = rel.split("/")[0];
+    return STUB_AREA_IDS.has(area);
+  }
+
+  function isPackagingTag(rel) {
+    if (!rel) return false;
+    if (isMixingTag(rel) || isTemperingTag(rel) || isStubAreaTag(rel)) return false;
+    return true;
+  }
+
   function drawingForTag(rel) {
     if (isMixingTag(rel)) return "mixing";
     if (isTemperingTag(rel)) return "tempering";
-    return "packaging";
+    if (isStubAreaTag(rel)) return null;
+    if (isPackagingTag(rel)) return "packaging";
+    return null;
   }
 
   function pathOf(rel) {
-    if (isMixingTag(rel) || isTemperingTag(rel)) return `${PROVIDER}${SITE}/${rel}`;
+    if (isMixingTag(rel) || isTemperingTag(rel) || isStubAreaTag(rel)) return `${PROVIDER}${SITE}/${rel}`;
     if (isStubTag(rel)) return `${PROVIDER}${AREA_ROOT}/${rel}`;
     return `${PROVIDER}${AREA_ROOT}/${LIVE_LINE}/${rel}`;
   }
@@ -192,14 +259,14 @@
   /** Default open folders in the nested tree (node keys). */
   const DEFAULT_OPEN = [
     SITE,
-    AREA_ROOT,
-    `${AREA_ROOT}/Line3`,
-    `${AREA_ROOT}/Line3/Cartoner`,
-    `${AREA_ROOT}/Line3/Checkweigher`,
     MIXING_ROOT,
     `${MIXING_ROOT}/Mixer1`,
     TEMPERING_ROOT,
     `${TEMPERING_ROOT}/Temper1`,
+    AREA_ROOT,
+    `${AREA_ROOT}/Line3`,
+    `${AREA_ROOT}/Line3/Cartoner`,
+    `${AREA_ROOT}/Line3/Checkweigher`,
   ];
 
   function defaultState() {
@@ -444,6 +511,19 @@
     live["Tempering/ChilledWater/FlowM3H"] = { value: cwFlow, quality: temperWarm ? "Uncertain" : "Good" };
     live["Tempering/ChilledWater/SupplyTempC"] = { value: cwSupply, quality: temperWarm ? "Uncertain" : "Good" };
 
+    /* Stub areas — offline until P&IDs land. */
+    STUB_AREAS.forEach((area) => {
+      live[`${area.id}/Running`] = { value: false, quality: "Stale" };
+      live[`${area.id}/Mode`] = { value: "OFFLINE", quality: "Stale" };
+      area.tags.forEach((t) => {
+        const id = `${area.id}/${t.id}`;
+        if (live[id]) return;
+        if (t.type === "bool") live[id] = { value: false, quality: "Stale" };
+        else if (t.type === "number") live[id] = { value: 0, quality: "Stale" };
+        else live[id] = { value: "—", quality: "Stale" };
+      });
+    });
+
     syncScenarioAlarms();
   }
 
@@ -594,8 +674,9 @@
   function renderTagButton(relId, def) {
     const lv = live[relId] || { value: "—", quality: "Stale" };
     const sel = relId === state.selectedTag ? " is-selected" : "";
+    const offline = isStubAreaTag(relId) ? " plant-tag--offline" : "";
     return `<li>
-      <button type="button" class="plant-tag${sel}" data-tag="${escapeHtml(relId)}" data-q="${escapeHtml(lv.quality)}" aria-pressed="${relId === state.selectedTag}">
+      <button type="button" class="plant-tag${sel}${offline}" data-tag="${escapeHtml(relId)}" data-q="${escapeHtml(lv.quality)}" aria-pressed="${relId === state.selectedTag}">
         <span class="plant-q-dot-inline" aria-hidden="true"></span>
         <span class="plant-tag__name">${escapeHtml(def.name)}</span>
         <span class="plant-tag__val">${escapeHtml(formatValue(def, lv.value))}</span>
@@ -714,6 +795,27 @@
     return renderFolder(TEMPERING_ROOT, TEMPERING_AREA, body, "plant-tree__area plant-tree__area--live", { drawing: "tempering" });
   }
 
+  function stubAreaTagsUnder(areaId, prefix) {
+    const base = `${areaId}/`;
+    const tags = STUB_AREA_TAGS.filter((t) => t.id.startsWith(base));
+    if (!prefix) {
+      return tags.filter((t) => !t.id.slice(base.length).includes("/"));
+    }
+    const p = base + (prefix.endsWith("/") ? prefix : prefix + "/");
+    return tags.filter((t) => {
+      if (!t.id.startsWith(p)) return false;
+      return !t.id.slice(p.length).includes("/");
+    });
+  }
+
+  function renderStubAreaFolder(area) {
+    const root = `${SITE}/${area.id}`;
+    const areaTags = stubAreaTagsUnder(area.id, "").map((t) => renderTagButton(t.id, t)).join("");
+    const equipTags = stubAreaTagsUnder(area.id, area.equip).map((t) => renderTagButton(t.id, t)).join("");
+    const body = areaTags + renderFolder(`${root}/${area.equip}`, area.equip, equipTags);
+    return renderFolder(root, area.id, body, "plant-tree__area plant-tree__area--stub");
+  }
+
   function buildTree() {
     const root = document.getElementById("plant-tree");
     if (!root) return;
@@ -724,7 +826,13 @@
     const packaging = renderFolder(AREA_ROOT, AREA, lines, "plant-tree__area plant-tree__area--live", { drawing: "packaging" });
     const mixing = renderMixingFolder();
     const tempering = renderTemperingFolder();
-    root.innerHTML = renderFolder(SITE, SITE, packaging + mixing + tempering, "plant-tree__site");
+    const refining = renderStubAreaFolder(STUB_AREAS[0]);
+    const conching = renderStubAreaFolder(STUB_AREAS[1]);
+    const moulding = renderStubAreaFolder(STUB_AREAS[2]);
+
+    /* Process order: Mixing → Refining → Conching → Tempering → Moulding → Packaging */
+    const areas = mixing + refining + conching + tempering + moulding + packaging;
+    root.innerHTML = renderFolder(SITE, SITE, areas, "plant-tree__site");
     treeBuilt = true;
     updateTreeValues();
 
@@ -1457,7 +1565,7 @@
       return;
     }
     const folder = (() => {
-      if (isMixingTag(state.selectedTag) || isTemperingTag(state.selectedTag)) {
+      if (isMixingTag(state.selectedTag) || isTemperingTag(state.selectedTag) || isStubAreaTag(state.selectedTag)) {
         const parts = state.selectedTag.split("/");
         return parts.length > 2 ? parts.slice(0, -1).join(" / ") : parts[0];
       }
@@ -1632,7 +1740,7 @@
   function selectTag(id) {
     if (!id || !TAG_BY_ID[id]) return;
     const nextDrawing = drawingForTag(id);
-    if (nextDrawing !== state.activeDrawing) {
+    if (nextDrawing && nextDrawing !== state.activeDrawing) {
       state.activeDrawing = nextDrawing;
       pidBuilt = false;
       clearPidHover();
@@ -1640,9 +1748,7 @@
     state.selectedTag = id;
     const open = new Set(state.openNodes);
     open.add(SITE);
-    if (isMixingTag(id) || isTemperingTag(id)) {
-      const root = isMixingTag(id) ? MIXING_ROOT : TEMPERING_ROOT;
-      open.add(root);
+    if (isMixingTag(id) || isTemperingTag(id) || isStubAreaTag(id)) {
       const parts = id.split("/");
       let acc = SITE;
       for (let i = 0; i < parts.length - 1; i++) {
@@ -1710,7 +1816,7 @@
       const btn = e.target.closest(".plant-tag[data-tag]");
       if (!btn) return;
       const id = btn.getAttribute("data-tag");
-      if (!id || isStubTag(id)) {
+      if (!id || isStubTag(id) || isStubAreaTag(id)) {
         clearPidHover();
         return;
       }
