@@ -9,7 +9,7 @@ import "./plant/faceplate.js?v=a495f9bba3";
 import "./plant/alarms.js?v=bbfb5174cf";
 import "./plant/routing.js?v=15f4a83d4f";
 import "./plant/actions.js?v=74dc10ebf2";
-import "./plant/ui.js?v=e031fc21a0";
+import "./plant/ui.js?v=9cb22f83cd";
 import { boot } from "./plant/main.js?v=2e27b8af88";
 
 boot();

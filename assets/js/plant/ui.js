@@ -152,55 +152,75 @@ Plant.renderKpis = function renderKpis() {
   });
 
   const upstreamHold = Plant.isUpstreamHold();
+  const paintRecover = (btn, hasLocalFault, opts) => {
+    const blocked = opts && opts.blocked;
+    btn.classList.toggle("is-active", false);
+    btn.classList.toggle("plant-btn--ghost", !hasLocalFault || !!blocked);
+  };
+
   document.querySelectorAll("[data-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-scenario");
-    const active = sc === "recover"
-      ? Plant.state.scenario === null && !upstreamHold
-      : Plant.state.scenario === sc;
-    btn.classList.toggle("is-active", active);
     if (sc === "recover") {
+      paintRecover(btn, Plant.state.scenario != null, { blocked: upstreamHold && Plant.state.scenario === null });
       btn.title = upstreamHold && Plant.state.scenario === null
         ? "Upstream hold — clear root cause first"
         : "Return packaging line to healthy AUTO";
+      return;
     }
+    btn.classList.toggle("is-active", Plant.state.scenario === sc);
   });
   document.querySelectorAll("[data-mix-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-mix-scenario");
-    const active = sc === "recover" ? Plant.state.mixScenario === null : Plant.state.mixScenario === sc;
-    btn.classList.toggle("is-active", active);
+    if (sc === "recover") {
+      paintRecover(btn, Plant.state.mixScenario != null);
+      return;
+    }
+    btn.classList.toggle("is-active", Plant.state.mixScenario === sc);
   });
   document.querySelectorAll("[data-temper-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-temper-scenario");
     const temperUpstream = (Plant.live["Tempering/Mode"]?.value ?? "") === "STARVED" && Plant.state.temperScenario === null;
-    const active = sc === "recover"
-      ? Plant.state.temperScenario === null && !temperUpstream
-      : Plant.state.temperScenario === sc;
-    btn.classList.toggle("is-active", active);
+    if (sc === "recover") {
+      paintRecover(btn, Plant.state.temperScenario != null, { blocked: temperUpstream });
+      return;
+    }
+    btn.classList.toggle("is-active", Plant.state.temperScenario === sc);
   });
   document.querySelectorAll("[data-refine-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-refine-scenario");
     const refineUpstream = (Plant.live["Refining/Mode"]?.value ?? "") === "STARVED" && Plant.state.refineScenario === null;
-    const active = sc === "recover"
-      ? Plant.state.refineScenario === null && !refineUpstream
-      : Plant.state.refineScenario === sc;
-    btn.classList.toggle("is-active", active);
+    if (sc === "recover") {
+      paintRecover(btn, Plant.state.refineScenario != null, { blocked: refineUpstream });
+      return;
+    }
+    btn.classList.toggle("is-active", Plant.state.refineScenario === sc);
   });
   document.querySelectorAll("[data-conche-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-conche-scenario");
     const concheUpstream = (Plant.live["Conching/Mode"]?.value ?? "") === "STARVED" && Plant.state.concheScenario === null;
-    const active = sc === "recover"
-      ? Plant.state.concheScenario === null && !concheUpstream
-      : Plant.state.concheScenario === sc;
-    btn.classList.toggle("is-active", active);
+    if (sc === "recover") {
+      paintRecover(btn, Plant.state.concheScenario != null, { blocked: concheUpstream });
+      return;
+    }
+    btn.classList.toggle("is-active", Plant.state.concheScenario === sc);
   });
   document.querySelectorAll("[data-mould-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-mould-scenario");
     const mouldUpstream = (Plant.live["Moulding/Mode"]?.value ?? "") === "STARVED" && Plant.state.mouldScenario === null;
-    const active = sc === "recover"
-      ? Plant.state.mouldScenario === null && !mouldUpstream
-      : Plant.state.mouldScenario === sc;
-    btn.classList.toggle("is-active", active);
+    if (sc === "recover") {
+      paintRecover(btn, Plant.state.mouldScenario != null, { blocked: mouldUpstream });
+      return;
+    }
+    btn.classList.toggle("is-active", Plant.state.mouldScenario === sc);
   });
+
+  const recoverAllBtn = document.querySelector('[data-action="recover-all"]');
+  if (recoverAllBtn) {
+    const anyLocal = Plant.state.scenario != null || Plant.state.mixScenario != null
+      || Plant.state.temperScenario != null || Plant.state.refineScenario != null
+      || Plant.state.concheScenario != null || Plant.state.mouldScenario != null;
+    paintRecover(recoverAllBtn, anyLocal);
+  }
 
   const titleMap = {
     overview: "Heuvelland · Plant",
@@ -242,18 +262,18 @@ Plant.renderKpis = function renderKpis() {
       const anyWarn = Plant.PLANT_AREAS.some((a) => areaHeld(a.drawing));
       if (anyFault) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Plant fault"; }
       else if (anyWarn) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Plant hold"; }
-      else scanLabel.textContent = "Overview";
+      else scanLabel.textContent = "Line healthy";
     } else {
-      const healthyLabels = {
-        mixing: "Mixing",
-        refining: "Refining",
-        conching: "Conching",
-        tempering: "Tempering",
-        moulding: "Moulding",
-        packaging: "Scanning",
-      };
-      scanLabel.textContent = healthyLabels[drawing] || "Scanning";
+      scanLabel.textContent = "Line healthy";
     }
+  }
+
+  const headerAlarms = document.getElementById("plant-header-alarms");
+  const headerAlarmCount = document.getElementById("plant-header-alarm-count");
+  const almN = Plant.state.alarms.length;
+  if (headerAlarms && headerAlarmCount) {
+    headerAlarmCount.textContent = String(almN);
+    headerAlarms.hidden = almN === 0;
   }
 }
 
@@ -417,6 +437,15 @@ Plant.wire = function wire() {
     const btn = e.target.closest("[data-drawing]");
     if (!btn) return;
     Plant.setActiveDrawing(btn.getAttribute("data-drawing"));
+  });
+
+  document.getElementById("plant-header-alarms")?.addEventListener("click", () => {
+    Plant.state.alarmPane = "active";
+    Plant.saveState();
+    Plant.renderAlarms();
+    const pane = document.querySelector(".plant-pane--alarms");
+    pane?.scrollIntoView({ behavior: Plant.reducedMotion ? "auto" : "smooth", block: "nearest" });
+    document.getElementById("plant-alarms")?.focus?.();
   });
 
   document.getElementById("plant-alarms")?.addEventListener("click", (e) => {
