@@ -74,6 +74,44 @@
   color: rgb(226 232 240);
 }
 
+.plant-area-nav {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.15rem;
+  border: 1px solid var(--plant-stroke);
+  background: rgba(2, 6, 23, 0.45);
+}
+
+.plant-area-nav__btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: rgb(148 163 184);
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.plant-area-nav__btn:hover {
+  color: var(--color-brand-300);
+}
+
+.plant-area-nav__btn:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 1px;
+}
+
+.plant-area-nav__btn.is-active {
+  color: rgb(226 232 240);
+  background: rgba(34, 211, 238, 0.12);
+}
+
 .plant-sim-badge {
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
   font-size: 0.5625rem;
