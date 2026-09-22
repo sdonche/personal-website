@@ -5,7 +5,7 @@ Plant.defaultState = function defaultState() {
   return {
     scenario: /** @type {null|"jam"|"starved"} */ (null),
     mixScenario: /** @type {null|"overtemp"|"valve"} */ (null),
-    temperScenario: /** @type {null|"warm"|"belt"} */ (null),
+    temperScenario: /** @type {null|"warm"|"drive"} */ (null),
     refineScenario: /** @type {null|"pressure"|"particle"} */ (null),
     concheScenario: /** @type {null|"overtemp"|"agitator"} */ (null),
     mouldScenario: /** @type {null|"jam"|"cool"} */ (null),
@@ -64,9 +64,7 @@ Plant.loadState = function loadState() {
       mixScenario: parsed.mixScenario === "overtemp" || parsed.mixScenario === "valve"
         ? parsed.mixScenario
         : null,
-      temperScenario: parsed.temperScenario === "warm" || parsed.temperScenario === "belt"
-        ? parsed.temperScenario
-        : null,
+      temperScenario: Plant.normalizeTemperScenario(parsed.temperScenario),
       refineScenario: parsed.refineScenario === "pressure" || parsed.refineScenario === "particle"
         ? parsed.refineScenario
         : null,

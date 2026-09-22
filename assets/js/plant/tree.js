@@ -79,7 +79,7 @@ Plant.renderLine3Folder = function renderLine3Folder() {
   const nodeKey = `${Plant.AREA_ROOT}/${Plant.LIVE_LINE}`;
   const lineTags = Plant.tagsUnder(Plant.LINE3_TAGS, "").map((t) => Plant.renderTagButton(t.id, t)).join("");
   const equips = Plant.EQUIPMENT.map((e) => Plant.renderEquipFolder(e.id)).join("");
-  return Plant.renderFolder(nodeKey, "Line3", lineTags + equips, "plant-tree__line plant-tree__line--live");
+  return Plant.renderFolder(nodeKey, Plant.liveLineLabel(), lineTags + equips, "plant-tree__line plant-tree__line--live");
 }
 
 Plant.renderStubLineFolder = function renderStubLineFolder(line) {

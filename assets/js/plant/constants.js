@@ -3,7 +3,7 @@ import { Plant } from "./ns.js?v=c600f295ec";
 
 "use strict";
 
-Plant.STORAGE_KEY = "samdonche.plant.v15";
+Plant.STORAGE_KEY = "samdonche.plant.v16";
 Plant.TICK_MS = 1000;
 Plant.PROVIDER = "[edge]";
 Plant.EDGE_ROOT = "[edge]";
@@ -45,7 +45,7 @@ Plant.DRAWING_FAULTS = {
   mixing: { field: "mixScenario", values: ["overtemp", "valve"] },
   refining: { field: "refineScenario", values: ["pressure", "particle"] },
   conching: { field: "concheScenario", values: ["overtemp", "agitator"] },
-  tempering: { field: "temperScenario", values: ["warm", "belt"] },
+  tempering: { field: "temperScenario", values: ["warm", "drive"] },
   moulding: { field: "mouldScenario", values: ["jam", "cool"] },
 };
 
@@ -326,14 +326,14 @@ Plant.ALARM_PID = {
   "alm-cartoner-jam": { drawing: "packaging", equip: "Cartoner", severity: "critical" },
   "alm-infeed-starved": { drawing: "packaging", equip: "Infeed", severity: "warning" },
   "alm-pack-upstream": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "mixing", navTag: "Mixing/Mixer1/Running" },
-  "alm-pack-temper": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "tempering", navTag: "Tempering/Temper1/ScrewRpm" },
-  "alm-pack-refine": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "refining", navTag: "Refining/Refiner1/LoadPct" },
-  "alm-pack-conche": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "conching", navTag: "Conching/Conche1/TempC" },
-  "alm-pack-mould": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "moulding", navTag: "Moulding/Moulder1/CyclesPerMin" },
+  "alm-pack-temper": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "tempering" },
+  "alm-pack-refine": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "refining" },
+  "alm-pack-conche": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "conching" },
+  "alm-pack-mould": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "moulding" },
   "alm-mix-overtemp": { drawing: "mixing", equip: "Mixer1", severity: "critical" },
   "alm-mix-valve": { drawing: "mixing", equip: "CocoaLiquor", severity: "warning" },
   "alm-temper-warm": { drawing: "tempering", equip: "Temper1", severity: "critical" },
-  "alm-temper-belt": { drawing: "tempering", equip: "Temper1", severity: "warning" },
+  "alm-temper-drive": { drawing: "tempering", equip: "Temper1", severity: "warning" },
   "alm-temper-upstream": { drawing: "tempering", equip: "Inlet", severity: "warning" },
   "alm-refine-pressure": { drawing: "refining", equip: "Refiner1", severity: "critical" },
   "alm-refine-particle": { drawing: "refining", equip: "Refiner1", severity: "warning" },

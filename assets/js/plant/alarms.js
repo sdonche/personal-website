@@ -3,15 +3,16 @@ import { Plant } from "./ns.js?v=c600f295ec";
 
 Plant.navigateToAlarm = function navigateToAlarm(alarm) {
   if (!alarm) return;
+  const nav = Plant.alarmNavTarget(alarm);
+  if (nav?.navTag && Plant.TAG_BY_ID[nav.navTag]) {
+    Plant.selectTag(nav.navTag);
+    return;
+  }
+  if (nav?.navDrawing) {
+    Plant.setActiveDrawing(nav.navDrawing);
+    return;
+  }
   const meta = Plant.ALARM_PID[alarm.id];
-  if (meta?.navTag && Plant.TAG_BY_ID[meta.navTag]) {
-    Plant.selectTag(meta.navTag);
-    return;
-  }
-  if (meta?.navDrawing) {
-    Plant.setActiveDrawing(meta.navDrawing);
-    return;
-  }
   const tag = Plant.tagFromAlarmPath(alarm.path);
   if (tag) {
     Plant.selectTag(tag);

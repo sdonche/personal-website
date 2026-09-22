@@ -31,7 +31,10 @@ Plant.setMixScenario = function setMixScenario(name) {
 
 Plant.setTemperScenario = function setTemperScenario(name) {
   if (name === "recover") Plant.state.temperScenario = null;
-  else if (name === "warm" || name === "belt") Plant.state.temperScenario = name;
+  else {
+    const resolved = Plant.normalizeTemperScenario(name);
+    if (resolved) Plant.state.temperScenario = resolved;
+  }
   Plant.saveState();
   Plant.computeLive();
   Plant.renderAll();
