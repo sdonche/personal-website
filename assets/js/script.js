@@ -63,7 +63,7 @@
     { id: "note-mqtt",            label: "mqtt-sparkplug-b", group: "notes", page: true, href: "notes/mqtt-sparkplug-b/", desc: "Article" },
     { id: "note-mes",             label: "mes-scada-vs-historian", group: "notes", page: true, href: "notes/mes-scada-vs-historian/", desc: "Article" },
     { id: "publications",         label: "publications", page: true, href: "publications/", desc: "Research output" },
-    { id: "plant",                label: "plant", page: true, href: "plant/", desc: "Line 3 live view" },
+    { id: "plant",                label: "packaging-hmi", page: true, href: "plant/", desc: "Line 3 packaging HMI" },
     { id: "contact",              label: "contact" },
   ];
 

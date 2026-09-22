@@ -550,7 +550,8 @@
     const y = 178;
     const h = 58;
     const w = 92;
-    const xs = [64, 202, 340, 496, 634, 772];
+    // Leave room on the left for the PRODUCT inlet label (no overlap with CV-301).
+    const xs = [90, 228, 366, 522, 660, 798];
 
     const layout = EQUIPMENT.map((eq, i) => {
       const x = xs[i];
@@ -576,12 +577,15 @@
         ${flowArrow(mid + 3, midY)}`;
     }).join("");
 
-    const inletX0 = layout[0].ports.left - 28;
+    // Inlet stub left of CV-301: label sits above the stub, clear of the body.
+    const inletX0 = 24;
+    const inletX1 = layout[0].ports.left;
+    const inletMid = (inletX0 + inletX1) / 2;
     const inlet = `
-      <line class="pid-pipe pid-pipe--main" x1="${inletX0}" y1="${midY}" x2="${layout[0].ports.left}" y2="${midY}" />
-      ${flange(layout[0].ports.left, midY)}
-      <text class="pid-flow-label" x="${inletX0}" y="${midY - 10}" text-anchor="start">PRODUCT</text>
-      ${flowArrow(inletX0 + 14, midY)}`;
+      <line class="pid-pipe pid-pipe--main" x1="${inletX0}" y1="${midY}" x2="${inletX1}" y2="${midY}" />
+      ${flange(inletX1, midY)}
+      <text class="pid-flow-label" x="${inletMid}" y="${midY - 22}" text-anchor="middle">PRODUCT</text>
+      ${flowArrow(inletX1 - 12, midY)}`;
 
     const last = layout[layout.length - 1];
     const outletX1 = last.ports.right + 28;
