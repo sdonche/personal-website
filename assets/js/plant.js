@@ -1469,7 +1469,7 @@
         ${flange(tunnelX + tunnelW, outY)}
         ${mixValve(820, outY, "Tempering/Outlet/ValveOpen", "Outlet", "XV-205")}
         ${flowArrow(875, outY)}
-        <text class="pid-flow-label" x="926" y="${outY - 10}" text-anchor="start">TO MOULD</text>
+        <text class="pid-flow-label" x="932" y="${outY - 10}" text-anchor="end">TO MOULD</text>
 
         <text class="pid-flow-label" x="28" y="352" text-anchor="start">CHILLED WATER</text>
         <line class="pid-pipe pid-pipe--divert" x1="140" y1="352" x2="${tunnelX + 50}" y2="${tunnelY + tunnelH}" />
@@ -1547,7 +1547,7 @@
         ${flange(machineX + machineW, midY)}
         ${mixValve(820, midY, "Refining/Outlet/ValveOpen", "Outlet", "XV-125")}
         ${flowArrow(875, midY)}
-        <text class="pid-flow-label" x="926" y="${midY - 10}" text-anchor="start">TO CONCHE</text>
+        <text class="pid-flow-label" x="932" y="${midY - 10}" text-anchor="end">TO CONCHE</text>
 
         ${balloons}
       </svg>`;
@@ -1618,7 +1618,7 @@
         ${flange(tankX + tankW, midY)}
         ${mixValve(820, midY, "Conching/Outlet/ValveOpen", "Outlet", "XV-135")}
         ${flowArrow(875, midY)}
-        <text class="pid-flow-label" x="926" y="${midY - 10}" text-anchor="start">TO TEMPER</text>
+        <text class="pid-flow-label" x="932" y="${midY - 10}" text-anchor="end">TO TEMPER</text>
 
         ${balloons}
       </svg>`;
@@ -1690,7 +1690,7 @@
         ${flange(machineX + machineW, midY)}
         ${mixValve(820, midY, "Moulding/Outlet/ValveOpen", "Outlet", "XV-225")}
         ${flowArrow(875, midY)}
-        <text class="pid-flow-label" x="926" y="${midY - 10}" text-anchor="start">TO PACK</text>
+        <text class="pid-flow-label" x="932" y="${midY - 10}" text-anchor="end">TO PACK</text>
 
         <text class="pid-flow-label" x="28" y="352" text-anchor="start">COOLING AIR</text>
         <line class="pid-pipe pid-pipe--divert" x1="140" y1="352" x2="${machineX + 60}" y2="${machineY + machineH}" />
