@@ -9,7 +9,7 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "samdonche.plant.v10";
+  const STORAGE_KEY = "samdonche.plant.v11";
   const TICK_MS = 1000;
   const PROVIDER = "[edge]";
   const EDGE_ROOT = "[edge]";
