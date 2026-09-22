@@ -604,9 +604,10 @@
     </li>`;
   }
 
-  function renderFolder(nodeKey, label, innerHtml, extraClass) {
+  function renderFolder(nodeKey, label, innerHtml, extraClass, opts) {
     const open = state.openNodes.includes(nodeKey);
-    return `<li class="${extraClass || ""}">
+    const drawing = opts && opts.drawing ? ` data-drawing="${escapeHtml(opts.drawing)}"` : "";
+    return `<li class="${extraClass || ""}"${drawing}>
       <details data-node="${escapeHtml(nodeKey)}" ${open ? "open" : ""}>
         <summary>
           <span class="plant-tree__chev" aria-hidden="true">▼</span>
@@ -680,7 +681,7 @@
       renderFolder(`${MIXING_ROOT}/Sugar`, "Sugar", sugar) +
       renderFolder(`${MIXING_ROOT}/Outlet`, "Outlet", outlet) +
       renderFolder(`${MIXING_ROOT}/Drain`, "Drain", drain);
-    return renderFolder(MIXING_ROOT, MIXING_AREA, body, "plant-tree__area plant-tree__area--live");
+    return renderFolder(MIXING_ROOT, MIXING_AREA, body, "plant-tree__area plant-tree__area--live", { drawing: "mixing" });
   }
 
   function temperingTagsUnder(prefix) {
@@ -710,7 +711,7 @@
       renderFolder(`${TEMPERING_ROOT}/Inlet`, "Inlet", inlet) +
       renderFolder(`${TEMPERING_ROOT}/Outlet`, "Outlet", outlet) +
       renderFolder(`${TEMPERING_ROOT}/ChilledWater`, "ChilledWater", chilled);
-    return renderFolder(TEMPERING_ROOT, TEMPERING_AREA, body, "plant-tree__area plant-tree__area--live");
+    return renderFolder(TEMPERING_ROOT, TEMPERING_AREA, body, "plant-tree__area plant-tree__area--live", { drawing: "tempering" });
   }
 
   function buildTree() {
@@ -720,7 +721,7 @@
     const lines =
       STUB_LINES.map(renderStubLineFolder).join("") + renderLine3Folder();
 
-    const packaging = renderFolder(AREA_ROOT, AREA, lines, "plant-tree__area");
+    const packaging = renderFolder(AREA_ROOT, AREA, lines, "plant-tree__area plant-tree__area--live", { drawing: "packaging" });
     const mixing = renderMixingFolder();
     const tempering = renderTemperingFolder();
     root.innerHTML = renderFolder(SITE, SITE, packaging + mixing + tempering, "plant-tree__site");
@@ -1425,6 +1426,13 @@
           : "Heuvelland · Line 3";
     }
 
+    document.querySelectorAll(".plant-area-nav__btn[data-drawing]").forEach((btn) => {
+      const drawing = btn.getAttribute("data-drawing");
+      const on = drawing === state.activeDrawing;
+      btn.classList.toggle("is-active", on);
+      btn.setAttribute("aria-selected", on ? "true" : "false");
+    });
+
     const scanDot = document.getElementById("plant-scan-dot");
     const scanLabel = document.getElementById("plant-scan-label");
     if (scanDot && scanLabel) {
@@ -1565,6 +1573,21 @@
     renderAll();
   }
 
+  const DRAWING_HOME_TAG = {
+    packaging: "OEE",
+    mixing: "Mixing/Mixer1/LevelPct",
+    tempering: "Tempering/Temper1/Zone1TempC",
+  };
+
+  function setActiveDrawing(name) {
+    if (!DRAWING_HOME_TAG[name]) return;
+    if (name === state.activeDrawing && drawingForTag(state.selectedTag) === name) {
+      renderKpis();
+      return;
+    }
+    selectTag(DRAWING_HOME_TAG[name]);
+  }
+
   function ackAll() {
     state.alarms = state.alarms.map((a) => ({ ...a, acked: true }));
     saveState();
@@ -1660,7 +1683,15 @@
     const tree = document.getElementById("plant-tree");
     tree?.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-tag]");
-      if (btn && btn.getAttribute("data-tag")) selectTag(btn.getAttribute("data-tag"));
+      if (btn && btn.getAttribute("data-tag")) {
+        selectTag(btn.getAttribute("data-tag"));
+        return;
+      }
+      const areaLi = e.target.closest("li[data-drawing]");
+      if (areaLi && e.target.closest("summary") && areaLi.querySelector(":scope > details > summary")?.contains(e.target)) {
+        const drawing = areaLi.getAttribute("data-drawing");
+        if (drawing) setActiveDrawing(drawing);
+      }
     });
 
     tree?.addEventListener("toggle", (e) => {
@@ -1731,6 +1762,12 @@
       else if (action === "reset-reject") resetReject();
       else if (action === "clear-jam") clearCartonerJam();
       else if (action === "reset-line") resetLine();
+    });
+
+    document.querySelector(".plant-area-nav")?.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-drawing]");
+      if (!btn) return;
+      setActiveDrawing(btn.getAttribute("data-drawing"));
     });
 
     document.getElementById("plant-alarms")?.addEventListener("click", (e) => {
