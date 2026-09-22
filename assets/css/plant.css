@@ -27,6 +27,18 @@
   flex-direction: column;
 }
 
+@media (min-width: 1024px) {
+  .plant-page {
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .plant-shell {
+    height: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+  }
+}
+
 .plant-hmi {
   flex: 1;
   display: flex;
@@ -347,8 +359,23 @@
   color: rgb(203 213 225);
 }
 
-.plant-tree__line--offline > details > summary {
-  color: rgb(100 116 139);
+.plant-tree__site > details > summary {
+  color: rgb(226 232 240);
+  font-weight: 600;
+}
+.plant-tree__area > details > summary {
+  color: rgb(203 213 225);
+}
+.plant-tree__area--live > details > summary .plant-tree__label::after {
+  content: "LIVE";
+  margin-left: 0.45rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--plant-good);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+  vertical-align: middle;
 }
 .plant-tree__line--live > details > summary .plant-tree__label::after {
   content: "LIVE";
@@ -393,9 +420,26 @@
 .plant-toolbar {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.4rem;
   padding: 0.55rem 0.75rem;
   border-bottom: 1px solid var(--plant-stroke);
+}
+
+.plant-toolbar__group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.plant-toolbar__label {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(100 116 139);
+  margin-right: 0.1rem;
 }
 
 .plant-btn {
@@ -423,10 +467,47 @@
   outline-offset: 2px;
 }
 
-.plant-btn.is-active {
-  border-color: rgba(248, 113, 113, 0.5);
+/* Scenario tones: fault / warn / healthy — idle hint + stronger when active */
+.plant-btn--jam {
+  border-color: rgba(248, 113, 113, 0.38);
   color: #fecaca;
-  background: rgba(248, 113, 113, 0.1);
+}
+.plant-btn--jam:hover {
+  border-color: rgba(248, 113, 113, 0.65);
+  color: #fee2e2;
+}
+.plant-btn--jam.is-active {
+  border-color: rgba(248, 113, 113, 0.85);
+  color: #fecaca;
+  background: rgba(248, 113, 113, 0.14);
+}
+
+.plant-btn--starved {
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fde68a;
+}
+.plant-btn--starved:hover {
+  border-color: rgba(251, 191, 36, 0.7);
+  color: #fef3c7;
+}
+.plant-btn--starved.is-active {
+  border-color: rgba(251, 191, 36, 0.9);
+  color: #fde68a;
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.plant-btn--recover {
+  border-color: rgba(52, 211, 153, 0.4);
+  color: rgb(167 243 208);
+}
+.plant-btn--recover:hover {
+  border-color: rgba(52, 211, 153, 0.7);
+  color: rgb(209 250 229);
+}
+.plant-btn--recover.is-active {
+  border-color: rgba(52, 211, 153, 0.85);
+  color: rgb(167 243 208);
+  background: rgba(52, 211, 153, 0.12);
 }
 
 .plant-btn--ghost {
@@ -441,6 +522,7 @@
 .plant-toolbar__sep {
   width: 1px;
   align-self: stretch;
+  min-height: 1.4rem;
   background: rgb(51 65 85);
   margin: 0 0.15rem;
 }
@@ -484,18 +566,23 @@
 
 .plant-pid {
   flex: 1;
-  min-height: 16rem;
-  overflow: auto;
+  min-height: 0;
+  overflow: hidden;
   border: 0;
   border-radius: 0;
   background: rgba(2, 6, 23, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pid-svg {
   display: block;
   width: 100%;
-  min-width: 56rem;
-  height: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
 }
 
@@ -568,6 +655,120 @@
 .pid-arrow {
   fill: #94a3b8;
   stroke: none;
+}
+
+/* Mixing tank + on/off valves */
+.pid-tank {
+  cursor: pointer;
+}
+.pid-tank__shell {
+  fill: rgba(2, 6, 23, 0.92);
+  stroke: #94a3b8;
+  stroke-width: 1.75;
+}
+.pid-tank__jacket {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.45);
+  stroke-width: 1.25;
+  stroke-dasharray: 4 3;
+}
+.pid-tank__level {
+  fill: rgba(180, 120, 60, 0.45);
+  stroke: none;
+  transition: y 0.4s ease, height 0.4s ease;
+}
+.pid-tank__agitator {
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+}
+.pid-tank__hub {
+  fill: rgba(15, 23, 42, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.4;
+}
+.pid-tank.is-selected .pid-tank__shell,
+.pid-tank.is-hover .pid-tank__shell {
+  stroke: var(--color-brand-300);
+}
+
+.pid-mix-valve {
+  cursor: pointer;
+}
+.pid-mix-valve__body {
+  fill: rgba(2, 6, 23, 0.95);
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+}
+.pid-mix-valve.is-fault .pid-mix-valve__body {
+  fill: rgba(248, 113, 113, 0.2);
+  stroke: #f87171;
+}
+
+.pid-tank.is-fault .pid-tank__shell {
+  stroke: #f87171;
+}
+.pid-tank.is-warn .pid-tank__shell {
+  stroke: #fbbf24;
+}
+.pid-tank.is-fault .pid-tank__level {
+  fill: rgba(248, 113, 113, 0.35);
+}
+
+.pid-tunnel {
+  cursor: pointer;
+}
+.pid-tunnel__shell {
+  fill: rgba(2, 6, 23, 0.9);
+  stroke: #94a3b8;
+  stroke-width: 1.75;
+}
+.pid-tunnel__zone {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.35);
+  stroke-width: 1;
+}
+.pid-tunnel__zone-label {
+  fill: rgb(100 116 139);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+.pid-tunnel__belt {
+  stroke: #94a3b8;
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+}
+.pid-tunnel.is-selected .pid-tunnel__shell,
+.pid-tunnel.is-hover .pid-tunnel__shell {
+  stroke: var(--color-brand-300);
+}
+.pid-tunnel.is-fault .pid-tunnel__shell {
+  stroke: #f87171;
+}
+.pid-tunnel.is-warn .pid-tunnel__shell {
+  stroke: #fbbf24;
+}
+.pid-tunnel__zone.is-warm {
+  fill: rgba(248, 113, 113, 0.12);
+}
+.pid-tunnel__belt.is-stopped {
+  stroke: #fbbf24;
+  stroke-dasharray: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pid-svg.is-running .pid-tunnel__belt:not(.is-stopped) {
+    animation: pid-belt 1.4s linear infinite;
+  }
+}
+
+@keyframes pid-belt {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -28; }
+}
+
+.pid-mix-valve.is-open .pid-mix-valve__body {
+  fill: rgba(110, 231, 183, 0.12);
+  stroke: #6ee7b7;
 }
 
 .pid-pipe-flow {

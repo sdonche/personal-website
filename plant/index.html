@@ -6,31 +6,31 @@
   <!-- partial:plant-head-boot -->
   <script>
     document.documentElement.classList.add('js');
-    // Packaging Line HMI is Floor-only — no Desk chrome, no mode switch.
+    // Heuvelland plant HMI is Floor-only — no Desk chrome, no mode switch.
     document.documentElement.setAttribute('data-mode', 'floor');
   </script>
 <!-- /partial:plant-head-boot -->
   <meta name="theme-color" content="#020617" />
-  <meta name="description" content="Packaging Line HMI — a simulated Line 3 at samdonche@edge. Tag browser, packaging P&amp;ID, and operator alarms you can poke." />
+  <meta name="description" content="Heuvelland chocolate plant HMI — simulated Packaging Line 3 at samdonche@edge. Tag browser, P&amp;ID, and operator alarms you can poke." />
   <meta name="author" content="Sam Donche" />
-  <title>Packaging Line HMI — Line 3 · Sam Donche</title>
+  <title>Heuvelland · Packaging Line 3 · Sam Donche</title>
 
   <link rel="canonical" href="https://samdonche.com/plant/" />
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Sam Donche" />
-  <meta property="og:title" content="Packaging Line HMI — Line 3" />
-  <meta property="og:description" content="Simulated packaging-line HMI: tag browser, P&amp;ID, OPC qualities, and operator actions on Line 3." />
+  <meta property="og:title" content="Heuvelland · Chocolate plant HMI" />
+  <meta property="og:description" content="Simulated chocolate-bar plant: Packaging Line 3 P&amp;ID, tag browser, OPC qualities, and operator scenarios." />
   <meta property="og:url" content="https://samdonche.com/plant/" />
   <meta property="og:locale" content="en_US" />
   <meta property="og:image" content="https://samdonche.com/assets/img/og/plant.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Packaging Line HMI — Line 3 · Sam Donche" />
+  <meta property="og:image:alt" content="Heuvelland chocolate plant HMI · Sam Donche" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Packaging Line HMI — Line 3" />
-  <meta name="twitter:description" content="Simulated packaging-line HMI: tag browser, P&amp;ID, OPC qualities, and operator actions on Line 3." />
+  <meta name="twitter:title" content="Heuvelland · Chocolate plant HMI" />
+  <meta name="twitter:description" content="Simulated chocolate-bar plant: Packaging Line 3 P&amp;ID, tag browser, OPC qualities, and operator scenarios." />
   <meta name="twitter:image" content="https://samdonche.com/assets/img/og/plant.jpg" />
 
   <script type="application/ld+json">
@@ -39,8 +39,8 @@
     "@graph": [
       {
         "@type": "WebApplication",
-        "name": "Packaging Line HMI",
-        "description": "Simulated packaging line with tag browser, P&ID, and operator alarms.",
+        "name": "Heuvelland chocolate plant HMI",
+        "description": "Simulated chocolate-bar plant with Packaging Line 3 P&ID, tag browser, and operator alarms.",
         "url": "https://samdonche.com/plant/",
         "applicationCategory": "DemoApplication",
         "operatingSystem": "Any",
@@ -50,7 +50,7 @@
         "@type": "BreadcrumbList",
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Packaging Line HMI", "item": "https://samdonche.com/plant/" }
+          { "@type": "ListItem", "position": 2, "name": "Heuvelland plant HMI", "item": "https://samdonche.com/plant/" }
         ]
       }
     ]
@@ -70,7 +70,7 @@
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=c826c2f54a" />
   <link rel="stylesheet" href="../assets/css/styles.css?v=7b7a106a9c" />
 <!-- /partial:head-assets -->
-  <link rel="stylesheet" href="../assets/css/plant.css?v=2a697588c4" />
+  <link rel="stylesheet" href="../assets/css/plant.css?v=f3ca44d155" />
 </head>
 
 <body class="plant-page bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -103,13 +103,13 @@
 
   <div class="plant-shell">
     <div id="plant-noscript" class="plant-noscript">
-      Packaging Line HMI needs JavaScript for the live tag scan.
+      Heuvelland plant HMI needs JavaScript for the live tag scan.
     </div>
 
     <div id="plant-app" class="plant-hmi" hidden>
       <header class="plant-hmi__header">
         <div class="plant-hmi__title">
-          <h1>samdonche@edge · Line 3</h1>
+          <h1>Heuvelland · Line 3</h1>
           <span class="plant-sim-badge" title="Simulated demoware — not a live plant">SIM</span>
         </div>
         <div class="plant-hmi__meta">
@@ -132,7 +132,7 @@
         <aside class="plant-pane plant-pane--tree" aria-label="Tag browser">
           <div class="plant-pane__head">
             <span>Tag browser</span>
-            <span id="plant-tree-path" class="text-slate-600">[edge]Packaging</span>
+            <span id="plant-tree-path" class="text-slate-600">[edge]Heuvelland</span>
           </div>
           <div class="plant-pane__body">
             <ul id="plant-tree" class="plant-tree"></ul>
@@ -142,29 +142,44 @@
         <!-- Mimic -->
         <section class="plant-pane plant-mimic" aria-label="Line P and ID">
           <div class="plant-toolbar" role="toolbar" aria-label="Operator actions">
-            <button type="button" class="plant-btn" data-scenario="jam">Jam</button>
-            <button type="button" class="plant-btn" data-scenario="starved">Starved</button>
-            <button type="button" class="plant-btn plant-btn--accent" data-scenario="recover">Recover</button>
+            <div class="plant-toolbar__group" data-toolbar-area="packaging" role="group" aria-label="Packaging scenarios">
+              <span class="plant-toolbar__label">Scenario</span>
+              <button type="button" class="plant-btn plant-btn--jam" data-scenario="jam" title="Cartoner jam fault">Jam</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-scenario="starved" title="Infeed starved">Starved</button>
+              <button type="button" class="plant-btn plant-btn--recover" data-scenario="recover" title="Return packaging line to healthy AUTO">Recover</button>
+            </div>
+            <div class="plant-toolbar__group" data-toolbar-area="mixing" role="group" aria-label="Mixing scenarios" hidden>
+              <span class="plant-toolbar__label">Scenario</span>
+              <button type="button" class="plant-btn plant-btn--jam" data-mix-scenario="overtemp" title="Jacket overtemperature">Overtemp</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-mix-scenario="valve" title="Cocoa liquor valve stuck closed">Valve fault</button>
+              <button type="button" class="plant-btn plant-btn--recover" data-mix-scenario="recover" title="Clear mixing faults">Recover</button>
+            </div>
+            <div class="plant-toolbar__group" data-toolbar-area="tempering" role="group" aria-label="Tempering scenarios" hidden>
+              <span class="plant-toolbar__label">Scenario</span>
+              <button type="button" class="plant-btn plant-btn--jam" data-temper-scenario="warm" title="Cooling zones too warm">Zone warm</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-temper-scenario="belt" title="Temper belt stopped">Belt stop</button>
+              <button type="button" class="plant-btn plant-btn--recover" data-temper-scenario="recover" title="Clear tempering faults">Recover</button>
+            </div>
             <span class="plant-toolbar__sep" aria-hidden="true"></span>
             <button type="button" class="plant-btn" data-action="ack-all">Ack all</button>
-            <button type="button" class="plant-btn" data-action="reset-reject">Reset reject</button>
-            <button type="button" class="plant-btn" data-action="clear-jam">Clear cartoner jam</button>
+            <button type="button" class="plant-btn" data-action="reset-reject" data-toolbar-packaging-only>Reset reject</button>
+            <button type="button" class="plant-btn" data-action="clear-jam" data-toolbar-packaging-only>Clear cartoner jam</button>
             <span class="plant-toolbar__sep" aria-hidden="true"></span>
             <button type="button" class="plant-btn plant-btn--ghost" data-action="reset-line">Reset line</button>
           </div>
 
           <div class="plant-mimic__canvas">
             <div class="plant-status" aria-label="Line status">
-              <span class="plant-status__item">OEE <strong id="kpi-oee">—</strong></span>
+              <span class="plant-status__item"><span id="kpi-a-label">OEE</span> <strong id="kpi-a">—</strong></span>
               <span class="plant-status__sep" aria-hidden="true">·</span>
-              <span class="plant-status__item">Thru <strong id="kpi-thru">—</strong></span>
+              <span class="plant-status__item"><span id="kpi-b-label">Thru</span> <strong id="kpi-b">—</strong></span>
               <span class="plant-status__sep" aria-hidden="true">·</span>
-              <span class="plant-status__item">Mode <strong id="kpi-mode">—</strong></span>
+              <span class="plant-status__item"><span id="kpi-c-label">Mode</span> <strong id="kpi-c">—</strong></span>
               <span class="plant-status__sep" aria-hidden="true">·</span>
-              <span class="plant-status__item">Rejects <strong id="kpi-reject">—</strong></span>
+              <span class="plant-status__item"><span id="kpi-d-label">Rejects</span> <strong id="kpi-d">—</strong></span>
             </div>
 
-            <div id="plant-pid" class="plant-pid" aria-label="Line 3 P and ID"></div>
+            <div id="plant-pid" class="plant-pid" aria-label="Process P and ID"></div>
           </div>
 
           <div id="plant-detail" class="plant-detail" aria-live="polite"></div>
@@ -185,7 +200,7 @@
   </div>
 
 <!-- partial:plant-scripts -->
-  <script src="../assets/js/plant.js?v=ea6bf3e267" defer></script>
+  <script src="../assets/js/plant.js?v=a5f1ea5aa3" defer></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../assets/js/goatcounter.js"></script>
 <!-- /partial:plant-scripts -->
 </body>
