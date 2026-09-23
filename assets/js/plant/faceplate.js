@@ -15,7 +15,14 @@ Plant.renderDetail = function renderDetail() {
   const numeric = def.type === "number";
   const spark = numeric ? Plant.sparklineSvg(Plant.trends[def.id] || []) : "";
   const sisterNote = Plant.isSisterSiteTag(def.id)
-    ? `<p class="plant-faceplate__note">Sister site offline stub — Heuvelland P&amp;ID still shown</p>`
+    ? (() => {
+        const site = def.id.split("/")[0];
+        const snap = Plant.siteSnapshot(site);
+        if (snap.link === "flap") {
+          return `<p class="plant-faceplate__note plant-faceplate__note--flap">Sister link flapping (Uncertain) — Heuvelland P&amp;ID still shown</p>`;
+        }
+        return `<p class="plant-faceplate__note">Sister site offline — link down · Heuvelland P&amp;ID still shown</p>`;
+      })()
     : "";
   const writeBlock = writable ? `
     <form class="plant-faceplate__write" data-faceplate-write="SpeedSP">

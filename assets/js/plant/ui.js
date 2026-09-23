@@ -37,17 +37,18 @@ Plant.renderKpis = function renderKpis() {
     const oee = Plant.live.OEE?.value ?? 0;
     const batchId = String(Plant.live.BatchId?.value ?? "—");
     const almN = Plant.state.alarms.length;
-    const mode = Plant.plantModeSummary();
+    const fleet = Plant.fleetSummaryLabel();
     const anyFault = Plant.PLANT_AREAS.some((a) => Plant.areaHealth(a.drawing) === "fault");
     const anyWarn = Plant.PLANT_AREAS.some((a) => areaHeld(a.drawing));
+    const flap = Plant.fleetSummary().flap > 0;
     setLabel("kpi-a-label", "Pkg OEE");
     setLabel("kpi-b-label", "Batch");
     setLabel("kpi-c-label", "Alarms");
-    setLabel("kpi-d-label", "Mode");
+    setLabel("kpi-d-label", "Sisters");
     setKpi("kpi-a", `${oee.toFixed(1)}%`, anyFault ? "bad" : anyWarn || oee < 80 ? "warn" : "good");
     setKpi("kpi-b", batchId, "good");
     setKpi("kpi-c", String(almN), almN ? "bad" : "good");
-    setKpi("kpi-d", mode, anyFault ? "bad" : anyWarn ? "warn" : "good");
+    setKpi("kpi-d", fleet, flap ? "warn" : "good");
   } else if (mixing) {
     const level = Plant.live["Mixing/Mixer1/LevelPct"]?.value ?? 0;
     const jacket = Plant.live["Mixing/Mixer1/JacketTempC"]?.value ?? 0;
@@ -150,6 +151,10 @@ Plant.renderKpis = function renderKpis() {
   document.querySelectorAll("[data-toolbar-packaging-only]").forEach((el) => {
     el.hidden = !packaging;
   });
+
+  const fleetEl = document.getElementById("plant-fleet");
+  if (fleetEl) fleetEl.hidden = !overview;
+  if (overview) Plant.ensureFleet();
 
   const upstreamHold = Plant.isUpstreamHold();
   const paintRecover = (btn, hasLocalFault, opts) => {
@@ -260,13 +265,17 @@ Plant.renderKpis = function renderKpis() {
     else if (overview) {
       const anyFault = Plant.PLANT_AREAS.some((a) => Plant.areaHealth(a.drawing) === "fault");
       const anyWarn = Plant.PLANT_AREAS.some((a) => areaHeld(a.drawing));
+      const flap = Plant.fleetSummary().flap > 0;
       if (anyFault) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Plant fault"; }
       else if (anyWarn) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Plant hold"; }
+      else if (flap) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Sister flap"; }
       else scanLabel.textContent = "Line healthy";
     } else {
       scanLabel.textContent = "Line healthy";
     }
   }
+
+  Plant.paintSiteChip();
 
   const headerAlarms = document.getElementById("plant-header-alarms");
   const headerAlarmCount = document.getElementById("plant-header-alarm-count");
@@ -274,6 +283,101 @@ Plant.renderKpis = function renderKpis() {
   if (headerAlarms && headerAlarmCount) {
     headerAlarmCount.textContent = String(almN);
     headerAlarms.hidden = almN === 0;
+  }
+}
+
+/** Link-mark SVG: chain for live/flap, slashed for offline. */
+Plant.fleetLinkMark = function fleetLinkMark(link) {
+  if (link === "offline") {
+    return `<svg class="plant-fleet__mark" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path d="M5.5 6.5 L3.8 8.2a2.2 2.2 0 0 0 3.1 3.1L8.5 11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      <path d="M10.5 9.5 L12.2 7.8a2.2 2.2 0 0 0-3.1-3.1L7.5 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      <path d="M3.5 3.5 L12.5 12.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>`;
+  }
+  return `<svg class="plant-fleet__mark" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+    <path d="M5.5 6.5 L3.8 8.2a2.2 2.2 0 0 0 3.1 3.1L8.5 11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M10.5 9.5 L12.2 7.8a2.2 2.2 0 0 0-3.1-3.1L7.5 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M6.6 9.4 L9.4 6.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>`;
+}
+
+Plant.ensureFleet = function ensureFleet() {
+  const host = document.getElementById("plant-fleet");
+  if (!host || host.dataset.built === "1") {
+    Plant.paintFleet();
+    return;
+  }
+  host.innerHTML = Plant.fleetSites().map((site) => {
+    const home = site === Plant.SITE;
+    return `<button type="button" class="plant-fleet__cell" data-fleet-site="${Plant.escapeHtml(site)}" aria-label="${Plant.escapeHtml(site)} site">
+      <span class="plant-fleet__head">
+        <span class="plant-fleet__mark-wrap" data-fleet-mark></span>
+        <span class="plant-fleet__name">${Plant.escapeHtml(site)}</span>
+        <span class="plant-fleet__badge" data-fleet-badge>${home ? "LIVE" : "OFFLINE"}</span>
+      </span>
+      <span class="plant-fleet__mode" data-fleet-mode>—</span>
+      <span class="plant-fleet__oee" data-fleet-oee>—</span>
+      <span class="plant-fleet__contact" data-fleet-contact>—</span>
+    </button>`;
+  }).join("");
+  host.dataset.built = "1";
+  Plant.paintFleet();
+}
+
+Plant.paintFleet = function paintFleet() {
+  const host = document.getElementById("plant-fleet");
+  if (!host || host.hidden || host.dataset.built !== "1") return;
+  const selectedSite = Plant.isSisterSiteTag(Plant.state.selectedTag)
+    ? Plant.state.selectedTag.split("/")[0]
+    : (String(Plant.state.selectedTag || "").startsWith(`${Plant.SITE}/`) ? Plant.SITE : null);
+  host.querySelectorAll("[data-fleet-site]").forEach((cell) => {
+    const site = cell.getAttribute("data-fleet-site");
+    const snap = Plant.siteSnapshot(site);
+    cell.classList.toggle("is-home", snap.isHome);
+    cell.classList.toggle("is-offline", snap.link === "offline");
+    cell.classList.toggle("is-flap", snap.link === "flap");
+    cell.classList.toggle("is-live", snap.link === "live");
+    cell.classList.toggle("is-selected", selectedSite === site);
+    const badge = snap.isHome ? "LIVE" : snap.link === "flap" ? "FLAP" : "OFFLINE";
+    const mark = cell.querySelector("[data-fleet-mark]");
+    if (mark) mark.innerHTML = Plant.fleetLinkMark(snap.link);
+    const badgeEl = cell.querySelector("[data-fleet-badge]");
+    if (badgeEl) badgeEl.textContent = badge;
+    const modeEl = cell.querySelector("[data-fleet-mode]");
+    if (modeEl) modeEl.textContent = snap.mode;
+    const oeeEl = cell.querySelector("[data-fleet-oee]");
+    if (oeeEl) oeeEl.textContent = snap.oee == null ? "OEE —" : `OEE ${snap.oee.toFixed(1)}%`;
+    const contactEl = cell.querySelector("[data-fleet-contact]");
+    if (contactEl) {
+      contactEl.textContent = snap.isHome || snap.link === "flap"
+        ? `Contact ${snap.lastContact}`
+        : `Last ${snap.lastContact}`;
+      contactEl.title = snap.lastContact;
+    }
+    cell.setAttribute(
+      "aria-label",
+      `${site}: ${badge}, mode ${snap.mode}${snap.oee == null ? "" : `, OEE ${snap.oee.toFixed(1)}%`}`
+    );
+  });
+}
+
+Plant.paintSiteChip = function paintSiteChip() {
+  const chip = document.getElementById("plant-site-chip");
+  if (!chip) return;
+  const tag = Plant.state.selectedTag;
+  if (Plant.isSisterSiteTag(tag)) {
+    const site = tag.split("/")[0];
+    const snap = Plant.siteSnapshot(site);
+    const linkTxt = snap.link === "flap" ? "link flapping" : "offline stub";
+    chip.hidden = false;
+    chip.textContent = `Viewing ${site} tags · ${linkTxt} · Heuvelland P&ID still shown`;
+    chip.classList.toggle("is-flap", snap.link === "flap");
+    chip.classList.toggle("is-offline", snap.link === "offline");
+  } else {
+    chip.hidden = true;
+    chip.textContent = "";
+    chip.classList.remove("is-flap", "is-offline");
   }
 }
 
@@ -394,6 +498,15 @@ Plant.wire = function wire() {
   });
   pid?.addEventListener("pointerout", (e) => {
     if (!e.relatedTarget || !pid.contains(e.relatedTarget)) Plant.clearPidHover();
+  });
+
+  document.getElementById("plant-fleet")?.addEventListener("click", (e) => {
+    const cell = e.target.closest("[data-fleet-site]");
+    if (!cell) return;
+    const site = cell.getAttribute("data-fleet-site");
+    if (!site) return;
+    const tagId = `${site}/Mode`;
+    if (Plant.TAG_BY_ID[tagId]) Plant.selectTag(tagId);
   });
 
   document.querySelector(".plant-toolbar")?.addEventListener("click", (e) => {

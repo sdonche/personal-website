@@ -38,7 +38,10 @@ Plant.tagsUnderStub = function tagsUnderStub(lineId, equipPrefix) {
 Plant.renderTagButton = function renderTagButton(relId, def) {
   const lv = Plant.live[relId] || { value: "—", quality: "Stale" };
   const sel = relId === Plant.state.selectedTag ? " is-selected" : "";
-  const offline = Plant.isSisterSiteTag(relId) ? " plant-tag--offline" : "";
+  const sister = Plant.isSisterSiteTag(relId);
+  const site = sister ? relId.split("/")[0] : null;
+  const sparking = !!(site && Plant.sparkSite() === site);
+  const offline = sister && !sparking ? " plant-tag--offline" : "";
   return `<li>
     <button type="button" class="plant-tag${sel}${offline}" data-tag="${Plant.escapeHtml(relId)}" data-q="${Plant.escapeHtml(lv.quality)}" aria-pressed="${relId === Plant.state.selectedTag}">
       <span class="plant-q-dot-inline" aria-hidden="true"></span>
@@ -52,11 +55,14 @@ Plant.renderTagButton = function renderTagButton(relId, def) {
 Plant.renderFolder = function renderFolder(nodeKey, label, innerHtml, extraClass, opts) {
   const open = Plant.state.openNodes.includes(nodeKey);
   const drawing = opts && opts.drawing ? ` data-drawing="${Plant.escapeHtml(opts.drawing)}"` : "";
-  return `<li class="${extraClass || ""}"${drawing}>
+  const site = opts && opts.site ? ` data-site="${Plant.escapeHtml(opts.site)}"` : "";
+  const meta = opts && opts.metaHtml ? opts.metaHtml : "";
+  return `<li class="${extraClass || ""}"${drawing}${site}>
     <details data-node="${Plant.escapeHtml(nodeKey)}" ${open ? "open" : ""}>
       <summary>
         <span class="plant-tree__chev" aria-hidden="true">▼</span>
         <span class="plant-tree__label">${Plant.escapeHtml(label)}</span>
+        ${meta}
       </summary>
       <ul>${innerHtml}</ul>
     </details>
@@ -232,7 +238,8 @@ Plant.renderSisterSiteFolder = function renderSisterSiteFolder(site) {
       .join("");
     return Plant.renderFolder(`${site}/${area.id}`, area.id, tags, "plant-tree__area plant-tree__area--stub");
   }).join("");
-  return Plant.renderFolder(site, site, top + areas, "plant-tree__site plant-tree__site--offline");
+  const meta = `<span class="plant-tree__site-meta" data-site-meta="${Plant.escapeHtml(site)}"></span>`;
+  return Plant.renderFolder(site, site, top + areas, "plant-tree__site plant-tree__site--offline", { site, metaHtml: meta });
 }
 
 Plant.buildTree = function buildTree() {
@@ -252,7 +259,14 @@ Plant.buildTree = function buildTree() {
   /* Process order: Mixing → Refining → Conching → Tempering → Moulding → Packaging */
   const siteMeta = Plant.HEUVELLAND_SITE_TAGS.map((t) => Plant.renderTagButton(t.id, t)).join("");
   const heuvellandAreas = mixing + refining + conching + tempering + moulding + packaging;
-  const heuvelland = Plant.renderFolder(Plant.SITE, Plant.SITE, siteMeta + heuvellandAreas, "plant-tree__site plant-tree__site--live");
+  const heuvMeta = `<span class="plant-tree__site-meta" data-site-meta="${Plant.escapeHtml(Plant.SITE)}"></span>`;
+  const heuvelland = Plant.renderFolder(
+    Plant.SITE,
+    Plant.SITE,
+    siteMeta + heuvellandAreas,
+    "plant-tree__site plant-tree__site--live",
+    { site: Plant.SITE, metaHtml: heuvMeta }
+  );
   const sisters = Plant.SISTER_SITES.map(Plant.renderSisterSiteFolder).join("");
 
   root.innerHTML = Plant.renderFolder(Plant.EDGE_ROOT, Plant.EDGE_ROOT, heuvelland + sisters, "plant-tree__edge");
@@ -266,6 +280,7 @@ Plant.buildTree = function buildTree() {
 Plant.updateTreeValues = function updateTreeValues() {
   const root = document.getElementById("plant-tree");
   if (!root) return;
+  const spark = Plant.sparkSite();
   root.querySelectorAll(".plant-tag[data-tag]").forEach((btn) => {
     const id = btn.getAttribute("data-tag");
     if (!id) return;
@@ -275,6 +290,10 @@ Plant.updateTreeValues = function updateTreeValues() {
     btn.dataset.q = lv.quality;
     btn.classList.toggle("is-selected", id === Plant.state.selectedTag);
     btn.setAttribute("aria-pressed", id === Plant.state.selectedTag ? "true" : "false");
+    if (Plant.isSisterSiteTag(id)) {
+      const site = id.split("/")[0];
+      btn.classList.toggle("plant-tag--offline", site !== spark);
+    }
     const valEl = btn.querySelector(".plant-tag__val");
     const qEl = btn.querySelector(".plant-q");
     if (valEl) valEl.textContent = Plant.formatValue(def, lv.value);
@@ -291,10 +310,24 @@ Plant.renderTree = function renderTree() {
 }
 
 Plant.paintSisterSpark = function paintSisterSpark() {
-  const spark = Plant.live.__sparkSite?.value || null;
-  document.querySelectorAll(".plant-tree__site--offline").forEach((li) => {
-    const label = li.querySelector(":scope > details > summary .plant-tree__label")?.textContent?.trim();
-    const on = !!spark && label === spark;
-    li.classList.toggle("plant-tree__site--spark", on);
+  const spark = Plant.sparkSite();
+  document.querySelectorAll(".plant-tree__site[data-site]").forEach((li) => {
+    const site = li.getAttribute("data-site");
+    if (!site) return;
+    const snap = Plant.siteSnapshot(site);
+    const isSister = !snap.isHome;
+    li.classList.toggle("plant-tree__site--spark", isSister && snap.link === "flap");
+    const meta = li.querySelector(`[data-site-meta="${CSS.escape(site)}"]`);
+    if (meta) {
+      const oeeTxt = snap.oee == null ? "—" : `${snap.oee.toFixed(0)}%`;
+      if (snap.isHome) {
+        meta.textContent = `${snap.mode} · ${oeeTxt}`;
+      } else if (snap.link === "flap") {
+        meta.textContent = `${snap.mode} · ${oeeTxt}`;
+      } else {
+        meta.textContent = `link down · ${oeeTxt}`;
+      }
+    }
   });
+  Plant.paintFleet();
 }
