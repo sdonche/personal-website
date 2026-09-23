@@ -261,3 +261,55 @@ Plant.timeAgo = function timeAgo(ts) {
   if (s < 60) return `${s}s`;
   return `${Math.floor(s / 60)}m`;
 }
+
+/** Current sister spark site name, or null. */
+Plant.sparkSite = function sparkSite() {
+  return Plant.live.__sparkSite?.value || null;
+}
+
+/**
+ * Link snapshot for a site (Heuvelland or sister).
+ * @returns {{ site: string, isHome: boolean, link: "live"|"flap"|"offline", mode: string, oee: number|null, lastContact: string, quality: string }}
+ */
+Plant.siteSnapshot = function siteSnapshot(site) {
+  const isHome = site === Plant.SITE;
+  const modeLv = Plant.live[`${site}/Mode`] || { value: "—", quality: "Stale" };
+  const oeeLv = Plant.live[`${site}/OEE`];
+  const contactLv = Plant.live[`${site}/LastContact`];
+  const oee = typeof oeeLv?.value === "number" && Number.isFinite(oeeLv.value) ? oeeLv.value : null;
+  let link = "live";
+  if (!isHome) {
+    link = Plant.sparkSite() === site ? "flap" : "offline";
+  }
+  return {
+    site,
+    isHome,
+    link,
+    mode: String(modeLv.value ?? "—"),
+    oee,
+    lastContact: String(contactLv?.value ?? "—"),
+    quality: String(modeLv.quality || oeeLv?.quality || "Stale"),
+  };
+}
+
+/** Sister fleet counts for KPI / scan. */
+Plant.fleetSummary = function fleetSummary() {
+  let offline = 0;
+  let flap = 0;
+  for (const site of Plant.SISTER_SITES) {
+    if (Plant.siteSnapshot(site).link === "flap") flap += 1;
+    else offline += 1;
+  }
+  return { offline, flap, total: Plant.SISTER_SITES.length };
+}
+
+Plant.fleetSummaryLabel = function fleetSummaryLabel() {
+  const { offline, flap } = Plant.fleetSummary();
+  if (flap) return `${offline} OFFLINE · ${flap} FLAP`;
+  return `${offline} OFFLINE`;
+}
+
+/** Home site + sisters in display order. */
+Plant.fleetSites = function fleetSites() {
+  return [Plant.SITE, ...Plant.SISTER_SITES];
+}
