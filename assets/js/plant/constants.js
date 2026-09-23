@@ -272,6 +272,29 @@ Plant.SISTER_LAST_CONTACT = {
   Gent: "2026-09-20 14:02 UTC",
   Brugge: "2026-09-17 23:55 UTC",
 };
+
+/**
+ * Schematic West Flanders layout (viewBox 0–100). Not cartographic —
+ * relative placement only for the Overview site map.
+ */
+Plant.SITE_MAP = {
+  Brugge: { x: 34, y: 18, labelDy: -7 },
+  Gent: { x: 72, y: 28, labelDy: -7 },
+  Gullegem: { x: 42, y: 48, labelDy: -7 },
+  Ieper: { x: 22, y: 62, labelDy: 11 },
+  Heuvelland: { x: 48, y: 78, labelDy: 12, home: true },
+};
+/** Soft hinterland outline for the schematic (percent coords). */
+Plant.SITE_MAP_OUTLINE = "12,22 28,8 55,6 88,18 92,42 78,70 52,92 24,88 8,58";
+/** Link lines drawn as faint mesh (hub = Heuvelland). */
+Plant.SITE_MAP_LINKS = [
+  ["Heuvelland", "Gullegem"],
+  ["Heuvelland", "Ieper"],
+  ["Gullegem", "Brugge"],
+  ["Gullegem", "Gent"],
+  ["Brugge", "Gent"],
+];
+
 Plant.HEUVELLAND_SITE_TAGS = [
   { id: `${Plant.SITE}/Running`, name: "Running", type: "bool", live: true },
   { id: `${Plant.SITE}/Mode`, name: "Mode", type: "string", live: true },

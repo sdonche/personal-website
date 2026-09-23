@@ -152,8 +152,8 @@ Plant.renderKpis = function renderKpis() {
     el.hidden = !packaging;
   });
 
-  const fleetEl = document.getElementById("plant-fleet");
-  if (fleetEl) fleetEl.hidden = !overview;
+  const fleetPanel = document.getElementById("plant-fleet-panel");
+  if (fleetPanel) fleetPanel.hidden = !overview;
   if (overview) Plant.ensureFleet();
 
   const upstreamHold = Plant.isUpstreamHold();
@@ -303,31 +303,67 @@ Plant.fleetLinkMark = function fleetLinkMark(link) {
 }
 
 Plant.ensureFleet = function ensureFleet() {
+  const panel = document.getElementById("plant-fleet-panel");
   const host = document.getElementById("plant-fleet");
-  if (!host || host.dataset.built === "1") {
-    Plant.paintFleet();
-    return;
+  const mapHost = document.getElementById("plant-site-map");
+  if (!panel || !host) return;
+  if (host.dataset.built !== "1") {
+    host.innerHTML = Plant.fleetSites().map((site) => {
+      const home = site === Plant.SITE;
+      return `<button type="button" class="plant-fleet__cell" data-fleet-site="${Plant.escapeHtml(site)}" aria-label="${Plant.escapeHtml(site)} site">
+        <span class="plant-fleet__head">
+          <span class="plant-fleet__mark-wrap" data-fleet-mark></span>
+          <span class="plant-fleet__name">${Plant.escapeHtml(site)}</span>
+          <span class="plant-fleet__badge" data-fleet-badge>${home ? "LIVE" : "OFFLINE"}</span>
+        </span>
+        <span class="plant-fleet__mode" data-fleet-mode>—</span>
+        <span class="plant-fleet__oee" data-fleet-oee>—</span>
+        <span class="plant-fleet__contact" data-fleet-contact>—</span>
+      </button>`;
+    }).join("");
+    host.dataset.built = "1";
   }
-  host.innerHTML = Plant.fleetSites().map((site) => {
-    const home = site === Plant.SITE;
-    return `<button type="button" class="plant-fleet__cell" data-fleet-site="${Plant.escapeHtml(site)}" aria-label="${Plant.escapeHtml(site)} site">
-      <span class="plant-fleet__head">
-        <span class="plant-fleet__mark-wrap" data-fleet-mark></span>
-        <span class="plant-fleet__name">${Plant.escapeHtml(site)}</span>
-        <span class="plant-fleet__badge" data-fleet-badge>${home ? "LIVE" : "OFFLINE"}</span>
-      </span>
-      <span class="plant-fleet__mode" data-fleet-mode>—</span>
-      <span class="plant-fleet__oee" data-fleet-oee>—</span>
-      <span class="plant-fleet__contact" data-fleet-contact>—</span>
-    </button>`;
-  }).join("");
-  host.dataset.built = "1";
+  if (mapHost && mapHost.dataset.built !== "1") {
+    mapHost.innerHTML = Plant.buildSiteMapSvg();
+    mapHost.dataset.built = "1";
+  }
   Plant.paintFleet();
 }
 
+Plant.buildSiteMapSvg = function buildSiteMapSvg() {
+  const links = (Plant.SITE_MAP_LINKS || []).map(([a, b], i) => {
+    const pa = Plant.SITE_MAP[a];
+    const pb = Plant.SITE_MAP[b];
+    if (!pa || !pb) return "";
+    return `<line class="plant-site-map__link" data-map-link="${i}" data-map-a="${Plant.escapeHtml(a)}" data-map-b="${Plant.escapeHtml(b)}" x1="${pa.x}" y1="${pa.y}" x2="${pb.x}" y2="${pb.y}" />`;
+  }).join("");
+  const nodes = Plant.fleetSites().map((site) => {
+    const pos = Plant.SITE_MAP[site];
+    if (!pos) return "";
+    const home = site === Plant.SITE;
+    const r = home ? 3.6 : 2.8;
+    const dy = pos.labelDy ?? -7;
+    return `<g class="plant-site-map__node" data-fleet-site="${Plant.escapeHtml(site)}" tabindex="0" role="button" aria-label="${Plant.escapeHtml(site)}">
+      <circle class="plant-site-map__hit" cx="${pos.x}" cy="${pos.y}" r="7" />
+      <circle class="plant-site-map__dot" cx="${pos.x}" cy="${pos.y}" r="${r}" />
+      <line class="plant-site-map__slash" x1="${pos.x - 3.2}" y1="${pos.y - 3.2}" x2="${pos.x + 3.2}" y2="${pos.y + 3.2}" />
+      <text class="plant-site-map__label" x="${pos.x}" y="${pos.y + dy}" text-anchor="middle">${Plant.escapeHtml(site)}</text>
+      <text class="plant-site-map__badge" data-map-badge x="${pos.x}" y="${pos.y + dy + (dy < 0 ? -5 : 5)}" text-anchor="middle">—</text>
+    </g>`;
+  }).join("");
+  return `<svg class="plant-site-map__svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Schematic West Flanders site map">
+    <title>Schematic site map — relative layout, not to scale</title>
+    <polygon class="plant-site-map__outline" points="${Plant.SITE_MAP_OUTLINE}" />
+    <text class="plant-site-map__caption" x="4" y="96">SCHEMATIC · NOT TO SCALE</text>
+    <g class="plant-site-map__links">${links}</g>
+    <g class="plant-site-map__nodes">${nodes}</g>
+  </svg>`;
+}
+
 Plant.paintFleet = function paintFleet() {
+  const panel = document.getElementById("plant-fleet-panel");
   const host = document.getElementById("plant-fleet");
-  if (!host || host.hidden || host.dataset.built !== "1") return;
+  if (!panel || panel.hidden || !host || host.dataset.built !== "1") return;
   const selectedSite = Plant.isSisterSiteTag(Plant.state.selectedTag)
     ? Plant.state.selectedTag.split("/")[0]
     : (String(Plant.state.selectedTag || "").startsWith(`${Plant.SITE}/`) ? Plant.SITE : null);
@@ -360,6 +396,42 @@ Plant.paintFleet = function paintFleet() {
       `${site}: ${badge}, mode ${snap.mode}${snap.oee == null ? "" : `, OEE ${snap.oee.toFixed(1)}%`}`
     );
   });
+  Plant.paintSiteMap(selectedSite);
+}
+
+Plant.paintSiteMap = function paintSiteMap(selectedSite) {
+  const mapHost = document.getElementById("plant-site-map");
+  if (!mapHost || mapHost.dataset.built !== "1") return;
+  mapHost.querySelectorAll(".plant-site-map__node[data-fleet-site]").forEach((g) => {
+    const site = g.getAttribute("data-fleet-site");
+    const snap = Plant.siteSnapshot(site);
+    g.classList.toggle("is-home", snap.isHome);
+    g.classList.toggle("is-offline", snap.link === "offline");
+    g.classList.toggle("is-flap", snap.link === "flap");
+    g.classList.toggle("is-live", snap.link === "live");
+    g.classList.toggle("is-selected", selectedSite === site);
+    const badge = snap.isHome ? "LIVE" : snap.link === "flap" ? "FLAP" : "OFF";
+    const badgeEl = g.querySelector("[data-map-badge]");
+    if (badgeEl) badgeEl.textContent = badge;
+    g.setAttribute("aria-label", `${site}: ${badge === "OFF" ? "OFFLINE" : badge}`);
+  });
+  mapHost.querySelectorAll("[data-map-link]").forEach((line) => {
+    const a = line.getAttribute("data-map-a");
+    const b = line.getAttribute("data-map-b");
+    const sa = Plant.siteSnapshot(a);
+    const sb = Plant.siteSnapshot(b);
+    const bothUp = (sa.link === "live" || sa.link === "flap") && (sb.link === "live" || sb.link === "flap");
+    const anyFlap = sa.link === "flap" || sb.link === "flap";
+    line.classList.toggle("is-up", bothUp);
+    line.classList.toggle("is-flap", bothUp && anyFlap);
+    line.classList.toggle("is-down", !bothUp);
+  });
+}
+
+Plant.selectFleetSite = function selectFleetSite(site) {
+  if (!site) return;
+  const tagId = `${site}/Mode`;
+  if (Plant.TAG_BY_ID[tagId]) Plant.selectTag(tagId);
 }
 
 Plant.paintSiteChip = function paintSiteChip() {
@@ -500,13 +572,17 @@ Plant.wire = function wire() {
     if (!e.relatedTarget || !pid.contains(e.relatedTarget)) Plant.clearPidHover();
   });
 
-  document.getElementById("plant-fleet")?.addEventListener("click", (e) => {
+  document.getElementById("plant-fleet-panel")?.addEventListener("click", (e) => {
     const cell = e.target.closest("[data-fleet-site]");
     if (!cell) return;
-    const site = cell.getAttribute("data-fleet-site");
-    if (!site) return;
-    const tagId = `${site}/Mode`;
-    if (Plant.TAG_BY_ID[tagId]) Plant.selectTag(tagId);
+    Plant.selectFleetSite(cell.getAttribute("data-fleet-site"));
+  });
+  document.getElementById("plant-fleet-panel")?.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const cell = e.target.closest("[data-fleet-site]");
+    if (!cell) return;
+    e.preventDefault();
+    Plant.selectFleetSite(cell.getAttribute("data-fleet-site"));
   });
 
   document.querySelector(".plant-toolbar")?.addEventListener("click", (e) => {
