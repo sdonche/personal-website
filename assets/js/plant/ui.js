@@ -323,9 +323,9 @@ Plant.ensureFleet = function ensureFleet() {
     }).join("");
     host.dataset.built = "1";
   }
-  if (mapHost && mapHost.dataset.built !== "1") {
+  if (mapHost && mapHost.dataset.built !== "map-v2") {
     mapHost.innerHTML = Plant.buildSiteMapSvg();
-    mapHost.dataset.built = "1";
+    mapHost.dataset.built = "map-v2";
   }
   Plant.paintFleet();
 }
@@ -340,21 +340,39 @@ Plant.buildSiteMapSvg = function buildSiteMapSvg() {
   const nodes = Plant.fleetSites().map((site) => {
     const pos = Plant.SITE_MAP[site];
     if (!pos) return "";
-    const home = site === Plant.SITE;
-    const r = home ? 3.6 : 2.8;
-    const dy = pos.labelDy ?? -7;
-    return `<g class="plant-site-map__node" data-fleet-site="${Plant.escapeHtml(site)}" tabindex="0" role="button" aria-label="${Plant.escapeHtml(site)}">
-      <circle class="plant-site-map__hit" cx="${pos.x}" cy="${pos.y}" r="7" />
+    const home = !!pos.home || site === Plant.SITE;
+    const r = home ? 9 : 7;
+    const lx = pos.x + (pos.lx || 0);
+    const ly = pos.y + (pos.ly || 0);
+    const anchor = pos.anchor || "middle";
+    const short = site === "Heuvelland" ? "Heuvelland" : site;
+    return `<g class="plant-site-map__node${home ? " is-home" : ""}" data-fleet-site="${Plant.escapeHtml(site)}" tabindex="0" role="button" aria-label="${Plant.escapeHtml(site)}">
+      <line class="plant-site-map__leader" x1="${pos.x}" y1="${pos.y}" x2="${lx}" y2="${ly}" />
+      <circle class="plant-site-map__hit" cx="${pos.x}" cy="${pos.y}" r="${r + 10}" />
+      <circle class="plant-site-map__ring" cx="${pos.x}" cy="${pos.y}" r="${r + 3}" />
       <circle class="plant-site-map__dot" cx="${pos.x}" cy="${pos.y}" r="${r}" />
-      <line class="plant-site-map__slash" x1="${pos.x - 3.2}" y1="${pos.y - 3.2}" x2="${pos.x + 3.2}" y2="${pos.y + 3.2}" />
-      <text class="plant-site-map__label" x="${pos.x}" y="${pos.y + dy}" text-anchor="middle">${Plant.escapeHtml(site)}</text>
-      <text class="plant-site-map__badge" data-map-badge x="${pos.x}" y="${pos.y + dy + (dy < 0 ? -5 : 5)}" text-anchor="middle">—</text>
+      <path class="plant-site-map__slash" d="M${pos.x - r * 0.85} ${pos.y - r * 0.85} L${pos.x + r * 0.85} ${pos.y + r * 0.85}" />
+      <g class="plant-site-map__callout" transform="translate(${lx}, ${ly})">
+        <rect class="plant-site-map__plate" x="${anchor === "end" ? -72 : anchor === "start" ? 0 : -36}" y="-11" width="72" height="22" rx="1.5" />
+        <text class="plant-site-map__label" x="${anchor === "end" ? -8 : anchor === "start" ? 8 : 0}" y="-1" text-anchor="${anchor}">${Plant.escapeHtml(short)}</text>
+        <text class="plant-site-map__badge" data-map-badge x="${anchor === "end" ? -8 : anchor === "start" ? 8 : 0}" y="9" text-anchor="${anchor}">—</text>
+      </g>
     </g>`;
   }).join("");
-  return `<svg class="plant-site-map__svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Schematic West Flanders site map">
+  return `<svg class="plant-site-map__svg" viewBox="0 0 340 220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Schematic West Flanders site map">
     <title>Schematic site map — relative layout, not to scale</title>
-    <polygon class="plant-site-map__outline" points="${Plant.SITE_MAP_OUTLINE}" />
-    <text class="plant-site-map__caption" x="4" y="96">SCHEMATIC · NOT TO SCALE</text>
+    <defs>
+      <linearGradient id="plant-map-sea" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="rgba(14, 116, 144, 0.18)" />
+        <stop offset="100%" stop-color="rgba(15, 23, 42, 0)" />
+      </linearGradient>
+    </defs>
+    <rect class="plant-site-map__sheet" x="8" y="8" width="324" height="204" rx="2" />
+    <text class="plant-site-map__title" x="18" y="26">SITES · WEST FLANDERS</text>
+    <text class="plant-site-map__caption" x="322" y="26" text-anchor="end">SCHEMATIC · NOT TO SCALE</text>
+    <polygon class="plant-site-map__sea" points="${Plant.SITE_MAP_SEA}" fill="url(#plant-map-sea)" />
+    <text class="plant-site-map__sea-label" x="70" y="48">NORTH SEA</text>
+    <polygon class="plant-site-map__land" points="${Plant.SITE_MAP_LAND}" />
     <g class="plant-site-map__links">${links}</g>
     <g class="plant-site-map__nodes">${nodes}</g>
   </svg>`;
@@ -401,7 +419,7 @@ Plant.paintFleet = function paintFleet() {
 
 Plant.paintSiteMap = function paintSiteMap(selectedSite) {
   const mapHost = document.getElementById("plant-site-map");
-  if (!mapHost || mapHost.dataset.built !== "1") return;
+  if (!mapHost || mapHost.dataset.built !== "map-v2") return;
   mapHost.querySelectorAll(".plant-site-map__node[data-fleet-site]").forEach((g) => {
     const site = g.getAttribute("data-fleet-site");
     const snap = Plant.siteSnapshot(site);
@@ -410,19 +428,21 @@ Plant.paintSiteMap = function paintSiteMap(selectedSite) {
     g.classList.toggle("is-flap", snap.link === "flap");
     g.classList.toggle("is-live", snap.link === "live");
     g.classList.toggle("is-selected", selectedSite === site);
-    const badge = snap.isHome ? "LIVE" : snap.link === "flap" ? "FLAP" : "OFF";
+    const badge = snap.isHome ? "LIVE" : snap.link === "flap" ? "FLAP" : "OFFLINE";
     const badgeEl = g.querySelector("[data-map-badge]");
     if (badgeEl) badgeEl.textContent = badge;
-    g.setAttribute("aria-label", `${site}: ${badge === "OFF" ? "OFFLINE" : badge}`);
+    g.setAttribute("aria-label", `${site}: ${badge}`);
   });
   mapHost.querySelectorAll("[data-map-link]").forEach((line) => {
     const a = line.getAttribute("data-map-a");
     const b = line.getAttribute("data-map-b");
     const sa = Plant.siteSnapshot(a);
     const sb = Plant.siteSnapshot(b);
-    const bothUp = (sa.link === "live" || sa.link === "flap") && (sb.link === "live" || sb.link === "flap");
+    const aUp = sa.link === "live" || sa.link === "flap";
+    const bUp = sb.link === "live" || sb.link === "flap";
+    const bothUp = aUp && bUp;
     const anyFlap = sa.link === "flap" || sb.link === "flap";
-    line.classList.toggle("is-up", bothUp);
+    line.classList.toggle("is-up", bothUp && !anyFlap);
     line.classList.toggle("is-flap", bothUp && anyFlap);
     line.classList.toggle("is-down", !bothUp);
   });

@@ -274,25 +274,27 @@ Plant.SISTER_LAST_CONTACT = {
 };
 
 /**
- * Schematic West Flanders layout (viewBox 0–100). Not cartographic —
- * relative placement only for the Overview site map.
+ * Schematic West Flanders layout (viewBox 0–340 × 220).
+ * Relative placement only — not cartographic.
  */
 Plant.SITE_MAP = {
-  Brugge: { x: 34, y: 18, labelDy: -7 },
-  Gent: { x: 72, y: 28, labelDy: -7 },
-  Gullegem: { x: 42, y: 48, labelDy: -7 },
-  Ieper: { x: 22, y: 62, labelDy: 11 },
-  Heuvelland: { x: 48, y: 78, labelDy: 12, home: true },
+  Brugge: { x: 118, y: 52, anchor: "end", lx: -14, ly: -2 },
+  Gent: { x: 268, y: 78, anchor: "start", lx: 14, ly: -2 },
+  Gullegem: { x: 168, y: 112, anchor: "start", lx: 14, ly: 2 },
+  Ieper: { x: 78, y: 148, anchor: "end", lx: -14, ly: 2 },
+  Heuvelland: { x: 158, y: 172, anchor: "start", lx: 16, ly: 4, home: true },
 };
-/** Soft hinterland outline for the schematic (percent coords). */
-Plant.SITE_MAP_OUTLINE = "12,22 28,8 55,6 88,18 92,42 78,70 52,92 24,88 8,58";
-/** Link lines drawn as faint mesh (hub = Heuvelland). */
+/** Soft hinterland + North Sea edge (schematic). */
+Plant.SITE_MAP_LAND = "48,38 92,18 148,14 210,22 278,40 312,78 318,128 292,168 248,196 178,208 108,200 58,172 36,118 32,72";
+Plant.SITE_MAP_SEA = "32,72 48,38 92,18 148,14 210,22 210,8 120,4 40,16 18,48";
+/** Link mesh (hub = Heuvelland / Gullegem corridor). */
 Plant.SITE_MAP_LINKS = [
   ["Heuvelland", "Gullegem"],
   ["Heuvelland", "Ieper"],
   ["Gullegem", "Brugge"],
   ["Gullegem", "Gent"],
   ["Brugge", "Gent"],
+  ["Ieper", "Gullegem"],
 ];
 
 Plant.HEUVELLAND_SITE_TAGS = [
