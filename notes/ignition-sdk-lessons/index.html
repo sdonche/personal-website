@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- partial:head-boot -->
+  <script>
+    document.documentElement.classList.add('js');
+    try {
+      if (localStorage.getItem('samdonche.nav.rail') === '1') {
+        document.documentElement.classList.add('nav-rail');
+      }
+      var params = new URLSearchParams(location.search);
+      var mode = params.get('mode');
+      // Canonical: desk | floor. Legacy: site/briefing → desk, operator → floor.
+      if (mode === 'briefing' || mode === 'site') mode = 'desk';
+      if (mode === 'operator') mode = 'floor';
+      if (mode === 'desk' || mode === 'floor') {
+        localStorage.setItem('samdonche.mode', mode);
+      } else {
+        mode = localStorage.getItem('samdonche.mode');
+        if (mode === 'briefing' || mode === 'site') mode = 'desk';
+        if (mode === 'operator') mode = 'floor';
+      }
+      if (mode !== 'floor') mode = 'desk';
+      document.documentElement.setAttribute('data-mode', mode);
+    } catch (e) {
+      document.documentElement.setAttribute('data-mode', 'desk');
+    }
+  </script>
+<!-- /partial:head-boot -->
+  <meta name="theme-color" content="#020617" />
+  <meta name="description" content="Lessons from building a module that runs Doom on an Ignition gateway: data routes that refuse to mount, WebSocket servlets, component stores that get reused, and a C bug that only appeared in Docker." />
+  <meta name="author" content="Sam Donche" />
+  <title>Five things the Ignition 8.3 SDK does not tell you — Sam Donche</title>
+
+  <link rel="canonical" href="https://samdonche.com/notes/ignition-sdk-lessons/" />
+  <link rel="alternate" type="application/atom+xml" title="Sam Donche — Notes" href="../feed.xml" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Sam Donche" />
+  <meta property="og:title" content="Five things the Ignition 8.3 SDK does not tell you" />
+  <meta property="og:description" content="Data routes that refuse to mount, WebSocket servlets, reused component stores, and a boolean that changed size between files." />
+  <meta property="og:url" content="https://samdonche.com/notes/ignition-sdk-lessons/" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://samdonche.com/assets/img/og/ignition-sdk-lessons.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Five things the Ignition 8.3 SDK does not tell you — Sam Donche" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Five things the Ignition 8.3 SDK does not tell you" />
+  <meta name="twitter:description" content="Data routes that refuse to mount, WebSocket servlets, reused component stores, and a boolean that changed size between files." />
+  <meta name="twitter:image" content="https://samdonche.com/assets/img/og/ignition-sdk-lessons.jpg" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "Five things the Ignition 8.3 SDK does not tell you",
+        "description": "Lessons from building a module that runs Doom on an Ignition gateway: data routes that refuse to mount, WebSocket servlets, component stores that get reused, and a C bug that only appeared in Docker.",
+        "image": "https://samdonche.com/assets/img/og/ignition-sdk-lessons.jpg",
+        "datePublished": "2026-09-24",
+        "dateModified": "2026-09-24",
+        "inLanguage": "en",
+        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "publisher": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "mainEntityOfPage": "https://samdonche.com/notes/ignition-sdk-lessons/",
+        "keywords": "Ignition, Ignition SDK, module development, Perspective, Jetty, WebAssembly, Mustry, SCADA"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Notes", "item": "https://samdonche.com/notes/" },
+          { "@type": "ListItem", "position": 3, "name": "Five things the Ignition 8.3 SDK does not tell you", "item": "https://samdonche.com/notes/ignition-sdk-lessons/" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- partial:favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Cpath d='M9 11 L14 16 L9 21' fill='none' stroke='%2322d3ee' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='16' y='18.7' width='7.5' height='2.6' rx='1.3' fill='%2322d3ee'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/apple-touch-icon.png" />
+<!-- /partial:favicon -->
+
+<!-- partial:head-assets -->
+  <link rel="preload" href="../../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../../assets/css/fonts.css?v=0f6b5ce264" />
+  <link rel="stylesheet" href="../../assets/css/tailwind.css?v=c826c2f54a" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=61e0675b19" />
+<!-- /partial:head-assets -->
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans antialiased">
+
+<!-- partial:site-bg -->
+  <div aria-hidden="true" class="fixed inset-0 -z-10 bg-slate-950">
+    <div class="absolute inset-0 grid-bg opacity-[0.35]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(52,211,153,0.05),_transparent_50%)]"></div>
+  </div>
+<!-- /partial:site-bg -->
+
+<!-- partial:subpage-topbar -->
+<!-- Top bar -->
+  <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <a href="../../" class="flex items-center gap-2 group shrink-0" aria-label="Home">
+        <span class="relative inline-flex h-2.5 w-2.5">
+          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+        </span>
+        <span class="brand-mark brand-mark--floor font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
+          sam.donche<span class="brand-mark__host"><span class="text-brand-400">@</span>edge</span>
+        </span>
+        <span class="brand-mark brand-mark--desk text-sm sm:text-base font-semibold tracking-tight text-slate-100 group-hover:text-brand-300 transition-colors">
+          Sam Donche
+        </span>
+      </a>
+      <div class="flex items-center gap-1.5 sm:gap-3 min-w-0">
+        <div class="mode-switch shrink-0" role="group" aria-label="Presentation mode">
+          <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
+          <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
+        </div>
+        <a href="../" class="subpage-back font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← notes</a>
+        <button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      </div>
+    </div>
+  </header>
+<!-- /partial:subpage-topbar -->
+
+  <div class="lg:pl-64">
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-24">
+    <article>
+      <div class="hero-enter">
+        <p class="section-eyebrow">// Notes</p>
+        <h1 class="section-title">Five things the Ignition 8.3 SDK does not tell you.</h1>
+        <p class="mt-4 font-mono text-xs tracking-wider text-slate-500">
+          2026-09-24 <span class="text-slate-700">·</span> 8 min read <span class="text-slate-700">·</span> Ignition
+        </p>
+      </div>
+
+      <div class="note-prose reveal mt-10">
+        <p>
+          I spent a fortnight putting Doom inside an Ignition gateway. The joke is
+          <a href="../ignition-doom/">in its own note</a>; this one is the bill. Building something
+          deliberately useless turned out to be a thorough tour of the 8.3 module SDK, because the
+          module ended up touching nearly all of it: a Perspective component with a gateway-side
+          partner, a managed tag provider, a WebSocket servlet, HTTP routes with their own access
+          control, per-user files in the data directory, signing, and an end-to-end test suite that
+          boots a real gateway in Docker.
+        </p>
+        <p>
+          Five of those days went to things the documentation does not say. Here they are, so they
+          cost you less.
+        </p>
+
+        <h2>1. A data route without access control never mounts</h2>
+        <p>
+          Module HTTP routes are built with a small fluent API, and it looks finished long before it
+          is. Leave out the access control and <code>mount()</code> throws
+          <code>Access control must be specified</code> — at gateway startup, into the log, where it
+          reads as a single warning line: &ldquo;Unable to mount routes for module&rdquo;. The
+          gateway keeps running. Everything else in your module works. The route is simply not
+          there, and the browser gets a 404 that looks like a typo in your path.
+        </p>
+        <p>
+          The fix is one line, and the interesting part is that access control is a one-method
+          interface, so a custom rule is a lambda. Mine admits a request that carries a ticket the
+          component handed out over Perspective&rsquo;s already-authenticated channel:
+        </p>
+<pre><code>routes.newRoute("/wads/:name")
+      .method(HttpMethod.GET)
+      .type(RouteGroup.TYPE_OCTET_STREAM)
+      .accessControl(WAD_TICKET)   // leave this out and the route vanishes
+      .handler(this::serveWad)
+      .mount();</code></pre>
+        <p>
+          That pattern — the component asks the gateway for a short-lived ticket, then a plain HTTP
+          or WebSocket request redeems it — is worth stealing. A page fetching a file over HTTP
+          arrives with no session context. The ticket is how the session&rsquo;s identity gets
+          there.
+        </p>
+
+        <h2>2. WebSockets are allowed, and the Jetty version is yours to pin</h2>
+        <p>
+          A module can serve WebSockets: register a Jetty servlet through the gateway&rsquo;s
+          <code>WebResourceManager</code> and it answers under <code>/system/&lt;name&gt;/</code>.
+          Nothing in the SDK hands you Jetty, though, so you declare the gateway&rsquo;s exact
+          version yourself as a compile-only dependency and never bundle it. Ignition 8.3.6 ships
+          Jetty 12.0.27; when you bump the Ignition version you target, bump that line with it.
+        </p>
+        <p>
+          A sibling project that targets 8.3.1 had to unwrap Ignition&rsquo;s request wrapper before
+          Jetty would perform the upgrade. On 8.3.6 it just works. If you support both, expect that
+          difference.
+        </p>
+        <p>
+          One free trick: a plain <code>GET</code> on the same servlet, with no upgrade, is a
+          perfectly good status endpoint. Mine returns the live game rooms as JSON, which turned a
+          debugging session from guesswork into a curl.
+        </p>
+
+        <h2>3. Perspective may hand a new view an old component&rsquo;s store</h2>
+        <p>
+          This is the one that cost the most, and it is not a bug I can blame on anyone. Perspective
+          recycles component stores. Open a different view whose component sits at the same address
+          and it can be rendered <em>once</em> with the previous view&rsquo;s props before the new
+          view&rsquo;s bindings apply.
+        </p>
+        <p>
+          For most components that window is invisible. For anything that acts on props at mount —
+          starting an engine, opening a connection, writing a tag — it is a live grenade. My
+          multiplayer test failed exactly one time in five: the component read its parameters, saw
+          the schema defaults, and joined the wrong game before the bindings landed.
+        </p>
+        <p>
+          Two guards fixed it. First, when the view declares bound config props, wait for the first
+          props update after mount, with a short settle timeout for bindings that resolve to the
+          same value and therefore never fire. Do <em>not</em> gate on property qualities: a
+          delivered binding may carry no quality entry at all, and you will wait forever. Second,
+          remember the identity you started with and restart if a later update contradicts it —
+          only when the props object itself changed, or your own state update will retrigger you.
+        </p>
+
+        <h2>4. The platform will not tell you its own version</h2>
+        <p>
+          There is no public API for the running Ignition version. I looked. The jars carry no
+          manifest version either. What exists is the install&rsquo;s own record,
+          <code>lib/install-info.txt</code>, a plain properties file with a
+          <code>gateway.version</code> key, sitting next to the data directory you <em>can</em> ask
+          for. Your module&rsquo;s own version, by contrast, is one call on the module manager.
+        </p>
+        <p>
+          The same theme runs through the small stuff. Gateway metric names are mostly unprefixed
+          and hyphenated, and some contain spaces — log them, never guess them. In 8.3 scripting
+          there is no <code>system.tag.getHistorianProviders</code>; you list historians by browsing
+          <code>system.tag.browseHistoricalTags("")</code>. Saving a config resource whose content
+          did not change fires no change event at all, so any hot-apply path that re-reads state
+          from outside the resource has to re-apply explicitly, or the operator presses Save and
+          nothing happens.
+        </p>
+
+        <h2>5. Build your native payload in a container, and have CI prove it</h2>
+        <p>
+          The engine is C compiled to WebAssembly. I committed the binary and moved on. Weeks later,
+          rebuilding from the pinned sources in the pinned Docker image produced a game that showed
+          a deathmatch frag counter in single player and ignored the turn keys.
+        </p>
+        <p>
+          The cause was a type. The engine defines its own <code>boolean</code> as a one-byte
+          <code>bool</code> in files that have seen <code>&lt;stdbool.h&gt;</code> and as a
+          four-byte enum everywhere else. Emscripten&rsquo;s own headers include
+          <code>&lt;stdbool.h&gt;</code>, so under the toolchain&rsquo;s default C dialect the two
+          halves of the program disagreed about the size of a shared global, and arrays of player
+          state decoded as garbage. A local build with a newer compiler default hid it completely —
+          which is why the committed binary worked and was never reproducible.
+        </p>
+        <p>
+          The lesson generalises past Doom: if you ship a compiled artefact inside a module, build
+          it in one pinned container, commit exactly what that container produces, and have CI
+          rebuild it and fail on a single differing byte. That job now runs weekly on the repo and
+          takes ten minutes. It would have saved me two days.
+        </p>
+
+        <h2>Why write a useless module at all</h2>
+        <p>
+          Because the useless one is where you can afford to read the SDK properly. Nobody is
+          waiting for it, so you follow the interesting path instead of the quick one, and you end
+          up with working examples of the pieces that are genuinely hard to find: a component with a
+          gateway-side delegate, a provider that creates its own tags, a WebSocket relay between
+          browser sessions, tickets for unauthenticated fetches, signing and unattended install for
+          the test gateway.
+        </p>
+        <p>
+          All of it is open, GPL-2.0, and the long form of these notes lives next to the code in
+          <a href="https://github.com/Mustry-Solutions/ignition-doom-module/blob/main/docs/ignition-8.3-sdk-notes.md" target="_blank" rel="noopener">docs/ignition-8.3-sdk-notes.md</a>,
+          with file and class names so you can read the working version of each one.
+        </p>
+      </div>
+
+      <div class="mt-12 rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 reveal">
+        <p class="text-slate-300 leading-relaxed">The module is free and the SDK notes are next to the code. If you need a module that does not exist yet, that is what we do at Mustry Solutions.</p>
+        <a href="https://github.com/Mustry-Solutions/ignition-doom-module/blob/main/docs/ignition-8.3-sdk-notes.md" target="_blank" rel="noopener" class="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-md bg-brand-400 text-slate-950 font-semibold hover:bg-brand-300 transition">
+          Read the SDK notes
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+            <nav class="mt-12 reveal" aria-label="Related reading">
+        <p class="section-eyebrow">// Related</p>
+        <ul class="mt-4 grid gap-3">
+          <li>
+            <a href="../ignition-doom/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Yes, your Ignition gateway can run Doom</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="../ignition-modules/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Ignition modules for the gaps the platform leaves</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="../ignition-perspective/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Fourteen Perspective components the platform never shipped</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+            </a>
+          </li>
+          <li>
+            <a href="https://mustrysolutions.com/contact-us" target="_blank" rel="noopener" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+              <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Need a module built? Talk to Mustry Solutions</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">External ↗</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <p class="mt-10 font-mono text-xs">
+        <a href="../" class="text-slate-500 hover:text-brand-300 transition-colors">← all notes</a>
+      </p>
+
+    </article>
+  </main>
+  </div>
+
+<!-- partial:subpage-footer -->
+  <footer class="border-t border-slate-800/60 lg:pl-64">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-500">
+      <p class="font-mono text-xs">&copy; <span id="year"></span> Sam Donche</p>
+    </div>
+  </footer>
+<!-- /partial:subpage-footer -->
+
+<!-- partial:site-scripts -->
+  <script src="../../assets/js/eggs.js?v=e05e8c5e22" defer></script>
+  <script src="../../assets/js/script.js?v=914b99f4fc" defer></script>
+  <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../../assets/js/goatcounter.js"></script>
+<!-- /partial:site-scripts -->
+</body>
+</html>

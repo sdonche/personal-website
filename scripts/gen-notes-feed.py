@@ -79,6 +79,17 @@ NOTES = [
         "updated": "2026-09-22",
     },
     {
+        "slug": "ignition-sdk-lessons",
+        "title": "Five things the Ignition 8.3 SDK does not tell you",
+        "summary": (
+            "Lessons from a module that runs Doom on a gateway: routes that refuse to "
+            "mount, WebSocket servlets, reused component stores, and a C bug that only "
+            "appeared in Docker."
+        ),
+        "published": "2026-09-24",
+        "updated": "2026-09-24",
+    },
+    {
         "slug": "ignition-doom",
         "title": "Yes, your Ignition gateway can run Doom",
         "summary": (

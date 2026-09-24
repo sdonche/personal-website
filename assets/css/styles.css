@@ -2156,6 +2156,28 @@ html.line-stopped *::after {
 .note-prose > ul li { margin: 0.25rem 0; }
 .note-prose > ul li::marker { color: var(--color-brand-400); }
 .note-prose strong { color: #e8edf5; font-weight: 600; }
+/* Code blocks in notes: a dark card that scrolls sideways rather than
+   reflowing, so a command or a snippet keeps the shape the reader expects. */
+.note-prose > pre {
+  margin: 0 0 1.15rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #1e293b;
+  border-radius: 0.5rem;
+  background: #0b1220;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.note-prose > pre code {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  color: #cbd5e1;
+  white-space: pre;
+}
 .note-prose a {
   color: var(--color-brand-300);
   text-decoration: underline;

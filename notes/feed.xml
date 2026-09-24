@@ -5,7 +5,7 @@
   <link href="https://samdonche.com/notes/feed.xml" rel="self" type="application/atom+xml"/>
   <link href="https://samdonche.com/notes/" rel="alternate" type="text/html"/>
   <id>https://samdonche.com/notes/</id>
-  <updated>2026-09-22T12:00:00Z</updated>
+  <updated>2026-09-24T12:00:00Z</updated>
   <author><name>Sam Donche</name></author>
   <entry>
     <title>Ignition credentials belong in your secrets manager</title>
@@ -59,6 +59,15 @@
     <published>2026-09-22T12:00:00Z</published>
     <updated>2026-09-22T12:00:00Z</updated>
     <summary>Free Apache-2.0 components: scheduling board, calendar, editable grid, pan-and-zoom, branching diagram, and the admin family Vision had.</summary>
+    <author><name>Sam Donche</name></author>
+  </entry>
+  <entry>
+    <title>Five things the Ignition 8.3 SDK does not tell you</title>
+    <link href="https://samdonche.com/notes/ignition-sdk-lessons/" rel="alternate" type="text/html"/>
+    <id>https://samdonche.com/notes/ignition-sdk-lessons/</id>
+    <published>2026-09-24T12:00:00Z</published>
+    <updated>2026-09-24T12:00:00Z</updated>
+    <summary>Lessons from a module that runs Doom on a gateway: routes that refuse to mount, WebSocket servlets, reused component stores, and a C bug that only appeared in Docker.</summary>
     <author><name>Sam Donche</name></author>
   </entry>
   <entry>

@@ -30,6 +30,7 @@ PAGES = [
     {"loc": "https://samdonche.com/notes/ignition-perspective/", "file": "notes/ignition-perspective/index.html", "changefreq": "yearly", "priority": "0.6"},
     {"loc": "https://samdonche.com/notes/ignition-dark-mode/", "file": "notes/ignition-dark-mode/index.html", "changefreq": "yearly", "priority": "0.6"},
     {"loc": "https://samdonche.com/notes/ignition-doom/", "file": "notes/ignition-doom/index.html", "changefreq": "yearly", "priority": "0.6"},
+    {"loc": "https://samdonche.com/notes/ignition-sdk-lessons/", "file": "notes/ignition-sdk-lessons/index.html", "changefreq": "yearly", "priority": "0.6"},
     {"loc": "https://samdonche.com/notes/ignition-modules/", "file": "notes/ignition-modules/index.html", "changefreq": "yearly", "priority": "0.6"},
     {"loc": "https://samdonche.com/notes/mqtt-sparkplug-b/", "file": "notes/mqtt-sparkplug-b/index.html", "changefreq": "yearly", "priority": "0.6"},
     {"loc": "https://samdonche.com/notes/mes-scada-vs-historian/", "file": "notes/mes-scada-vs-historian/index.html", "changefreq": "yearly", "priority": "0.6"},

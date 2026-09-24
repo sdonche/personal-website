@@ -70,6 +70,11 @@ CARDS = [
         "title": "Fourteen Perspective components the platform never shipped",
     },
     {
+        "slug": "ignition-sdk-lessons",
+        "eyebrow": "NOTE",
+        "title": "Five things the Ignition 8.3 SDK does not tell you",
+    },
+    {
         "slug": "ignition-doom",
         "eyebrow": "NOTE",
         "title": "Yes, your Ignition gateway can run Doom",
