@@ -73,6 +73,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://samdonche.com/notes/ignition-sdk-lessons/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://samdonche.com/notes/ignition-modules/</loc>
     <lastmod>2026-09-22</lastmod>
     <changefreq>yearly</changefreq>
