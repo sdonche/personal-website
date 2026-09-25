@@ -2,7 +2,7 @@ import { Plant } from "./ns.js?v=c600f295ec";
 
 
 Plant.renderKpis = function renderKpis() {
-  const jam = Plant.state.scenario === "jam" && !Plant.state.cartonerJamCleared;
+  const jam = Plant.state.packScenario === "jam";
   const drawing = Plant.state.activeDrawing;
   const mixing = drawing === "mixing";
   const refining = drawing === "refining";
@@ -33,7 +33,7 @@ Plant.renderKpis = function renderKpis() {
   };
 
   const temperWarm = Plant.state.temperScenario === "warm";
-  const temperBelt = Plant.state.temperScenario === "belt";
+  const temperDrive = Plant.state.temperScenario === "drive";
   const feedStarved = Plant.isFeedStarved();
   const overview = drawing === "overview";
   const areaHeld = (d) => {
@@ -101,8 +101,8 @@ Plant.renderKpis = function renderKpis() {
     setLabel("kpi-d-label", "Mode");
     setKpi("kpi-a", val("Tempering/Temper1/Zone1TempC"), temperWarm ? "bad" : "good");
     setKpi("kpi-b", val("Tempering/Temper1/Zone3TempC"), temperWarm ? "bad" : "good");
-    setKpi("kpi-c", val("Tempering/Temper1/ScrewRpm"), temperBelt ? "bad" : temperStarve ? "warn" : "good");
-    setKpi("kpi-d", String(Plant.live["Tempering/Mode"]?.value ?? "—"), temperWarm ? "bad" : temperBelt || temperStarve ? "warn" : "good");
+    setKpi("kpi-c", val("Tempering/Temper1/ScrewRpm"), temperDrive ? "bad" : temperStarve ? "warn" : "good");
+    setKpi("kpi-d", String(Plant.live["Tempering/Mode"]?.value ?? "—"), temperWarm ? "bad" : temperDrive || temperStarve ? "warn" : "good");
   } else if (moulding) {
     const mode = Plant.live["Moulding/Mode"]?.value ?? "—";
     const mouldJamSc = Plant.state.mouldScenario === "jam";
@@ -157,16 +157,16 @@ Plant.renderKpis = function renderKpis() {
     btn.classList.toggle("plant-btn--ghost", !hasLocalFault || !!blocked);
   };
 
-  document.querySelectorAll("[data-scenario]").forEach((btn) => {
-    const sc = btn.getAttribute("data-scenario");
+  document.querySelectorAll("[data-pack-scenario]").forEach((btn) => {
+    const sc = btn.getAttribute("data-pack-scenario");
     if (sc === "recover") {
-      paintRecover(btn, Plant.state.scenario != null, { blocked: upstreamHold && Plant.state.scenario === null });
-      btn.title = upstreamHold && Plant.state.scenario === null
+      paintRecover(btn, Plant.state.packScenario != null, { blocked: upstreamHold && Plant.state.packScenario === null });
+      btn.title = upstreamHold && Plant.state.packScenario === null
         ? "Upstream hold — clear root cause first"
         : "Return packaging line to healthy AUTO";
       return;
     }
-    btn.classList.toggle("is-active", Plant.state.scenario === sc);
+    btn.classList.toggle("is-active", Plant.state.packScenario === sc);
   });
   document.querySelectorAll("[data-mix-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-mix-scenario");
@@ -215,7 +215,7 @@ Plant.renderKpis = function renderKpis() {
 
   const recoverAllBtn = document.querySelector('[data-action="recover-all"]');
   if (recoverAllBtn) {
-    const anyLocal = Plant.state.scenario != null || Plant.state.mixScenario != null
+    const anyLocal = Plant.state.packScenario != null || Plant.state.mixScenario != null
       || Plant.state.temperScenario != null || Plant.state.refineScenario != null
       || Plant.state.concheScenario != null || Plant.state.mouldScenario != null;
     paintRecover(recoverAllBtn, anyLocal);
@@ -252,7 +252,7 @@ Plant.renderKpis = function renderKpis() {
     else if (conching && Plant.state.concheScenario === "overtemp") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Overtemp"; }
     else if (conching && Plant.state.concheScenario === "agitator") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Agitator"; }
     else if (tempering && temperWarm) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Zone warm"; }
-    else if (tempering && temperBelt) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Drive stop"; }
+    else if (tempering && temperDrive) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Drive stop"; }
     else if (moulding && Plant.state.mouldScenario === "jam") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Jam"; }
     else if (moulding && Plant.state.mouldScenario === "cool") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Cool air"; }
     else if (packaging && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Jam"; }
@@ -514,8 +514,9 @@ Plant.renderBatchTrail = function renderBatchTrail() {
     else li.classList.add("is-pending");
     btn.classList.toggle("is-active", step === Plant.state.activeDrawing || (Plant.state.activeDrawing === "overview" && idx === here));
     const pos = idx === here ? "batch position" : idx < here ? "completed" : "pending";
-    btn.setAttribute("aria-label", `${step} — ${pos} (open sheet)`);
-    btn.title = `${step}: batch position vs open sheet`;
+    const stepName = step.charAt(0).toUpperCase() + step.slice(1);
+    btn.setAttribute("aria-label", `${stepName} — ${pos} (open sheet)`);
+    btn.title = `${stepName}: batch position vs open sheet`;
   });
 }
 
@@ -617,9 +618,9 @@ Plant.wire = function wire() {
   });
 
   document.querySelector(".plant-toolbar")?.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-action], [data-scenario], [data-mix-scenario], [data-temper-scenario], [data-refine-scenario], [data-conche-scenario], [data-mould-scenario]");
+    const btn = e.target.closest("[data-action], [data-pack-scenario], [data-mix-scenario], [data-temper-scenario], [data-refine-scenario], [data-conche-scenario], [data-mould-scenario]");
     if (!btn) return;
-    const sc = btn.getAttribute("data-scenario");
+    const sc = btn.getAttribute("data-pack-scenario");
     const mixSc = btn.getAttribute("data-mix-scenario");
     const temperSc = btn.getAttribute("data-temper-scenario");
     const refineSc = btn.getAttribute("data-refine-scenario");

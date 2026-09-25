@@ -79,7 +79,7 @@ Plant.flowArrow = function flowArrow(x, y) {
   return `<polygon class="pid-arrow" points="${x},${y} ${x - 7},${y - 4.5} ${x - 7},${y + 4.5}" />`;
 }
 
-Plant.equipBlock = function equipBlock(x, y, w, h, eq, st) {
+Plant.equipBlock = function equipBlock(x, y, w, h, eq) {
   const tagId = `${eq.id}/Running`;
   const selected = Plant.state.selectedTag.startsWith(eq.id + "/") || Plant.state.selectedTag === eq.id
     ? " is-selected" : "";
@@ -115,7 +115,7 @@ Plant.equipBlock = function equipBlock(x, y, w, h, eq, st) {
       <line class="pid-equip__detail" x1="${x + 8}" y1="${midY}" x2="${x + w - 8}" y2="${midY}" />`;
   }
   return `
-    <g class="pid-equip pid-equip--${st}${selected}" data-equip="${Plant.escapeHtml(eq.id)}" data-tag="${Plant.escapeHtml(tagId)}" role="button" tabindex="0">
+    <g class="pid-equip pid-equip--run${selected}" data-equip="${Plant.escapeHtml(eq.id)}" data-tag="${Plant.escapeHtml(tagId)}" role="button" tabindex="0">
       ${body}
       <text class="pid-equip__pid" x="${p.cx}" y="${p.top - 8}" text-anchor="middle">${Plant.escapeHtml(eq.pid)}</text>
       <text class="pid-equip__name" x="${p.cx}" y="${p.bottom + 14}" text-anchor="middle">${Plant.escapeHtml(eq.label)}</text>
@@ -188,7 +188,7 @@ Plant.buildPackagingPid = function buildPackagingPid() {
     <text class="pid-flow-label" x="${outletX1}" y="${midY - 22}" text-anchor="middle">PALLETS</text>`;
 
   const equips = layout.map((n) =>
-    Plant.equipBlock(n.x, n.y, n.w, n.h, n.eq, "run")
+    Plant.equipBlock(n.x, n.y, n.w, n.h, n.eq)
   ).join("");
 
   const cart = layout[1];
@@ -357,13 +357,13 @@ Plant.buildMixingPid = function buildMixingPid() {
         <text class="pid-equip__name" x="${tankCx + 12}" y="${tankY + tankH + 16}" text-anchor="start">Mixer1</text>
       </g>
 
-      <line class="pid-pipe pid-pipe--main" x1="${tankX + tankW}" y1="${outY}" x2="880" y2="${outY}" />
+      <line class="pid-pipe pid-pipe--main" x1="${tankX + tankW}" y1="${outY}" x2="920" y2="${outY}" />
       ${Plant.flange(tankX + tankW, outY)}
       ${Plant.pumpSymbol(660, outY)}
       ${Plant.mixValve(720, outY, "Mixing/Outlet/ValveOpen", "Outlet", "XV-105")}
       ${Plant.flowArrow(800, outY)}
-      <text class="pid-flow-label" x="888" y="${outY - 10}" text-anchor="start">TO REFINE</text>
-      ${Plant.massFlowLine(tankX + tankW, outY, 880, outY)}
+      <text class="pid-flow-label" x="932" y="${outY - 10}" text-anchor="end">TO REFINE</text>
+      ${Plant.massFlowLine(tankX + tankW, outY, 920, outY)}
 
       <text class="pid-flow-label" x="28" y="352" text-anchor="start">JACKET WATER</text>
       <line class="pid-pipe pid-pipe--divert" x1="140" y1="352" x2="${tankX + 40}" y2="${tankY + tankH}" />
@@ -417,15 +417,15 @@ Plant.buildTemperingPid = function buildTemperingPid() {
   }).join("");
 
   const balloons = [
-    Plant.balloon(tunnelX + zoneW * 0.5, 68, "TI", "410", "Tempering/Temper1/Zone1TempC", tunnelX + zoneW * 0.5, tunnelY, "Temper1"),
-    Plant.balloon(tunnelX + zoneW * 1.5, 68, "TI", "411", "Tempering/Temper1/Zone2TempC", tunnelX + zoneW * 1.5, tunnelY, "Temper1"),
-    Plant.balloon(tunnelX + zoneW * 2.5, 68, "TI", "412", "Tempering/Temper1/Zone3TempC", tunnelX + zoneW * 2.5, tunnelY, "Temper1"),
+    Plant.balloon(tunnelX + zoneW * 0.5, 80, "TI", "410", "Tempering/Temper1/Zone1TempC", tunnelX + zoneW * 0.5, tunnelY, "Temper1"),
+    Plant.balloon(tunnelX + zoneW * 1.5, 80, "TI", "411", "Tempering/Temper1/Zone2TempC", tunnelX + zoneW * 1.5, tunnelY, "Temper1"),
+    Plant.balloon(tunnelX + zoneW * 2.5, 80, "TI", "412", "Tempering/Temper1/Zone3TempC", tunnelX + zoneW * 2.5, tunnelY, "Temper1"),
     Plant.balloon(tunnelX + tunnelW / 2 - 70, 330, "SI", "414", "Tempering/Temper1/ScrewRpm", tunnelX + tunnelW / 2 - 40, tunnelY + tunnelH, "Temper1"),
     Plant.balloon(tunnelX + tunnelW / 2 + 70, 330, "TI", "413", "Tempering/Temper1/MassTempC", tunnelX + tunnelW / 2 + 40, tunnelY + tunnelH, "Temper1"),
     Plant.balloon(90, inY - 52, "FI", "401", "Tempering/Inlet/FlowKgH", 140, inY, "Inlet"),
     Plant.balloon(850, outY - 52, "FI", "405", "Tempering/Outlet/FlowKgH", 800, outY, "Outlet"),
     Plant.balloon(200, 352, "FI", "420", "Tempering/ChilledWater/FlowM3H", 200, tunnelY + tunnelH + 10, "ChilledWater"),
-    Plant.balloon(520, 352, "TI", "421", "Tempering/ChilledWater/SupplyTempC", 520, tunnelY + tunnelH + 10, "ChilledWater"),
+    Plant.balloon(640, 352, "TI", "421", "Tempering/ChilledWater/SupplyTempC", 640, tunnelY + tunnelH + 10, "ChilledWater"),
   ].join("");
 
   host.innerHTML = `
@@ -460,7 +460,7 @@ Plant.buildTemperingPid = function buildTemperingPid() {
         ${zones}
         <line class="pid-tunnel__screw" x1="${tunnelX + 20}" y1="${midY}" x2="${tunnelX + tunnelW - 20}" y2="${midY}" />
         ${screwFlights}
-        <text class="pid-equip__pid" x="${tunnelX + tunnelW / 2}" y="${tunnelY - 12}" text-anchor="middle">TP-400</text>
+        <text class="pid-equip__pid" x="${tunnelX + 6}" y="${tunnelY - 8}" text-anchor="start">TP-400</text>
         <text class="pid-equip__name" x="${tunnelX + tunnelW / 2}" y="${tunnelY + tunnelH + 22}" text-anchor="middle">Temper1</text>
       </g>
 
@@ -822,8 +822,8 @@ Plant.paintPid = function paintPid() {
   if (!host) return;
   if (!Plant.pidBuilt) Plant.buildPid();
 
-  const jam = Plant.state.scenario === "jam" && !Plant.state.cartonerJamCleared;
-  const pkgStarved = Plant.packagingSvgStarved();
+  const jam = Plant.state.packScenario === "jam";
+  const pkgStarved = Plant.isFeedStarved();
   const svg = host.querySelector(".pid-svg");
   if (!svg) return;
   const drawing = Plant.state.activeDrawing;
@@ -885,7 +885,7 @@ Plant.paintPid = function paintPid() {
   const mixValve = Plant.state.mixScenario === "valve";
 
   const temperWarm = Plant.state.temperScenario === "warm";
-  const temperBelt = Plant.state.temperScenario === "belt";
+  const temperDrive = Plant.state.temperScenario === "drive";
   const refinePressure = Plant.state.refineScenario === "pressure";
   const refineParticle = Plant.state.refineScenario === "particle";
   const concheOver = Plant.state.concheScenario === "overtemp";
@@ -899,7 +899,7 @@ Plant.paintPid = function paintPid() {
 
   svg.classList.remove("is-running", "is-fault", "is-warn");
   if (mixing) svg.classList.add(mixOver ? "is-fault" : mixValve ? "is-warn" : "is-running");
-  else if (tempering) svg.classList.add(temperWarm ? "is-fault" : temperBelt || temperStarved ? "is-warn" : "is-running");
+  else if (tempering) svg.classList.add(temperWarm ? "is-fault" : temperDrive || temperStarved ? "is-warn" : "is-running");
   else if (refining) svg.classList.add(refinePressure ? "is-fault" : refineParticle || refineStarved ? "is-warn" : "is-running");
   else if (conching) svg.classList.add(concheOver ? "is-fault" : concheAgit || concheStarved ? "is-warn" : "is-running");
   else if (moulding) svg.classList.add(mouldJam ? "is-fault" : mouldCool || mouldStarved ? "is-warn" : "is-running");
@@ -908,7 +908,7 @@ Plant.paintPid = function paintPid() {
   const flowShow = (() => {
     if (Plant.reducedMotion) return false;
     if (mixing) return !mixOver && !mixValve;
-    if (tempering) return !temperWarm && !temperBelt && !temperStarved;
+    if (tempering) return !temperWarm && !temperDrive && !temperStarved;
     if (refining) return !refinePressure && !refineParticle && !refineStarved;
     if (conching) return !concheOver && !concheAgit && !concheStarved;
     if (moulding) return !mouldJam && !mouldCool && !mouldStarved;
@@ -960,13 +960,13 @@ Plant.paintPid = function paintPid() {
       tunnel.classList.remove("is-selected", "is-hover", "is-fault", "is-warn", "is-alarm");
       if (Plant.state.selectedTag.startsWith("Tempering/Temper1")) tunnel.classList.add("is-selected");
       if (temperWarm) tunnel.classList.add("is-fault");
-      else if (temperBelt || temperStarved) tunnel.classList.add("is-warn");
+      else if (temperDrive || temperStarved) tunnel.classList.add("is-warn");
     }
     svg.querySelectorAll(".pid-tunnel__zone").forEach((z) => {
       z.classList.toggle("is-warm", temperWarm);
     });
     const screw = svg.querySelector(".pid-tunnel__screw");
-    if (screw) screw.classList.toggle("is-stopped", temperBelt);
+    if (screw) screw.classList.toggle("is-stopped", temperDrive);
     svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
       const tagId = g.getAttribute("data-tag");
       const open = !!(Plant.live[tagId] || {}).value;
@@ -1041,6 +1041,11 @@ Plant.paintPid = function paintPid() {
     }
   }
 
+  // Balloons, Line 3 equipment and the divert valve only get these classes from
+  // alarms: clear them first so a cleared alarm doesn't leave its colour behind.
+  svg.querySelectorAll(".pid-balloon, .pid-equip, .pid-valve").forEach((el) => {
+    el.classList.remove("is-alarm", "is-warn", "is-fault");
+  });
   const sheetAlarms = Plant.state.alarms.filter((a) => Plant.ALARM_PID[a.id]?.drawing === drawing);
   sheetAlarms.forEach((a) => {
     const meta = Plant.ALARM_PID[a.id];

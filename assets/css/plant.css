@@ -597,18 +597,6 @@
   border-radius: 2px;
   vertical-align: middle;
 }
-.plant-tree__line--offline > details > summary .plant-tree__label::after {
-  content: "OFF";
-  margin-left: 0.45rem;
-  font-size: 0.5rem;
-  letter-spacing: 0.1em;
-  color: rgb(100 116 139);
-  border: 1px solid rgba(100, 116, 139, 0.35);
-  padding: 0.05rem 0.28rem;
-  border-radius: 2px;
-  vertical-align: middle;
-}
-
 /* Nested folders: tighten deeper levels */
 .plant-tree details details > ul {
   margin-left: 0.25rem;
@@ -1364,6 +1352,7 @@
 .pid-q--good .pid-balloon__val { fill: #6ee7b7; }
 .pid-q--uncertain .pid-balloon__val { fill: #fcd34d; }
 .pid-q--bad .pid-balloon__val { fill: #fca5a5; }
+.pid-q--stale .pid-balloon__val { fill: #94a3b8; }
 
 .pid-equip.is-hover .pid-equip__body,
 .pid-valve.is-hover .pid-valve__body,

@@ -3,13 +3,12 @@ import { Plant } from "./ns.js?v=c600f295ec";
 
 Plant.defaultState = function defaultState() {
   return {
-    scenario: /** @type {null|"jam"|"starved"} */ (null),
+    packScenario: /** @type {null|"jam"|"starved"} */ (null),
     mixScenario: /** @type {null|"overtemp"|"valve"} */ (null),
-    temperScenario: /** @type {null|"warm"|"belt"} */ (null),
+    temperScenario: /** @type {null|"warm"|"drive"} */ (null),
     refineScenario: /** @type {null|"pressure"|"particle"} */ (null),
     concheScenario: /** @type {null|"overtemp"|"agitator"} */ (null),
     mouldScenario: /** @type {null|"jam"|"cool"} */ (null),
-    cartonerJamCleared: false,
     rejectCount: 12,
     underCount: 3,
     overCount: 1,
@@ -60,13 +59,16 @@ Plant.loadState = function loadState() {
       activeDrawing: Plant.ALL_DRAWING_IDS.includes(parsed.activeDrawing)
         ? parsed.activeDrawing
         : Plant.drawingForTag(Plant.TAG_BY_ID[parsed.selectedTag] ? parsed.selectedTag : base.selectedTag) || "packaging",
-      scenario: parsed.scenario === "jam" || parsed.scenario === "starved" ? parsed.scenario : null,
+      // packScenario was "scenario" before; accept states saved by older versions
+      packScenario: [parsed.packScenario, parsed.scenario].find((v) => v === "jam" || v === "starved") ?? null,
+      scenario: undefined,
+      cartonerJamCleared: undefined,
       mixScenario: parsed.mixScenario === "overtemp" || parsed.mixScenario === "valve"
         ? parsed.mixScenario
         : null,
-      temperScenario: parsed.temperScenario === "warm" || parsed.temperScenario === "belt"
+      temperScenario: parsed.temperScenario === "warm" || parsed.temperScenario === "drive"
         ? parsed.temperScenario
-        : null,
+        : parsed.temperScenario === "belt" ? "drive" : null, // legacy id
       refineScenario: parsed.refineScenario === "pressure" || parsed.refineScenario === "particle"
         ? parsed.refineScenario
         : null,
