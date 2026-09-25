@@ -990,7 +990,7 @@ Plant.paintPid = function paintPid() {
       else if (conching && concheOver) equipEl.classList.add("is-fault");
       else if (conching && (concheAgit || concheStarved)) equipEl.classList.add("is-warn");
       else if (moulding && mouldJam) equipEl.classList.add("is-fault");
-      else if (moulding && mouldStarved) equipEl.classList.add("is-warn");
+      else if (moulding && (mouldStarved || mouldCool)) equipEl.classList.add("is-warn");
     }
     if (moulding) {
       const cooling = svg.querySelector(".pid-cooling");

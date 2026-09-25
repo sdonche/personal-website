@@ -266,6 +266,13 @@ Plant.SISTER_AREAS = [
     { name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1) },
   ]},
 ];
+/** Last OEE reported before each sister's link went down (shown as Stale). */
+Plant.SISTER_LAST_OEE = {
+  Gullegem: 74.2,
+  Ieper: 81.4,
+  Gent: 78.9,
+  Brugge: 83.6,
+};
 Plant.SISTER_LAST_CONTACT = {
   Gullegem: "2026-09-19 22:14 UTC",
   Ieper: "2026-09-18 06:41 UTC",
@@ -359,8 +366,11 @@ Plant.ALARM_PID = {
   "alm-mix-valve": { drawing: "mixing", equip: "CocoaLiquor", severity: "warning" },
   "alm-temper-warm": { drawing: "tempering", equip: "Temper1", severity: "critical" },
   "alm-temper-belt": { drawing: "tempering", equip: "Temper1", severity: "warning" },
+  "alm-refine-upstream": { drawing: "refining", equip: "Inlet", severity: "warning" },
+  "alm-conche-upstream": { drawing: "conching", equip: "Inlet", severity: "warning" },
   "alm-temper-upstream": { drawing: "tempering", equip: "Inlet", severity: "warning" },
-  "alm-refine-pressure": { drawing: "refining", equip: "Refiner1", severity: "critical" },
+  "alm-mould-upstream": { drawing: "moulding", equip: "Inlet", severity: "warning" },
+  "alm-refine-pressure": { drawing: "refining", equip: "Hydraulic", severity: "critical" },
   "alm-refine-particle": { drawing: "refining", equip: "Refiner1", severity: "warning" },
   "alm-conche-overtemp": { drawing: "conching", equip: "Conche1", severity: "critical" },
   "alm-conche-agitator": { drawing: "conching", equip: "Conche1", severity: "warning" },

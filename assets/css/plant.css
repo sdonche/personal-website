@@ -541,6 +541,11 @@
   color: var(--plant-uncertain);
   border-color: rgba(251, 191, 36, 0.45);
 }
+.plant-tree__site--spark .plant-tree__area--stub > details > summary .plant-tree__label::after {
+  content: "FLAP";
+  color: var(--plant-uncertain);
+  border-color: rgba(251, 191, 36, 0.45);
+}
 .plant-tree__site--offline.plant-tree__site--spark > details > summary {
   color: rgb(226 232 240);
   font-weight: 600;

@@ -319,13 +319,13 @@ Plant.paintSisterSpark = function paintSisterSpark() {
     li.classList.toggle("plant-tree__site--spark", isSister && snap.link === "flap");
     const meta = li.querySelector(`[data-site-meta="${CSS.escape(site)}"]`);
     if (meta) {
-      const oeeTxt = snap.oee == null ? "—" : `${snap.oee.toFixed(0)}%`;
+      const oeeTxt = snap.oee == null ? "—" : `${snap.oee.toFixed(1)} %`;
       if (snap.isHome) {
         meta.textContent = `${snap.mode} · ${oeeTxt}`;
       } else if (snap.link === "flap") {
         meta.textContent = `${snap.mode} · ${oeeTxt}`;
       } else {
-        meta.textContent = `link down · ${oeeTxt}`;
+        meta.textContent = `offline · last ${oeeTxt}`;
       }
     }
   });

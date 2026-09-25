@@ -43,7 +43,7 @@ Plant.renderKpis = function renderKpis() {
 
   if (overview) {
     const oee = Plant.live.OEE?.value ?? 0;
-    const batchId = String(Plant.live.BatchId?.value ?? "—");
+    const batchId = String(Plant.live.__trackedBatch?.value ?? "—");
     const almN = Plant.state.alarms.length;
     const fleet = Plant.fleetSummaryLabel();
     const anyFault = Plant.PLANT_AREAS.some((a) => Plant.areaHealth(a.drawing) === "fault");
@@ -245,7 +245,7 @@ Plant.renderKpis = function renderKpis() {
   if (scanDot && scanLabel) {
     scanDot.classList.remove("is-fault", "is-warn");
     if (mixing && mixOver) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Overtemp"; }
-    else if (mixing && mixValve) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Valve fault"; }
+    else if (mixing && mixValve) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Valve stuck"; }
     else if (refining && Plant.state.refineScenario === "pressure") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Pressure"; }
     else if (refining && Plant.state.refineScenario === "particle") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Particle"; }
     else if (conching && Plant.state.concheScenario === "overtemp") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Overtemp"; }
@@ -254,7 +254,7 @@ Plant.renderKpis = function renderKpis() {
     else if (tempering && temperBelt) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Drive stop"; }
     else if (moulding && Plant.state.mouldScenario === "jam") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Jam"; }
     else if (moulding && Plant.state.mouldScenario === "cool") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Cool air"; }
-    else if (packaging && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
+    else if (packaging && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Jam"; }
     else if (packaging && feedStarved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
     else if (overview) {
       const anyFault = Plant.PLANT_AREAS.some((a) => Plant.areaHealth(a.drawing) === "fault");
@@ -263,9 +263,12 @@ Plant.renderKpis = function renderKpis() {
       if (anyFault) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Plant fault"; }
       else if (anyWarn) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Plant hold"; }
       else if (flap) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Sister flap"; }
-      else scanLabel.textContent = "Line healthy";
+      else scanLabel.textContent = "Plant healthy";
+    } else if (!packaging && Plant.areaHealth(drawing) === "starved") {
+      // Held by an upstream area: this area waits for mass
+      scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved";
     } else {
-      scanLabel.textContent = "Line healthy";
+      scanLabel.textContent = packaging ? "Line healthy" : "Area healthy";
     }
   }
 
@@ -405,7 +408,10 @@ Plant.paintFleet = function paintFleet() {
     const modeEl = cell.querySelector("[data-fleet-mode]");
     if (modeEl) modeEl.textContent = snap.mode;
     const oeeEl = cell.querySelector("[data-fleet-oee]");
-    if (oeeEl) oeeEl.textContent = snap.oee == null ? "OEE —" : `OEE ${snap.oee.toFixed(1)}%`;
+    if (oeeEl) {
+      const oeeTxt = snap.oee == null ? "—" : `${snap.oee.toFixed(1)} %`;
+      oeeEl.textContent = snap.link === "offline" ? `Last OEE ${oeeTxt}` : `OEE ${oeeTxt}`;
+    }
     const contactEl = cell.querySelector("[data-fleet-contact]");
     if (contactEl) {
       contactEl.textContent = snap.isHome || snap.link === "flap"
@@ -465,7 +471,7 @@ Plant.paintSiteChip = function paintSiteChip() {
   if (Plant.isSisterSiteTag(tag)) {
     const site = tag.split("/")[0];
     const snap = Plant.siteSnapshot(site);
-    const linkTxt = snap.link === "flap" ? "link flapping" : "offline stub";
+    const linkTxt = snap.link === "flap" ? "flapping link" : "offline, last known values";
     chip.hidden = false;
     chip.textContent = `Viewing ${site} tags · ${linkTxt} · Heuvelland P&ID still shown`;
     chip.classList.toggle("is-flap", snap.link === "flap");
@@ -493,7 +499,7 @@ Plant.renderBatchTrail = function renderBatchTrail() {
   const idBtn = document.getElementById("plant-batch-id");
   const steps = document.getElementById("plant-batch-steps");
   if (!idBtn || !steps) return;
-  const batchId = String(Plant.live.BatchId?.value ?? Plant.live["Mixing/BatchId"]?.value ?? "—");
+  const batchId = String(Plant.live.__trackedBatch?.value ?? "—");
   idBtn.textContent = `BATCH ${batchId}`;
   const here = Plant.batchStepIndex(Plant.live.__batchPhase?.value ?? (Plant.tick % 90));
   steps.querySelectorAll("[data-batch-step]").forEach((btn) => {
@@ -635,7 +641,8 @@ Plant.wire = function wire() {
   document.getElementById("plant-batch-trail")?.addEventListener("click", (e) => {
     const idBtn = e.target.closest("#plant-batch-id");
     if (idBtn) {
-      const tag = Plant.BATCH_HOME_TAG[Plant.state.activeDrawing] || Plant.BATCH_HOME_TAG[Plant.BATCH_STEPS[Plant.batchStepIndex(Plant.live.__batchPhase?.value ?? (Plant.tick % 90))]] || "BatchId";
+      // The tracked batch sits in exactly one area: select that area's BatchId
+      const tag = Plant.BATCH_HOME_TAG[Plant.BATCH_STEPS[Plant.batchStepIndex(Plant.live.__batchPhase?.value ?? (Plant.tick % 90))]] || "BatchId";
       Plant.selectTag(tag);
       return;
     }
