@@ -91,8 +91,8 @@
   <link rel="preload" href="../../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="../../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="../../assets/css/fonts.css?v=0f6b5ce264" />
-  <link rel="stylesheet" href="../../assets/css/tailwind.css?v=ee980a95a2" />
-  <link rel="stylesheet" href="../../assets/css/styles.css?v=5af1382eec" />
+  <link rel="stylesheet" href="../../assets/css/tailwind.css?v=9f7594763d" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=2a7925398d" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -110,7 +110,7 @@
 <!-- Top bar -->
   <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
-      <a href="../../" class="flex items-center gap-2 group shrink-0" aria-label="Home">
+      <a href="../../" class="flex items-center gap-2 group shrink-0">
         <span class="relative inline-flex h-2.5 w-2.5">
           <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
           <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
@@ -127,7 +127,7 @@
           <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
           <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
         </div>
-        <a href="../" class="subpage-back font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← notes</a>
+        <a href="../" class="subpage-back font-mono text-[11px] uppercase tracking-widest text-slate-400 hover:text-brand-300 transition-colors shrink-0">← notes</a>
         <button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
       </div>
     </div>
@@ -140,7 +140,7 @@
       <div class="hero-enter">
         <p class="section-eyebrow">// Notes</p>
         <h1 class="section-title">Page the channel the crew actually watches.</h1>
-        <p class="mt-4 font-mono text-xs tracking-wider text-slate-500">
+        <p class="mt-4 font-mono text-xs tracking-wider text-slate-400">
           2026-09-22 <span class="text-slate-700">·</span> 6 min read <span class="text-slate-700">·</span> Ignition
         </p>
       </div>
@@ -228,32 +228,32 @@
           <li>
             <a href="../ignition-modules/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
               <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Ignition modules for the gaps the platform leaves</span>
-              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-400 shrink-0">Note ↗</span>
             </a>
           </li>
           <li>
             <a href="../ignition-observability/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
               <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Put your Ignition gateway on the same dashboards as everything else</span>
-              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-400 shrink-0">Note ↗</span>
             </a>
           </li>
           <li>
             <a href="../ignition-secrets/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
               <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Ignition credentials belong in your secrets manager</span>
-              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-400 shrink-0">Note ↗</span>
             </a>
           </li>
           <li>
             <a href="../ignition-amqp/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
               <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Stop scripting RabbitMQ inside Ignition</span>
-              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 shrink-0">Note ↗</span>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-400 shrink-0">Note ↗</span>
             </a>
           </li>
         </ul>
       </nav>
 
       <p class="mt-10 font-mono text-xs">
-        <a href="../" class="text-slate-500 hover:text-brand-300 transition-colors">← all notes</a>
+        <a href="../" class="text-slate-400 hover:text-brand-300 transition-colors">← all notes</a>
       </p>
 
     </article>
@@ -262,7 +262,7 @@
 
 <!-- partial:subpage-footer -->
   <footer class="border-t border-slate-800/60 lg:pl-64">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-500">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-400">
       <p class="font-mono text-xs">&copy; <span id="year"></span> Sam Donche</p>
     </div>
   </footer>

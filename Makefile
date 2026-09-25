@@ -11,7 +11,7 @@
 #
 # (Tailwind is still its own step — see README "Rebuilding the CSS".)
 
-.PHONY: all build sync stamp check icons favicon portraits og-cards sitemap feed discover
+.PHONY: all build sync stamp check icons favicon portraits og-cards thumbs sitemap feed discover
 
 # Default: expand shared chrome, refresh cache-busters, refresh discoverability
 # artifacts, then verify consistency.
@@ -55,6 +55,12 @@ favicon:
 # Updates the ?v= hashes inside index.html's <picture> block.
 portraits:
 	python3 scripts/gen-portrait-modern.py
+
+# Re-capture the "Selected work" thumbnails (assets/img/work/) from the live
+# pages — run after the plant HMI's look changes. Needs Node + Playwright
+# (see tools/capture-work-thumbs.mjs). Commit the new images.
+thumbs:
+	node tools/capture-work-thumbs.mjs
 
 # Regenerate homepage + per-page Open Graph JPEGs (needs Pillow + tools/fonts).
 # Then update og:image / twitter:image paths in the HTML if you added a new slug.

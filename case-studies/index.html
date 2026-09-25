@@ -62,8 +62,8 @@
   <link rel="preload" href="../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="../assets/css/fonts.css?v=0f6b5ce264" />
-  <link rel="stylesheet" href="../assets/css/tailwind.css?v=ee980a95a2" />
-  <link rel="stylesheet" href="../assets/css/styles.css?v=5af1382eec" />
+  <link rel="stylesheet" href="../assets/css/tailwind.css?v=9f7594763d" />
+  <link rel="stylesheet" href="../assets/css/styles.css?v=2a7925398d" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -81,7 +81,7 @@
 <!-- Top bar -->
   <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
-      <a href="../" class="flex items-center gap-2 group shrink-0" aria-label="Home">
+      <a href="../" class="flex items-center gap-2 group shrink-0">
         <span class="relative inline-flex h-2.5 w-2.5">
           <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
           <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
@@ -98,7 +98,7 @@
           <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
           <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
         </div>
-        <a href="../" class="subpage-back font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← back</a>
+        <a href="../" class="subpage-back font-mono text-[11px] uppercase tracking-widest text-slate-400 hover:text-brand-300 transition-colors shrink-0">← back</a>
         <button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
       </div>
     </div>
@@ -122,15 +122,39 @@
 
     <ul class="mt-12 grid gap-5">
       <li>
-        <a href="factory-data-backbone/" class="group block rounded-lg border border-slate-800 bg-slate-900/40 p-5 sm:p-6 hover:border-brand-400/40 transition-colors">
-          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">From data islands to a factory-wide backbone</h2>
-            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-500 group-hover:text-brand-300 transition-colors shrink-0">Case study ↗</span>
-          </div>
-          <p class="text-sm text-slate-400 mt-1">A large European food producer · Data engineering</p>
-          <p class="mt-3 text-sm text-slate-300 leading-relaxed">From scattered spreadsheets and data islands to a unified data backbone across five production sites, built on Ignition, MQTT and a unified namespace.</p>
-          <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
-            <span class="tag">Ignition</span><span class="tag">MQTT</span><span class="tag">Unified Namespace</span><span class="tag">Data Lake</span>
+        <a href="factory-data-backbone/" class="work-card group">
+<!-- partial:work-backbone-diagram -->
+            <div class="work-card__media work-card__media--diagram" aria-hidden="true">
+              <!-- Schematic of the case study: five sites publish into one namespace, which feeds historian + lake -->
+              <svg viewBox="0 0 320 180" class="wk-svg">
+                <g class="wk-site"><rect x="10" y="15" width="58" height="18" rx="3"/><text x="39" y="27">SITE·01</text></g>
+                <path class="wk-link wk-flow" d="M68 24 C 104 24, 100 90, 122 90"/>
+                <g class="wk-site"><rect x="10" y="47" width="58" height="18" rx="3"/><text x="39" y="59">SITE·02</text></g>
+                <path class="wk-link wk-flow" d="M68 56 C 104 56, 100 90, 122 90"/>
+                <g class="wk-site"><rect x="10" y="81" width="58" height="18" rx="3"/><text x="39" y="93">SITE·03</text></g>
+                <path class="wk-link wk-flow" d="M68 90 C 104 90, 100 90, 122 90"/>
+                <g class="wk-site"><rect x="10" y="115" width="58" height="18" rx="3"/><text x="39" y="127">SITE·04</text></g>
+                <path class="wk-link wk-flow" d="M68 124 C 104 124, 100 90, 122 90"/>
+                <g class="wk-site"><rect x="10" y="147" width="58" height="18" rx="3"/><text x="39" y="159">SITE·05</text></g>
+                <path class="wk-link wk-flow" d="M68 156 C 104 156, 100 90, 122 90"/>
+                <g class="wk-hub"><rect x="122" y="74" width="76" height="32" rx="4"/><text x="160" y="88">UNS</text><text x="160" y="99" class="wk-sub">MQTT · Ignition</text></g>
+                <path class="wk-link wk-flow wk-flow--out" d="M198 90 C 220 90, 214 56, 236 56"/>
+                <path class="wk-link wk-flow wk-flow--out" d="M198 90 C 220 90, 214 124, 236 124"/>
+                <g class="wk-store"><rect x="236" y="45" width="74" height="22" rx="3"/><text x="273" y="59">HISTORIAN</text></g>
+                <g class="wk-store"><rect x="236" y="113" width="74" height="22" rx="3"/><text x="273" y="127">DATA LAKE</text></g>
+              </svg>
+            </div>
+<!-- /partial:work-backbone-diagram -->
+          <div class="work-card__body">
+            <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <h2 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">From data islands to a factory-wide backbone</h2>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-slate-400 group-hover:text-brand-300 transition-colors shrink-0">Case study ↗</span>
+            </div>
+            <p class="text-sm text-slate-400 mt-1">A large European food producer · Data engineering</p>
+            <p class="mt-3 text-sm text-slate-300 leading-relaxed">From scattered spreadsheets and data islands to a unified data backbone across five production sites, built on Ignition, MQTT and a unified namespace.</p>
+            <div class="mt-4 flex flex-wrap gap-2 font-mono text-[10px]">
+              <span class="tag">Ignition</span><span class="tag">MQTT</span><span class="tag">Unified Namespace</span><span class="tag">Data Lake</span>
+            </div>
           </div>
         </a>
       </li>
@@ -139,7 +163,7 @@
   </div>
 <!-- partial:subpage-footer -->
   <footer class="border-t border-slate-800/60 lg:pl-64">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-500">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-400">
       <p class="font-mono text-xs">&copy; <span id="year"></span> Sam Donche</p>
     </div>
   </footer>
