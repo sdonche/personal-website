@@ -212,7 +212,7 @@ Plant.TEMPERING_TAGS = [
   { id: "Tempering/BatchId", name: "BatchId", type: "string", live: true },
 
   { id: "Tempering/Temper1/Running", name: "Running", type: "bool", live: true },
-  { id: "Tempering/Temper1/ScrewRpm", name: "ScrewRpm", type: "number", unit: "rpm", format: (v) => v.toFixed(1), live: true },
+  { id: "Tempering/Temper1/ScrewRpm", name: "ScrewRpm", type: "number", unit: "rpm", format: (v) => String(Math.round(v)), live: true },
   { id: "Tempering/Temper1/Zone1TempC", name: "Zone1TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
   { id: "Tempering/Temper1/Zone2TempC", name: "Zone2TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
   { id: "Tempering/Temper1/Zone3TempC", name: "Zone3TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1), live: true },
@@ -279,7 +279,7 @@ Plant.SISTER_LAST_CONTACT = {
  */
 Plant.SITE_MAP = {
   Brugge: { x: 118, y: 52, anchor: "end", lx: -14, ly: -2 },
-  Gent: { x: 268, y: 78, anchor: "start", lx: 14, ly: -2 },
+  Gent: { x: 268, y: 78, anchor: "end", lx: -14, ly: -2 },
   Gullegem: { x: 168, y: 112, anchor: "start", lx: 14, ly: 2 },
   Ieper: { x: 78, y: 148, anchor: "end", lx: -14, ly: 2 },
   Heuvelland: { x: 158, y: 172, anchor: "start", lx: 16, ly: 4, home: true },

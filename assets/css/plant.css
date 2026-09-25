@@ -913,7 +913,7 @@
   letter-spacing: 0.14em;
 }
 .pid-sheet__sub {
-  fill: rgb(100 116 139);
+  fill: rgb(148 163 184);
   font-size: 9px;
   letter-spacing: 0.04em;
 }
@@ -1014,6 +1014,10 @@
 .pid-mix-valve.is-fault .pid-mix-valve__body {
   fill: rgba(248, 113, 113, 0.2);
   stroke: #f87171;
+}
+.pid-mix-valve.is-warn .pid-mix-valve__body {
+  fill: rgba(251, 191, 36, 0.18);
+  stroke: #fbbf24;
 }
 
 .pid-tank.is-fault .pid-tank__shell {
@@ -1146,6 +1150,16 @@
 }
 .pid-cooling.is-alarm .pid-pipe {
   stroke: #f87171;
+}
+/* A warning-severity alarm (is-alarm + is-warn) stays amber on every
+   equipment type — the red is-alarm rules above must not win. */
+.pid-tank.is-alarm.is-warn .pid-tank__shell,
+.pid-refiner.is-alarm.is-warn .pid-refiner__shell,
+.pid-moulder.is-alarm.is-warn .pid-moulder__shell,
+.pid-tunnel.is-alarm.is-warn .pid-tunnel__shell,
+.pid-equip.is-alarm.is-warn .pid-equip__body,
+.pid-cooling.is-alarm.is-warn .pid-pipe {
+  stroke: #fbbf24;
 }
 
 .pid-bars-out {
@@ -1371,7 +1385,8 @@
   stroke: #f87171;
   fill: rgba(248, 113, 113, 0.12);
 }
-.pid-valve__pid {
+.pid-valve__pid,
+.pid-mix-valve__pid {
   fill: #94a3b8;
   font-size: 8px;
   letter-spacing: 0.04em;
@@ -1574,6 +1589,10 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+}
+.plant-site-map__rule {
+  stroke: rgba(148, 163, 184, 0.22);
+  stroke-width: 1;
 }
 .plant-site-map__caption {
   fill: rgb(100 116 139);
@@ -2039,6 +2058,9 @@
   background: #f87171;
   padding: 0.05rem 0.28rem;
   border-radius: 2px;
+}
+.plant-alarm[data-sev="warning"] .plant-alarm__firstout {
+  background: var(--plant-uncertain);
 }
 
 .plant-alarm__badge {

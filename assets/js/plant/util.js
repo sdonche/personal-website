@@ -132,8 +132,8 @@ Plant.equipState = function equipState(id) {
   if (id === "Infeed" && starved) return "warn";
   if (jam) {
     if (id === "Infeed") return "warn";
-    if (id === "Checkweigher" || id === "Outfeed" || id === "Palletizer") return "idle";
-    return "fault";
+    // Downstream of the cartoner starves; nothing else is faulted
+    return "idle";
   }
   if (starved) return "warn";
   return "run";

@@ -129,7 +129,7 @@ Plant.divertValve = function divertValve(cx, cyTop, cyBot, active, selected) {
       <line class="pid-pipe pid-pipe--divert" x1="${cx}" y1="${cyTop}" x2="${cx}" y2="${mid - 10}" />
       <polygon class="pid-valve__body" points="${cx},${mid - 10} ${cx - 11},${mid + 10} ${cx + 11},${mid + 10}" />
       <line class="pid-pipe pid-pipe--divert" x1="${cx}" y1="${mid + 10}" x2="${cx}" y2="${cyBot}" />
-      <text class="pid-mix-valve__pid" x="${cx + 16}" y="${mid + 4}" text-anchor="start">XV-321</text>
+      <text class="pid-valve__pid" x="${cx - 16}" y="${mid + 4}" text-anchor="end">XV-321</text>
     </g>`;
 }
 
@@ -248,12 +248,15 @@ Plant.buildPackagingPid = function buildPackagingPid() {
   Plant.pidBuilt = true;
 }
 
-Plant.mixValve = function mixValve(cx, cy, tagId, equip, pidLabel) {
+/** labelSide: "top" (default) or "left" when the space above the valve is taken. */
+Plant.mixValve = function mixValve(cx, cy, tagId, equip, pidLabel, labelSide = "top") {
   const selected = tagId === Plant.state.selectedTag ? " is-selected" : "";
   return `
     <g class="pid-mix-valve${selected}" data-tag="${Plant.escapeHtml(tagId)}" data-equip="${Plant.escapeHtml(equip)}" role="button" tabindex="0" aria-label="${Plant.escapeHtml(pidLabel)}">
       <polygon class="pid-mix-valve__body" points="${cx},${cy - 11} ${cx + 11},${cy} ${cx},${cy + 11} ${cx - 11},${cy}" />
-      <text class="pid-mix-valve__pid" x="${cx}" y="${cy - 16}" text-anchor="middle">${Plant.escapeHtml(pidLabel)}</text>
+      ${labelSide === "left"
+        ? `<text class="pid-mix-valve__pid" x="${cx - 16}" y="${cy + 3}" text-anchor="end">${Plant.escapeHtml(pidLabel)}</text>`
+        : `<text class="pid-mix-valve__pid" x="${cx}" y="${cy - 16}" text-anchor="middle">${Plant.escapeHtml(pidLabel)}</text>`}
     </g>`;
 }
 
@@ -302,10 +305,10 @@ Plant.buildMixingPid = function buildMixingPid() {
   const levelInnerH = tankH - jacketInset * 2 - 16;
 
   const balloons = [
-    Plant.balloon(tankCx - 110, 52, "LI", "110", "Mixing/Mixer1/LevelPct", tankCx - 60, tankY, "Mixer1"),
-    Plant.balloon(tankCx - 30, 52, "TI", "110", "Mixing/Mixer1/JacketTempC", tankCx - 20, tankY, "Mixer1"),
-    Plant.balloon(tankCx + 50, 52, "TI", "111", "Mixing/Mixer1/MassTempC", tankCx + 30, tankY, "Mixer1"),
-    Plant.balloon(tankCx + 120, 52, "SI", "110", "Mixing/Mixer1/AgitatorRpm", tankCx + 70, tankY, "Mixer1"),
+    Plant.balloon(tankCx - 120, 52, "LI", "110", "Mixing/Mixer1/LevelPct", tankCx - 60, tankY, "Mixer1"),
+    Plant.balloon(tankCx - 25, 52, "TI", "110", "Mixing/Mixer1/JacketTempC", tankCx - 20, tankY, "Mixer1"),
+    Plant.balloon(tankCx + 70, 52, "TI", "111", "Mixing/Mixer1/MassTempC", tankCx + 30, tankY, "Mixer1"),
+    Plant.balloon(tankCx + 165, 52, "SI", "110", "Mixing/Mixer1/AgitatorRpm", tankCx + 70, tankY, "Mixer1"),
     Plant.balloon(100, cocoaY - 48, "FI", "101", "Mixing/CocoaLiquor/FlowKgH", 190, cocoaY, "CocoaLiquor"),
     Plant.balloon(100, sugarY + 52, "FI", "102", "Mixing/Sugar/FlowKgH", 190, sugarY, "Sugar"),
     Plant.balloon(800, outY - 52, "FI", "110", "Mixing/Outlet/FlowKgH", 720, outY, "Outlet"),
@@ -330,7 +333,7 @@ Plant.buildMixingPid = function buildMixingPid() {
       </g>
 
       <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — CHOCOLATE MASS</text>
-      <text class="pid-sheet__sub" x="24" y="52">Cocoa liquor + sugar → Mixer1 → mass out (refining next)</text>
+      <text class="pid-sheet__sub" x="24" y="52">Cocoa liquor + sugar → Mixer1 → mass out to Refining</text>
 
       <text class="pid-flow-label" x="28" y="${cocoaY - 10}" text-anchor="start">COCOA LIQUOR</text>
       <line class="pid-pipe pid-pipe--main" x1="28" y1="${cocoaY}" x2="${tankX}" y2="${cocoaY}" />
@@ -351,7 +354,7 @@ Plant.buildMixingPid = function buildMixingPid() {
         <line class="pid-tank__agitator" x1="${tankCx}" y1="${tankY + 32}" x2="${tankCx}" y2="${tankY + tankH - 32}" />
         <circle class="pid-tank__hub" cx="${tankCx}" cy="${tankY + 44}" r="8" />
         <text class="pid-equip__pid" x="${tankCx}" y="${tankY - 12}" text-anchor="middle">MIX-110</text>
-        <text class="pid-equip__name" x="${tankCx}" y="${tankY + tankH + 20}" text-anchor="middle">Mixer1</text>
+        <text class="pid-equip__name" x="${tankCx + 12}" y="${tankY + tankH + 16}" text-anchor="start">Mixer1</text>
       </g>
 
       <line class="pid-pipe pid-pipe--main" x1="${tankX + tankW}" y1="${outY}" x2="880" y2="${outY}" />
@@ -369,7 +372,7 @@ Plant.buildMixingPid = function buildMixingPid() {
       ${Plant.flange(tankX + tankW - 40, tankY + tankH)}
 
       <line class="pid-pipe pid-pipe--divert" x1="${drainX}" y1="${drainY0}" x2="${drainX}" y2="${drainY1}" />
-      ${Plant.mixValve(drainX, drainY0 + 32, "Mixing/Drain/ValveOpen", "Drain", "XV-119")}
+      ${Plant.mixValve(drainX, drainY0 + 32, "Mixing/Drain/ValveOpen", "Drain", "XV-119", "left")}
       <text class="pid-flow-label" x="${drainX + 20}" y="${drainY1}" text-anchor="start">DRAIN</text>
 
       ${balloons}
@@ -583,7 +586,7 @@ Plant.buildConchingPid = function buildConchingPid() {
     Plant.balloon(90, midY - 52, "FI", "131", "Conching/Inlet/FlowKgH", 140, midY, "Inlet"),
     Plant.balloon(850, midY - 52, "FI", "135", "Conching/Outlet/FlowKgH", 800, midY, "Outlet"),
     Plant.balloon(200, 352, "FI", "136", "Conching/Jacket/FlowM3H", 200, tankY + tankH, "Jacket"),
-    Plant.balloon(480, 352, "TI", "137", "Conching/Jacket/SupplyTempC", 480, tankY + tankH, "Jacket"),
+    Plant.balloon(580, 352, "TI", "137", "Conching/Jacket/SupplyTempC", 580, tankY + tankH, "Jacket"),
   ].join("");
 
   host.innerHTML = `
@@ -735,10 +738,10 @@ Plant.buildOverviewPid = function buildOverviewPid() {
   const host = document.getElementById("plant-pid");
   if (!host) return;
   const vbW = 960;
-  const vbH = 420;
+  const vbH = 250;
   const boxes = Plant.PLANT_AREAS.map((a, i) => {
     const x = 48 + i * 150;
-    const y = 150;
+    const y = 78;
     const w = 118;
     const h = 88;
     return { ...a, x, y, w, h, cx: x + w / 2, cy: y + h / 2, right: x + w, left: x };
@@ -765,13 +768,22 @@ Plant.buildOverviewPid = function buildOverviewPid() {
       <title>Heuvelland plant overview — process flow</title>
       <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
       <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
-      <text class="pid-sheet__title" x="28" y="40">PLANT OVERVIEW</text>
-      <text class="pid-sheet__meta" x="28" y="58">HEUVELLAND · MASS FLOW</text>
-      <text class="pid-flow-label" x="48" y="130">RAW →</text>
+      <g class="pid-titleblock">
+        <rect class="pid-titleblock__box" x="${vbW - 220}" y="${vbH - 56}" width="208" height="44" />
+        <line class="pid-sheet__rule" x1="${vbW - 220}" y1="${vbH - 34}" x2="${vbW - 12}" y2="${vbH - 34}" />
+        <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 42}">DWG</text>
+        <text class="pid-titleblock__v" x="${vbW - 180}" y="${vbH - 42}">OVW-01</text>
+        <text class="pid-titleblock__k" x="${vbW - 100}" y="${vbH - 42}">REV</text>
+        <text class="pid-titleblock__v" x="${vbW - 72}" y="${vbH - 42}">A</text>
+        <text class="pid-titleblock__k" x="${vbW - 212}" y="${vbH - 20}">TITLE</text>
+        <text class="pid-titleblock__v" x="${vbW - 172}" y="${vbH - 20}">Heuvelland / Plant</text>
+        <text class="pid-titleblock__sim" x="${vbW - 28}" y="${vbH - 20}" text-anchor="end">SIM</text>
+      </g>
+      <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — PLANT OVERVIEW</text>
+      <text class="pid-sheet__sub" x="24" y="52">Mass flow Mixing → Packaging · click an area to open its drawing</text>
+      <text class="pid-flow-label" x="${vbW - 48}" y="52" text-anchor="end">RAW → PACKED</text>
       ${connectors}
       ${nodes}
-      <text class="pid-overview__finish" x="${vbW - 48}" y="130" text-anchor="end">→ PACKED</text>
-      <text class="pid-sheet__rev" x="${vbW - 28}" y="${vbH - 28}" text-anchor="end">OVW-01</text>
     </svg>`;
   Plant.pidBuilt = true;
 }
@@ -937,7 +949,7 @@ Plant.paintPid = function paintPid() {
       const tagId = g.getAttribute("data-tag");
       const open = !!(Plant.live[tagId] || {}).value;
       g.classList.toggle("is-open", open);
-      g.classList.toggle("is-fault", mixValve && tagId === "Mixing/CocoaLiquor/ValveOpen");
+      g.classList.toggle("is-warn", mixValve && tagId === "Mixing/CocoaLiquor/ValveOpen");
       g.classList.toggle("is-selected", tagId === Plant.state.selectedTag);
       g.classList.remove("is-hover", "is-alarm");
     });
