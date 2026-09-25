@@ -2949,9 +2949,13 @@ html.line-stopped *::after {
   to   { transform: translate(-1.5rem, 1.25rem); }
 }
 
-/* ---------- Hero live-tag strip ---------- */
-.tag-ticker { padding: 0.6rem; }
-.tag-ticker__head {
+/* ---------- Hero namespace strip ----------
+   Final state = a Unified Namespace tree (root → area columns → leaf tags).
+   JS (buildNamespaceStrip) FLIPs each leaf out to a scattered "raw" tag, then a
+   scan line picks them up one by one and they fly home, renamed. Connector
+   lines are pseudo-elements that draw in while .is-undrawn is removed. */
+.ns-panel { padding: 0.6rem; }
+.ns-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2963,91 +2967,294 @@ html.line-stopped *::after {
   text-transform: uppercase;
   color: rgb(148 163 184);
 }
-.tag-ticker__caption { display: inline-flex; align-items: center; gap: 0.5rem; min-width: 0; white-space: nowrap; }
-.tag-ticker__pulse {
-  position: relative;
+/* padding/negative margin: room for the status dot's pulse ring inside overflow:hidden */
+.ns-head__cap { display: inline-flex; align-items: center; gap: 0.5rem; min-width: 0; white-space: nowrap; overflow: hidden; padding: 6px; margin: -6px; }
+.ns-head__cap b { font-weight: 500; color: rgb(226 232 240); }
+.ns-head__site > span { text-transform: none; letter-spacing: 0.02em; color: rgb(203 213 225); }
+.ns-head__dot {
   width: 6px; height: 6px;
   border-radius: 9999px;
-  background: var(--color-accent);
   flex-shrink: 0;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55);
+  animation: ns-dot 1.8s infinite;
+  transition: background-color .3s ease;
 }
-.tag-ticker__pulse::after {
+.ns-panel[data-phase="raw"] .ns-head__dot { background: #fbbf24; animation: none; }
+@keyframes ns-dot { 70% { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); } }
+.ns-head__actions { display: inline-flex; align-items: center; gap: 1rem; flex-shrink: 0; }
+.ns-head__btn {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: rgb(148 163 184);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .15s ease;
+}
+.ns-head__btn:hover { color: var(--color-brand-300); }
+.ns-head__btn:focus-visible { outline: 2px solid var(--color-brand-400); outline-offset: 3px; border-radius: 2px; }
+.ns-head__btn[disabled] { opacity: 0.4; cursor: default; }
+
+.ns-tree {
+  --ns-line: rgba(103, 232, 249, 0.38);
+  --ns-gap: 16px;
+  position: relative;
+  overflow: hidden;
+  padding: 14px 14px 16px;
+  border-radius: 0.5rem;
+  background: rgba(2, 6, 23, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.6875rem;
+}
+:where(.ns-tree) ul { list-style: none; margin: 0; padding: 0; }  /* zero specificity: must not beat .ns-areas / .ns-leaves spacing */
+.ns-root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 4px;
+  color: var(--color-brand-300);
+  background: rgba(34, 211, 238, 0.08);
+  border: 1px solid rgba(34, 211, 238, 0.45);
+  box-shadow: 0 0 18px -6px rgba(34, 211, 238, 0.6);
+}
+.ns-areas {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--ns-gap);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+/* root → bus drop, and the bus itself (first column to last column) */
+.ns-areas::after,
+.ns-areas::before,
+.ns-area::before,
+.ns-leaves::before,
+.ns-leaf::before {
   content: "";
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: var(--color-accent);
-  animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
-  opacity: 0.6;
+  background: var(--ns-line);
+  transition: transform .45s cubic-bezier(0.22, 1, 0.36, 1), opacity .3s ease;
 }
-.tag-ticker__link { color: rgb(148 163 184); white-space: nowrap; transition: color .15s ease; }
-.tag-ticker__link:hover { color: var(--color-brand-300); }
-.tag-ticker__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.ns-areas::after { top: -14px; left: 8px; width: 1px; height: 14px; transform-origin: top; }
+.ns-areas::before {
+  top: 0;
+  left: 8px;
+  right: calc((100% - 4 * var(--ns-gap)) / 5 - 8px);
+  height: 1px;
+  transform-origin: left;
+  transition-delay: .12s;
+}
+.ns-area { position: relative; min-width: 0; }
+.ns-area::before {
+  top: -14px; left: 8px; width: 1px; height: 14px;
+  transform-origin: top;
+  transition-delay: calc(.3s + var(--i) * .07s);
+}
+.ns-area__name {
+  display: block;
+  height: 18px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgb(203 213 225);
+  transition: opacity .35s ease calc(.35s + var(--i) * .07s);
+}
+.ns-leaves { position: relative; display: grid; gap: 8px; margin-top: 6px; padding-left: 18px; }
+.ns-leaves::before {
+  left: 8px; top: -6px; bottom: 28px; width: 1px;
+  transform-origin: top;
+  transition-delay: calc(.45s + var(--i) * .07s);
+}
+.ns-leaf {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-}
-@media (min-width: 768px) {
-  .tag-ticker__list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
-.tag-tile {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  gap: 2px;
   min-width: 0;
-  padding: 0.6rem 0.7rem 0.45rem;
-  border-radius: 0.5rem;
-  background: rgba(2, 6, 23, 0.45);
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  min-height: 36px;
 }
-.tag-tile__path {
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 0.625rem;
-  color: rgb(148 163 184);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.ns-leaf::before {
+  left: -10px; top: 8px; width: 8px; height: 1px;
+  transform-origin: left;
+  transition-delay: calc(.55s + var(--i) * .07s);
 }
-.tag-tile__path b { font-weight: 500; color: rgb(226 232 240); }
-.tag-tile__row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
-.tag-tile__value {
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 1.05rem;
-  font-variant-numeric: tabular-nums;
-  color: rgb(241 245 249);
-  transition: color .3s ease;
-}
-.tag-tile__unit { margin-left: 0.3rem; font-size: 0.68rem; color: rgb(148 163 184); }
-.tag-tile__q {
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 0.56rem;
+.ns-leaf__path { display: flex; min-width: 0; line-height: 16px; color: rgb(148 163 184); }
+.ns-leaf__pre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ns-leaf__path b { flex-shrink: 0; font-weight: 500; color: rgb(241 245 249); }
+.ns-leaf__read { display: flex; align-items: center; gap: 5px; line-height: 18px; }
+.ns-leaf__v { color: rgb(226 232 240); font-variant-numeric: tabular-nums; transition: color .5s ease; }
+.ns-leaf__v.is-flash { color: var(--color-brand-300); transition-duration: 0s; }
+.ns-leaf__unit { color: rgb(148 163 184); font-size: 0.625rem; }
+.ns-q {
+  margin-left: auto;
+  font-size: 0.5625rem;
   letter-spacing: 0.1em;
-  padding: 0.05rem 0.35rem;
+  padding: 1px 4px;
   border-radius: 3px;
   color: #6ee7b7;
   background: rgba(52, 211, 153, 0.1);
   border: 1px solid rgba(52, 211, 153, 0.3);
+  transition: opacity .25s ease, transform .35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.tag-tile__spark { display: block; width: 100%; height: 28px; overflow: visible; }
-.tag-tile__line {
-  fill: none;
-  stroke: var(--color-brand-400);
-  stroke-width: 1.25;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
+/* Hover a tag to see what it was called before the namespace */
+.ns-leaf[data-raw]:not(.is-raw):hover::after {
+  content: "was " attr(data-raw) " · " attr(data-src);
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  bottom: calc(100% + 4px);
+  padding: 3px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 0.625rem;
+  color: rgb(203 213 225);
+  background: #020617;
+  border: 1px solid rgb(51 65 85);
+  pointer-events: none;
 }
-.tag-tile__area { fill: rgba(34, 211, 238, 0.08); }
-/* Above the high limit: amber, like an HMI warning */
-.tag-tile.is-high .tag-tile__value { color: #fcd34d; }
-.tag-tile.is-high .tag-tile__line { stroke: #fbbf24; }
-.tag-tile.is-high .tag-tile__area { fill: rgba(251, 191, 36, 0.1); }
-.tag-tile.is-high .tag-tile__q {
-  color: #fcd34d;
-  background: rgba(251, 191, 36, 0.1);
-  border-color: rgba(251, 191, 36, 0.4);
+
+/* Raw tag look — every source names things its own way */
+.ns-leaf__raw {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  color: rgb(148 163 184);
+  background: rgba(2, 6, 23, 0.75);
+  border: 1px dashed rgba(148, 163, 184, 0.28);
+  animation: ns-bob 2.6s ease-in-out infinite alternate;
+  animation-delay: var(--bob, 0s);
+  transition: color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.ns-leaf__raw.is-file { font-family: var(--font-sans, "Inter"), sans-serif; font-style: italic; font-size: 0.72rem; }
+.ns-leaf__raw.is-plc  { letter-spacing: 0.05em; }
+.ns-leaf__raw.is-sql  { color: rgb(100 116 139); }
+.ns-src {
+  font-style: normal;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: rgb(203 213 225);
+  background: rgba(148, 163, 184, 0.12);
+}
+.ns-flag {
+  font-style: normal;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: rgb(148 163 184);
+  border: 1px solid rgb(51 65 85);
+}
+.ns-flag--stale { color: #fcd34d; border-color: rgba(251, 191, 36, 0.45); }
+.ns-flag--bad   { color: #fda4af; border-color: rgba(251, 113, 133, 0.45); }
+@keyframes ns-bob { to { transform: translateY(-3px); } }
+
+.ns-leaf.is-raw { width: max-content; z-index: 2; }
+.ns-leaf.is-raw .ns-leaf__raw { display: inline-flex; }
+.ns-leaf.is-raw .ns-leaf__path,
+.ns-leaf.is-raw .ns-leaf__read { display: none; }
+.ns-leaf.is-raw::before { opacity: 0; transition: none; }
+.ns-leaf.is-caught .ns-leaf__raw {
+  color: var(--color-brand-200, #a5f3fc);
+  border-color: rgba(34, 211, 238, 0.8);
+  border-style: solid;
+  box-shadow: 0 0 16px -2px rgba(34, 211, 238, 0.55);
+  animation: none;
+}
+.ns-leaf.is-waiting { opacity: 0; }
+.ns-leaf { transition: opacity .3s ease; }
+.ns-leaf.is-flying { transition: transform .85s cubic-bezier(0.65, 0, 0.35, 1), opacity .3s ease; }
+
+/* Before JS takes over: hide the tree so the finished state never flashes */
+.js .ns-tree:not(.is-ready) > * { visibility: hidden; }
+/* Undrawn: connectors collapsed, root + area names faded, badges off */
+.ns-tree.is-undrawn .ns-areas::after,
+.ns-tree.is-undrawn .ns-area::before,
+.ns-tree.is-undrawn .ns-leaves::before { transform: scaleY(0); transition-delay: 0s; transition-duration: 0s; }
+.ns-tree.is-undrawn .ns-areas::before,
+.ns-tree.is-undrawn .ns-leaf::before { transform: scaleX(0); transition-delay: 0s; transition-duration: 0s; }
+.ns-tree.is-undrawn .ns-root,
+.ns-tree.is-undrawn .ns-area__name { opacity: 0; transition-delay: 0s; transition-duration: 0s; }
+.ns-root { transition: opacity .35s ease; }
+.ns-tree.is-assembling .ns-leaf:not(.is-good) .ns-q { opacity: 0; transform: scale(0.6); }
+
+/* Scan line */
+.ns-scan {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--color-brand-300) 20%, var(--color-brand-300) 80%, transparent);
+  box-shadow: 0 0 18px 3px rgba(34, 211, 238, 0.45);
+}
+.ns-scan::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 2px;
+  width: 80px;
+  background: linear-gradient(to left, rgba(34, 211, 238, 0.12), transparent);
+}
+.ns-scan.is-vertical { top: 0; bottom: auto; left: 0; right: 0; width: auto; height: 2px; background: linear-gradient(to right, transparent, var(--color-brand-300) 20%, var(--color-brand-300) 80%, transparent); }
+.ns-scan.is-vertical::after { top: auto; left: 0; right: 0; bottom: 2px; width: auto; height: 60px; background: linear-gradient(to top, rgba(34, 211, 238, 0.12), transparent); }
+
+@media (max-width: 1023px) {
+  .ns-tree { --ns-gap: 12px; }
+}
+/* Phones: one column tree, core tags only, one line per tag */
+@media (max-width: 639px) {
+  .ns-head__site,
+  .ns-head__hmi,
+  .ns-head__label { display: none; }
+  .ns-head__btn { font-size: 0.8rem; }
+  .ns-tree { padding: 12px 12px 14px; }
+  .ns-areas {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+    padding-top: 6px;
+    padding-left: 18px;
+  }
+  .ns-areas::after { top: -8px; height: 8px; }
+  .ns-areas::before { display: none; }
+  .ns-area::before { left: -10px; top: -6px; height: calc(100% + 6px); }
+  .ns-area:last-child::before { height: 15px; }
+  .ns-area__name::before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 9px;
+    width: 8px;
+    height: 1px;
+    background: var(--ns-line);
+  }
+  .ns-leaf:not([data-core]) { display: none; }
+  .ns-leaves { gap: 4px; margin-top: 4px; }
+  .ns-leaves::before { bottom: 11px; top: -4px; }
+  .ns-leaf { display: flex; align-items: center; gap: 8px; min-height: 22px; }
+  .ns-leaf::before { top: 50%; }
+  .ns-leaf__path { flex: 1; }
+  .ns-leaf__read { flex-shrink: 0; }
+  .ns-leaf.is-raw { display: block; }
 }
 
 /* ---------- Work cards with thumbnails ---------- */
@@ -3270,18 +3477,11 @@ form[data-tx="err"] .tx-link__nak { display: inline; }
 }
 
 @media print {
-  .tag-ticker,
+  .ns-panel,
   .hero-orbs,
   .tx-link,
   .work-card__media { display: none !important; }
   .work-card { display: block; border: 0; }
   .work-card__body { padding: 0; }
   html[data-mode="floor"] .section-eyebrow.is-typeable { width: auto !important; }
-}
-
-/* Phones: tag strip head + paths get more room */
-@media (max-width: 639px) {
-  .tag-ticker__site { display: none; }
-  .tag-tile__path { white-space: normal; line-height: 1.35; }
-  .tag-tile__path b { display: block; }
 }
