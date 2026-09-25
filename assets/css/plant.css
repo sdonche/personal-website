@@ -2211,3 +2211,13 @@
     color: rgb(148 163 184);
   }
 }
+
+/* Names sit on a dark halo so a pipe or leader passing behind never cuts
+   through the text (e.g. the reject line under CHECKWEIGHER). */
+.pid-equip__name,
+.pid-flow-label {
+  paint-order: stroke;
+  stroke: #020617;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}

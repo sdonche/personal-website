@@ -86,12 +86,12 @@ Plant.STUB_LINE_TAGS = [
 
 /** Equipment folders under live Line3 (Reject nests under Checkweigher). */
 Plant.EQUIPMENT = [
-  { id: "Infeed", label: "Infeed", pid: "CV-301", kind: "conveyor" },
-  { id: "Cartoner", label: "Cartoner", pid: "CT-310", kind: "machine" },
-  { id: "Checkweigher", label: "Checkweigher", pid: "WT-320", kind: "scale" },
-  { id: "CasePacker", label: "Case packer", pid: "CP-330", kind: "machine" },
-  { id: "Palletizer", label: "Palletizer", pid: "PL-340", kind: "palletizer" },
-  { id: "Outfeed", label: "Outfeed", pid: "CV-350", kind: "conveyor" },
+  { id: "Infeed", label: "Infeed", pid: "CV-610", kind: "conveyor" },
+  { id: "Cartoner", label: "Cartoner", pid: "CT-620", kind: "machine" },
+  { id: "Checkweigher", label: "Checkweigher", pid: "CW-630", kind: "scale" },
+  { id: "CasePacker", label: "Case packer", pid: "CP-640", kind: "machine" },
+  { id: "Palletizer", label: "Palletizer", pid: "PL-650", kind: "palletizer" },
+  { id: "Outfeed", label: "Outfeed", pid: "CV-660", kind: "conveyor" },
 ];
 
 /** @type {TagDef[]} — ids are relative to Heuvelland/Packaging/Line3/ */

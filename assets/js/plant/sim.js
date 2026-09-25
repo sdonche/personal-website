@@ -392,7 +392,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-upstream",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — upstream mass hold",
+      message: "Line 3 starved — Mixing hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -426,7 +426,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-temper",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Tempering zone warm",
+      message: "Line 3 starved — Tempering zone warm",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -440,7 +440,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-temper",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Tempering drive hold",
+      message: "Line 3 starved — Tempering drive hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -454,7 +454,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-refine",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Refining pressure hold",
+      message: "Line 3 starved — Refining pressure hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -468,7 +468,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-refine",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Refining particle hold",
+      message: "Line 3 starved — Refining particle hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -482,7 +482,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-conche",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Conching overtemp hold",
+      message: "Line 3 starved — Conching overtemp hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -496,7 +496,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-conche",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Conching agitator hold",
+      message: "Line 3 starved — Conching agitator hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -510,7 +510,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-mould",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Moulding jam",
+      message: "Line 3 starved — Moulding jam",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -524,7 +524,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-mould",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Moulding cool-air hold",
+      message: "Line 3 starved — Moulding cool-air hold",
       severity: /** @type {const} */ ("warning"),
     });
   }

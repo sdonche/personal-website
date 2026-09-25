@@ -232,6 +232,7 @@ Plant.renderKpis = function renderKpis() {
   };
   const title = document.querySelector(".plant-hmi__title h1");
   if (title) title.textContent = titleMap[drawing] || titleMap.packaging;
+  document.title = `${titleMap[drawing] || titleMap.packaging} · Sam Donche`;
 
   document.querySelectorAll(".plant-area-nav__btn[data-drawing]").forEach((btn) => {
     const d = btn.getAttribute("data-drawing");
