@@ -653,6 +653,15 @@ Plant.wire = function wire() {
     }
   });
 
+  // Phones/tablets: the tag browser sits under the drawing, collapsed until asked for
+  document.getElementById("plant-tree-toggle")?.addEventListener("click", (e) => {
+    const pane = e.currentTarget.closest(".plant-pane--tree");
+    const open = !pane.classList.contains("is-open");
+    pane.classList.toggle("is-open", open);
+    e.currentTarget.setAttribute("aria-expanded", String(open));
+    e.currentTarget.textContent = open ? "Hide tags" : "Show tags";
+  });
+
   document.querySelector(".plant-area-nav")?.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-drawing]");
     if (!btn) return;

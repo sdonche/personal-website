@@ -2117,3 +2117,97 @@
     animation: none !important;
   }
 }
+
+
+/* ---------------------------------------------------------------
+   Responsive layout
+   ≥1280  tree | drawing | alarms (three columns)
+   1024–1279  tree | drawing, alarms under the drawing (more width
+              for the P&ID, which is the point of the page)
+   <1024  one column: drawing first, then alarms, then the tag
+          browser (collapsed behind "Show tags"); the P&ID keeps a
+          readable 860px and scrolls sideways
+   --------------------------------------------------------------- */
+.plant-tree-toggle,
+.plant-pid-hint { display: none; }
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  /* The page scrolls here instead of squeezing the P&ID into a short
+     row: the drawing takes its full width, alarms follow it, and the
+     tree stays pinned beside them. */
+  .plant-page { height: auto; overflow: visible; }
+  .plant-shell { height: auto; min-height: 100dvh; }
+  .plant-body {
+    --plant-rail: 14.5rem;
+    grid-template-columns: var(--plant-rail) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
+  .plant-pane--tree {
+    grid-row: 1 / span 2;
+    align-self: start;
+    position: sticky;
+    top: 3rem;
+    max-height: calc(100dvh - 3rem);
+  }
+  .plant-mimic { grid-column: 2; grid-row: 1; }
+  .plant-pane--alarms {
+    grid-column: 2;
+    grid-row: 2;
+    border-left: 0;
+    border-top: 1px solid var(--plant-stroke);
+  }
+  .plant-pid { display: block; }
+  .plant-pid .pid-svg { height: auto; max-height: none; }
+}
+
+@media (max-width: 1023px) {
+  /* minmax(0, …): the 860px drawing scrolls inside its box instead of
+     widening the whole column (and the page) */
+  .plant-body { grid-template-columns: minmax(0, 1fr); }
+  .plant-pane, .plant-mimic__canvas { min-width: 0; }
+  .plant-mimic { order: 1; }
+  .plant-pane--alarms { order: 2; }
+  .plant-pane--tree { order: 3; }
+
+  .plant-tree-toggle {
+    display: inline-flex;
+    margin-left: auto;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    border: 1px solid rgb(51 65 85);
+    background: transparent;
+    color: var(--color-brand-300);
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+  }
+  .plant-tree-toggle:focus-visible { outline: 2px solid var(--color-brand-400); outline-offset: 2px; }
+  .plant-pane--tree .plant-pane__head-row { align-items: center; gap: 0.75rem; }
+  .plant-pane--tree:not(.is-open) .plant-pane__body,
+  .plant-pane--tree:not(.is-open) .plant-q-legend { display: none; }
+
+  .plant-pid {
+    display: block;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+  .plant-pid .pid-svg {
+    width: 860px;
+    min-width: 860px;
+    max-width: none;
+    height: auto;
+    max-height: none;
+  }
+}
+@media (max-width: 899px) {
+  .plant-pid-hint {
+    display: block;
+    margin: 0.35rem 0 0;
+    font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(148 163 184);
+  }
+}
