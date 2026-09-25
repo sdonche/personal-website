@@ -3220,6 +3220,13 @@ html.line-stopped *::after {
 @media (max-width: 1023px) {
   .ns-tree { --ns-gap: 12px; }
 }
+/* Desk (calm reading view): six core tags, no wobble, no replay, no tooltips.
+   The full twelve-tag version with scan + decode is Floor's. */
+html:not([data-mode="floor"]) .ns-leaf:not([data-core]) { display: none; }
+html:not([data-mode="floor"]) .ns-leaf__raw { animation: none; }
+html:not([data-mode="floor"]) #ns-replay { display: none; }
+html:not([data-mode="floor"]) .ns-leaf[data-raw]:not(.is-raw):hover::after { content: none; }
+
 /* Phones: one column tree, core tags only, one line per tag */
 @media (max-width: 639px) {
   .ns-head__site,

@@ -1283,7 +1283,10 @@
          protocol and quality flag); a scan line then picks them up one by
          one and they fly home, decoding into their namespace name while the
          tree's connectors draw in. Badges turn GOOD, then values tick now
-         and then. Reduced motion: the finished tree, no animation.
+         and then. That full version is Floor mode's. Desk (the calm
+         reading view) shows the six core tags and a short, quiet settle:
+         no scan, no decode, no live values. Switching to Floor replays the
+         full version. Reduced motion: the finished tree, no animation.
      ---------------------------------------------------- */
   function buildNamespaceStrip() {
     const tree = document.getElementById("ns-tree");
@@ -1345,7 +1348,7 @@
       setCaption("uns", n, n);
       running = false;
       done = true;
-      if (replay) { replay.hidden = prefersReducedMotion; replay.disabled = false; }
+      if (replay) { replay.hidden = prefersReducedMotion || currentMode() !== "floor"; replay.disabled = false; }
     }
 
     // Letters cycle through noise, then lock in left to right
@@ -1373,7 +1376,8 @@
       timers.forEach(clearTimeout); timers = [];
       running = true;
       done = false;
-      if (replay) { replay.hidden = false; replay.disabled = true; }
+      const full = currentMode() === "floor";
+      if (replay) { replay.hidden = !full; replay.disabled = true; }
 
       const vis = visible();
       const n = vis.length;
@@ -1409,14 +1413,30 @@
         const jx = ((slot * 37) % 100) / 100, jy = ((slot * 61) % 100) / 100;
         const x = Math.max(PAD, Math.min(W - w - PAD, PAD + c * cw + jx * Math.max(0, cw - w)));
         const y = Math.max(PAD, Math.min(H - h - PAD, PAD + r * ch + jy * Math.max(0, ch - h)));
-        const rot = ((slot * 53) % 11) - 5;
+        const rot = (((slot * 53) % 11) - 5) * (full ? 1 : 0.4);
         spots.push({ x: x + w / 2, y: y + h / 2 });
         l.style.transform = `translate(${x - home[i].x}px, ${y - home[i].y}px) rotate(${rot}deg)`;
       });
       setCaption("raw", 0, n);
 
-      // 3. Sources come online one by one
-      vis.forEach((l, i) => later(120 + order[i] * 45, () => l.classList.remove("is-waiting")));
+      // 3. Sources come online (Floor: one by one; Desk: together)
+      vis.forEach((l, i) => later(full ? 120 + order[i] * 45 : 60, () => l.classList.remove("is-waiting")));
+
+      if (!full) {
+        // Desk: tags drift home left to right and the tree settles, ~1.5 s total
+        later(450, () => tree.classList.remove("is-undrawn"));
+        const byX = vis.map((_, i) => i).sort((a, b) => home[a].x - home[b].x || home[a].y - home[b].y);
+        let land = 0;
+        byX.forEach((i, k) => {
+          const at = 450 + k * 70;
+          later(at, () => { vis[i].classList.add("is-flying"); vis[i].style.transform = ""; });
+          later(at + 320, () => vis[i].classList.remove("is-raw"));
+          land = Math.max(land, at + 850);
+        });
+        later(land + 100, () => vis.forEach((l) => l.classList.add("is-good")));
+        later(land + 300, finish);
+        return;
+      }
 
       // 4. Scan sweep; each tag is caught as the line passes it, then flies home
       const SCAN_AT = 1300, SCAN_MS = narrow ? 1500 : 1700;
@@ -1463,7 +1483,7 @@
     }
     if (!prefersReducedMotion) {
       setInterval(() => {
-        if (!done || !onScreen || document.hidden || motionHalted) return;
+        if (!done || !onScreen || document.hidden || motionHalted || currentMode() !== "floor") return;
         const live = visible().filter((l) => parseFloat(l.dataset.noise) > 0);
         const l = live[(Math.random() * live.length) | 0];
         if (!l) return;
@@ -1477,6 +1497,22 @@
     }
 
     if (replay) replay.addEventListener("click", () => { if (!running) play(); });
+
+    // Desk → Floor: play the full version (if the hero is in view). Floor → Desk:
+    // settle instantly into the calm six-tag tree. Print flips to Desk and back;
+    // ignore that so printing never replays anything.
+    let printing = false;
+    window.addEventListener("beforeprint", () => { printing = true; });
+    window.addEventListener("afterprint", () => setTimeout(() => { printing = false; }, 0));
+    let lastMode = currentMode();
+    new MutationObserver(() => {
+      const mode = currentMode();
+      if (mode === lastMode) return;
+      lastMode = mode;
+      if (printing) return;
+      if (mode === "floor" && onScreen && !prefersReducedMotion) play();
+      else finish();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-mode"] });
     let rz;
     window.addEventListener("resize", () => {
       clearTimeout(rz);
