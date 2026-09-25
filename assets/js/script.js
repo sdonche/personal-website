@@ -117,7 +117,7 @@
     observeActiveSection();
     observeReveals();
     typeFloorEyebrows();
-    buildTagTicker();
+    buildNamespaceStrip();
     wireContactForm();
     wireEmailLinks();
     wireEasterEggs();
@@ -1277,72 +1277,251 @@
   }
 
   /* ----------------------------------------------------
-     7c. Hero live-tag strip — a small random walk per tile, drawn as
-         a sparkline. Pauses off-screen, in background tabs and on
-         E-STOP; with reduced motion it renders one static snapshot.
+     7c. Hero namespace strip — "making the floor legible", acted out.
+         The HTML is the finished Unified Namespace tree. On load each leaf
+         is FLIPped out to a scattered raw tag (its data-raw name, source
+         protocol and quality flag); a scan line then picks them up one by
+         one and they fly home, decoding into their namespace name while the
+         tree's connectors draw in. Badges turn GOOD, then values tick now
+         and then. That full version is Floor mode's. Desk (the calm
+         reading view) shows the six core tags and a short, quiet settle:
+         no scan, no decode, no live values. Switching to Floor replays the
+         full version. Reduced motion: the finished tree, no animation.
      ---------------------------------------------------- */
-  function buildTagTicker() {
-    const tiles = [...document.querySelectorAll(".tag-tile")];
-    if (!tiles.length) return;
-    const N = 32;          // points per sparkline
-    const W = 120, H = 28; // matches the SVG viewBox
+  function buildNamespaceStrip() {
+    const tree = document.getElementById("ns-tree");
+    if (!tree) return;
+    const panel   = tree.closest(".ns-panel");
+    const caption = document.getElementById("ns-caption");
+    const replay  = document.getElementById("ns-replay");
+    const scan    = tree.querySelector(".ns-scan");
+    const leaves  = [...tree.querySelectorAll(".ns-leaf")];
 
-    const state = tiles.map((tile) => {
-      const base  = parseFloat(tile.dataset.base);
-      const noise = parseFloat(tile.dataset.noise);
-      const hi    = tile.dataset.hi ? parseFloat(tile.dataset.hi) : Infinity;
-      const dec   = parseInt(tile.dataset.dec || "0", 10);
-      const pts = [];
-      let v = base;
-      for (let i = 0; i < N; i++) { v = step(v, base, noise); pts.push(v); }
-      return {
-        tile, base, noise, hi, dec, pts,
-        valueEl: tile.querySelector("[data-value]"),
-        qEl: tile.querySelector("[data-quality]"),
-        line: tile.querySelector(".tag-tile__line"),
-        area: tile.querySelector(".tag-tile__area"),
-      };
+    const KIND = { xlsx: "file", CSV: "file", S7: "plc", Modbus: "plc", SQL: "sql", "OPC UA": "opc" };
+    leaves.forEach((leaf, i) => {
+      const src = leaf.dataset.src || "";
+      const flag = leaf.dataset.flag;
+      const raw = document.createElement("span");
+      raw.className = `ns-leaf__raw is-${KIND[src] || "plc"}`;
+      raw.setAttribute("aria-hidden", "true");
+      raw.style.setProperty("--bob", `${-(i * 0.37) % 2.6}s`);
+      raw.innerHTML =
+        `<span class="ns-src">${escapeHtml(src)}</span>${escapeHtml(leaf.dataset.raw || "")}` +
+        (flag ? `<span class="ns-flag ns-flag--${flag.replace(/\s+/g, "-")}">${escapeHtml(flag)}</span>` : "");
+      leaf.prepend(raw);
+      // Remember the clean names for the decode effect
+      const pre = leaf.querySelector(".ns-leaf__pre");
+      const b = leaf.querySelector(".ns-leaf__path b");
+      leaf._names = [[pre, pre.textContent], [b, b.textContent]];
+      leaf._base = parseFloat(leaf.querySelector(".ns-leaf__v").textContent);
     });
 
-    // Mean-reverting walk: stays near base, wanders enough to look alive
-    function step(v, base, noise) {
-      return v + (base - v) * 0.18 + (Math.random() - 0.5) * 2 * noise;
+    const visible = () => leaves.filter((l) => l.offsetParent !== null);
+    let timers = [];
+    let running = false;
+    let done = false;
+    const later = (ms, fn) => timers.push(setTimeout(fn, ms));
+
+    function setCaption(phase, good, total) {
+      panel.dataset.phase = phase;
+      const dot = '<span class="text-slate-600">·</span>';
+      if (phase === "raw") {
+        const protocols = new Set(visible().map((l) => l.dataset.src)).size;
+        caption.innerHTML = `ingest ${dot} <b>${total}</b> raw tags ${dot} <b>${protocols}</b> protocols`;
+      } else {
+        caption.innerHTML = `uns <span class="ns-head__site">${dot} <span>[edge]Heuvelland</span></span> ${dot} <b>${good}/${total}</b> good`;
+      }
     }
 
-    function draw(s) {
-      const span = s.noise * 6;
-      const lo = s.base - span / 2;
-      const xy = s.pts.map((p, i) => {
-        const x = (i / (N - 1)) * W;
-        const y = H - 2 - Math.max(0, Math.min(1, (p - lo) / span)) * (H - 4);
-        return [x.toFixed(1), y.toFixed(1)];
+    function finish() {
+      timers.forEach(clearTimeout); timers = [];
+      leaves.forEach((l) => {
+        l.classList.remove("is-raw", "is-caught", "is-flying", "is-waiting");
+        l.classList.add("is-good");
+        l.style.transform = "";
+        l._names.forEach(([el, text]) => { el.textContent = text; });
       });
-      const d = "M" + xy.map((p) => p.join(",")).join("L");
-      s.line.setAttribute("d", d);
-      s.area.setAttribute("d", `${d}L${W},${H}L0,${H}Z`);
-      const v = s.pts[N - 1];
-      s.valueEl.textContent = v.toFixed(s.dec);
-      const high = v > s.hi;
-      s.tile.classList.toggle("is-high", high);
-      if (s.qEl) s.qEl.textContent = high ? "HI" : "GOOD";
+      scan.style.opacity = 0;
+      tree.classList.remove("is-undrawn", "is-assembling");
+      tree.classList.add("is-ready");
+      const n = visible().length;
+      setCaption("uns", n, n);
+      running = false;
+      done = true;
+      if (replay) { replay.hidden = prefersReducedMotion || currentMode() !== "floor"; replay.disabled = false; }
     }
 
-    state.forEach(draw);
-    if (prefersReducedMotion) return;
+    // Letters cycle through noise, then lock in left to right
+    function decode(leaf, ms) {
+      const CH = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_";
+      const t0 = performance.now();
+      const step = (now) => {
+        const p = Math.min(1, (now - t0) / ms);
+        leaf._names.forEach(([el, text]) => {
+          const lock = Math.floor(text.length * p);
+          let out = text.slice(0, lock);
+          for (let i = lock; i < text.length; i++) {
+            out += text[i] === "/" ? "/" : CH[(Math.random() * CH.length) | 0];
+          }
+          el.textContent = out;
+        });
+        if (p < 1 && running) requestAnimationFrame(step);
+        else leaf._names.forEach(([el, text]) => { el.textContent = text; });
+      };
+      requestAnimationFrame(step);
+    }
 
+    function play() {
+      if (prefersReducedMotion) { finish(); return; }
+      timers.forEach(clearTimeout); timers = [];
+      running = true;
+      done = false;
+      const full = currentMode() === "floor";
+      if (replay) { replay.hidden = !full; replay.disabled = true; }
+
+      const vis = visible();
+      const n = vis.length;
+      const W = tree.clientWidth;
+      const H = tree.clientHeight;
+      const narrow = W < 600;
+
+      // 1. Measure each leaf's home (clean, untransformed)
+      leaves.forEach((l) => {
+        l.classList.remove("is-flying", "is-raw", "is-caught", "is-good");
+        l.style.transform = "";
+      });
+      tree.classList.add("is-ready", "is-undrawn", "is-assembling");
+      const box = tree.getBoundingClientRect();
+      const home = vis.map((l) => {
+        const r = l.getBoundingClientRect();
+        return { x: r.left - box.left, y: r.top - box.top };
+      });
+
+      // 2. Scatter the raw tags on a jittered grid, in a shuffled order
+      const cols = narrow ? 2 : 4;
+      const rows = Math.ceil(n / cols);
+      const PAD = 10;
+      const cw = (W - PAD * 2) / cols;
+      const ch = (H - PAD * 2) / rows;
+      const order = vis.map((_, i) => i).sort((a, b) => ((a * 7 + 3) % n) - ((b * 7 + 3) % n));
+      const spots = [];
+      vis.forEach((l, i) => {
+        l.classList.add("is-raw", "is-waiting");
+        const slot = order[i];
+        const c = slot % cols, r = Math.floor(slot / cols);
+        const w = l.offsetWidth, h = l.offsetHeight;
+        const jx = ((slot * 37) % 100) / 100, jy = ((slot * 61) % 100) / 100;
+        const x = Math.max(PAD, Math.min(W - w - PAD, PAD + c * cw + jx * Math.max(0, cw - w)));
+        const y = Math.max(PAD, Math.min(H - h - PAD, PAD + r * ch + jy * Math.max(0, ch - h)));
+        const rot = (((slot * 53) % 11) - 5) * (full ? 1 : 0.4);
+        spots.push({ x: x + w / 2, y: y + h / 2 });
+        l.style.transform = `translate(${x - home[i].x}px, ${y - home[i].y}px) rotate(${rot}deg)`;
+      });
+      setCaption("raw", 0, n);
+
+      // 3. Sources come online (Floor: one by one; Desk: together)
+      vis.forEach((l, i) => later(full ? 120 + order[i] * 45 : 60, () => l.classList.remove("is-waiting")));
+
+      if (!full) {
+        // Desk: tags drift home left to right and the tree settles, ~1.5 s total
+        later(450, () => tree.classList.remove("is-undrawn"));
+        const byX = vis.map((_, i) => i).sort((a, b) => home[a].x - home[b].x || home[a].y - home[b].y);
+        let land = 0;
+        byX.forEach((i, k) => {
+          const at = 450 + k * 70;
+          later(at, () => { vis[i].classList.add("is-flying"); vis[i].style.transform = ""; });
+          later(at + 320, () => vis[i].classList.remove("is-raw"));
+          land = Math.max(land, at + 850);
+        });
+        later(land + 100, () => vis.forEach((l) => l.classList.add("is-good")));
+        later(land + 300, finish);
+        return;
+      }
+
+      // 4. Scan sweep; each tag is caught as the line passes it, then flies home
+      const SCAN_AT = 1300, SCAN_MS = narrow ? 1500 : 1700;
+      later(SCAN_AT, () => {
+        scan.classList.toggle("is-vertical", narrow);
+        scan.style.transition = "none";
+        scan.style.transform = narrow ? "translateY(-20px)" : "translateX(-20px)";
+        scan.style.opacity = 1;
+        void scan.offsetWidth;
+        scan.style.transition = `transform ${SCAN_MS}ms linear, opacity .3s ease`;
+        scan.style.transform = narrow ? `translateY(${H + 20}px)` : `translateX(${W + 20}px)`;
+      });
+      later(SCAN_AT + SCAN_MS, () => { scan.style.opacity = 0; });
+      later(SCAN_AT + SCAN_MS * 0.35, () => tree.classList.remove("is-undrawn"));
+
+      let lastLand = 0;
+      vis.forEach((l, i) => {
+        const at = SCAN_AT + SCAN_MS * ((narrow ? spots[i].y / H : spots[i].x / W));
+        later(at, () => l.classList.add("is-caught"));
+        later(at + 140, () => {
+          l.classList.add("is-flying");
+          l.style.transform = "";
+        });
+        later(at + 140 + 380, () => {
+          l.classList.remove("is-raw", "is-caught");
+          decode(l, 420);
+        });
+        lastLand = Math.max(lastLand, at + 140 + 850);
+      });
+
+      // 5. Quality settles to GOOD, in namespace order
+      vis.forEach((l, i) => later(lastLand + 150 + i * 70, () => {
+        l.classList.add("is-good");
+        setCaption("uns", i + 1, n);
+      }));
+      later(lastLand + 150 + n * 70 + 200, finish);
+    }
+
+    // Occasional live value updates once the tree is built
     let onScreen = true;
     const hero = document.getElementById("hero");
     if (hero && "IntersectionObserver" in window) {
       new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; }).observe(hero);
     }
-    setInterval(() => {
-      if (!onScreen || document.hidden || motionHalted) return;
-      state.forEach((s) => {
-        s.pts.push(step(s.pts[N - 1], s.base, s.noise));
-        s.pts.shift();
-        draw(s);
-      });
-    }, 1400);
+    if (!prefersReducedMotion) {
+      setInterval(() => {
+        if (!done || !onScreen || document.hidden || motionHalted || currentMode() !== "floor") return;
+        const live = visible().filter((l) => parseFloat(l.dataset.noise) > 0);
+        const l = live[(Math.random() * live.length) | 0];
+        if (!l) return;
+        const noise = parseFloat(l.dataset.noise);
+        const v = l._base + (Math.random() - 0.5) * 2 * noise;
+        const el = l.querySelector(".ns-leaf__v");
+        el.textContent = v.toFixed(parseInt(l.dataset.dec || "0", 10));
+        el.classList.add("is-flash");
+        requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove("is-flash")));
+      }, 1600);
+    }
+
+    if (replay) replay.addEventListener("click", () => { if (!running) play(); });
+
+    // Desk → Floor: play the full version (if the hero is in view). Floor → Desk:
+    // settle instantly into the calm six-tag tree. Print flips to Desk and back;
+    // ignore that so printing never replays anything.
+    let printing = false;
+    window.addEventListener("beforeprint", () => { printing = true; });
+    window.addEventListener("afterprint", () => setTimeout(() => { printing = false; }, 0));
+    let lastMode = currentMode();
+    new MutationObserver(() => {
+      const mode = currentMode();
+      if (mode === lastMode) return;
+      lastMode = mode;
+      if (printing) return;
+      if (mode === "floor" && onScreen && !prefersReducedMotion) play();
+      else finish();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-mode"] });
+    let rz;
+    window.addEventListener("resize", () => {
+      clearTimeout(rz);
+      rz = setTimeout(() => { if (running) finish(); }, 120);
+    });
+
+    // Wait for the web fonts so measured widths match what's drawn
+    const go = () => requestAnimationFrame(play);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(go); else go();
   }
 
   /* ----------------------------------------------------

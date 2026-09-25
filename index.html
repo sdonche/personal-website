@@ -103,8 +103,8 @@
   <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/css/fonts.css?v=0f6b5ce264" />
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=9f0783e3aa" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=d8d1736085" />
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=ee980a95a2" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=5af1382eec" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -366,51 +366,65 @@
         </aside>
       </div>
 
-      <!-- Live tag strip — values from the Heuvelland demo plant, animated by
-           buildTagTicker() in script.js (static snapshot without JS / reduced motion) -->
+      <!-- Namespace strip — the headline acted out: raw tags from mixed sources are
+           scanned, renamed and slotted into one Unified Namespace tree. The markup is the
+           finished tree (what no-JS / reduced-motion visitors see); buildNamespaceStrip()
+           in script.js plays the assembly. Tag names match the Heuvelland demo plant. -->
       <div class="max-w-5xl mx-auto w-full hero-enter">
-        <div class="tag-ticker glass-card">
-          <div class="tag-ticker__head">
-            <span class="tag-ticker__caption">
-              <span class="tag-ticker__pulse" aria-hidden="true"></span>
-              live tags<span class="tag-ticker__site"> <span class="text-slate-600">·</span> <span class="normal-case tracking-normal text-slate-300">[edge]Heuvelland</span></span>
+        <div class="ns-panel glass-card">
+          <div class="ns-head">
+            <span class="ns-head__cap">
+              <span class="ns-head__dot" aria-hidden="true"></span>
+              <span id="ns-caption">uns <span class="ns-head__site"><span class="text-slate-600">·</span> <span>[edge]Heuvelland</span></span> <span class="text-slate-600">·</span> one namespace</span>
             </span>
-            <a href="plant/" class="tag-ticker__link">open plant hmi <span aria-hidden="true">&rarr;</span></a>
+            <span class="ns-head__actions">
+              <button type="button" id="ns-replay" class="ns-head__btn" aria-label="Replay the namespace animation" hidden>&#8634;<span class="ns-head__label"> replay</span></button>
+              <a href="plant/" class="ns-head__btn ns-head__hmi">open plant hmi <span aria-hidden="true">&rarr;</span></a>
+            </span>
           </div>
-          <ul class="tag-ticker__list" aria-label="Sample tags from the Heuvelland demo plant">
-            <li class="tag-tile" data-base="58.2" data-noise="0.35" data-hi="58.8" data-dec="1">
-              <span class="tag-tile__path">conching/conche1/<b>TempC</b></span>
-              <span class="tag-tile__row">
-                <span class="tag-tile__value"><span data-value>58.2</span><span class="tag-tile__unit">°C</span></span>
-                <span class="tag-tile__q" data-quality>GOOD</span>
-              </span>
-              <svg class="tag-tile__spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><path class="tag-tile__area"/><path class="tag-tile__line"/></svg>
-            </li>
-            <li class="tag-tile" data-base="31.4" data-noise="0.18" data-hi="31.8" data-dec="1">
-              <span class="tag-tile__path">tempering/temper1/<b>MassTempC</b></span>
-              <span class="tag-tile__row">
-                <span class="tag-tile__value"><span data-value>31.4</span><span class="tag-tile__unit">°C</span></span>
-                <span class="tag-tile__q" data-quality>GOOD</span>
-              </span>
-              <svg class="tag-tile__spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><path class="tag-tile__area"/><path class="tag-tile__line"/></svg>
-            </li>
-            <li class="tag-tile" data-base="88.3" data-noise="0.6" data-dec="1">
-              <span class="tag-tile__path">packaging/line3/<b>OEE</b></span>
-              <span class="tag-tile__row">
-                <span class="tag-tile__value"><span data-value>88.3</span><span class="tag-tile__unit">%</span></span>
-                <span class="tag-tile__q" data-quality>GOOD</span>
-              </span>
-              <svg class="tag-tile__spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><path class="tag-tile__area"/><path class="tag-tile__line"/></svg>
-            </li>
-            <li class="tag-tile" data-base="118" data-noise="2.5" data-dec="0">
-              <span class="tag-tile__path">packaging/line3/<b>Throughput</b></span>
-              <span class="tag-tile__row">
-                <span class="tag-tile__value"><span data-value>118</span><span class="tag-tile__unit">cpm</span></span>
-                <span class="tag-tile__q" data-quality>GOOD</span>
-              </span>
-              <svg class="tag-tile__spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><path class="tag-tile__area"/><path class="tag-tile__line"/></svg>
-            </li>
-          </ul>
+          <div class="ns-tree" id="ns-tree">
+            <span class="ns-root">[edge]Heuvelland/</span>
+            <ul class="ns-areas" aria-label="Sample tags from the Heuvelland demo plant, organised as one unified namespace">
+              <li class="ns-area" style="--i:0">
+                <span class="ns-area__name">Mixing/</span>
+                <ul class="ns-leaves">
+                  <li class="ns-leaf" data-raw="mixer temp OLD" data-src="xlsx" data-flag="stale" data-noise="0.3" data-dec="1" data-core><span class="ns-leaf__path"><span class="ns-leaf__pre">Mixer1/</span><b>MassTempC</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">45.1</span><span class="ns-leaf__unit">°C</span><span class="ns-q">GOOD</span></span></li>
+                  <li class="ns-leaf" data-raw="MX1.AGIT_SPD" data-src="Modbus" data-noise="1.5" data-dec="0"><span class="ns-leaf__path"><span class="ns-leaf__pre">Mixer1/</span><b>AgitatorRpm</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">62</span><span class="ns-leaf__unit">rpm</span><span class="ns-q">GOOD</span></span></li>
+                </ul>
+              </li>
+              <li class="ns-area" style="--i:1">
+                <span class="ns-area__name">Conching/</span>
+                <ul class="ns-leaves">
+                  <li class="ns-leaf" data-raw="PLC3_TT101" data-src="S7" data-flag="no unit" data-noise="0.3" data-dec="1" data-core><span class="ns-leaf__path"><span class="ns-leaf__pre">Conche1/</span><b>TempC</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">58.2</span><span class="ns-leaf__unit">°C</span><span class="ns-q">GOOD</span></span></li>
+                  <li class="ns-leaf" data-raw="conche_runtime" data-src="SQL" data-noise="0" data-dec="0"><span class="ns-leaf__path"><span class="ns-leaf__pre">Conche1/</span><b>TimeMin</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">684</span><span class="ns-leaf__unit">min</span><span class="ns-q">GOOD</span></span></li>
+                </ul>
+              </li>
+              <li class="ns-area" style="--i:2">
+                <span class="ns-area__name">Tempering/</span>
+                <ul class="ns-leaves">
+                  <li class="ns-leaf" data-raw="temper_mass_c" data-src="SQL" data-noise="0.15" data-dec="1" data-core><span class="ns-leaf__path"><span class="ns-leaf__pre">Temper1/</span><b>MassTempC</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">31.4</span><span class="ns-leaf__unit">°C</span><span class="ns-q">GOOD</span></span></li>
+                  <li class="ns-leaf" data-raw="ns=2;s=TMP.Z2" data-src="OPC UA" data-noise="0.15" data-dec="1"><span class="ns-leaf__path"><span class="ns-leaf__pre">Temper1/</span><b>Zone2TempC</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">27.0</span><span class="ns-leaf__unit">°C</span><span class="ns-q">GOOD</span></span></li>
+                  <li class="ns-leaf" data-raw="CW-SUPPLY.PV" data-src="Modbus" data-flag="bad" data-noise="0.1" data-dec="1"><span class="ns-leaf__path"><span class="ns-leaf__pre">ChilledWater/</span><b>SupplyTempC</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">8.4</span><span class="ns-leaf__unit">°C</span><span class="ns-q">GOOD</span></span></li>
+                </ul>
+              </li>
+              <li class="ns-area" style="--i:3">
+                <span class="ns-area__name">Moulding/</span>
+                <ul class="ns-leaves">
+                  <li class="ns-leaf" data-raw="moulding_mould_T.csv" data-src="CSV" data-noise="0.2" data-dec="1" data-core><span class="ns-leaf__path"><span class="ns-leaf__pre">Moulder1/</span><b>MouldTempC</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">27.9</span><span class="ns-leaf__unit">°C</span><span class="ns-q">GOOD</span></span></li>
+                  <li class="ns-leaf" data-raw="MLD_CNT[0]" data-src="S7" data-noise="0.6" data-dec="0"><span class="ns-leaf__path"><span class="ns-leaf__pre">Moulder1/</span><b>CyclesPerMin</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">14</span><span class="ns-leaf__unit">cpm</span><span class="ns-q">GOOD</span></span></li>
+                </ul>
+              </li>
+              <li class="ns-area" style="--i:4">
+                <span class="ns-area__name">Packaging/</span>
+                <ul class="ns-leaves">
+                  <li class="ns-leaf" data-raw="Line3 OEE (final v2).xlsx" data-src="xlsx" data-flag="stale" data-noise="0.5" data-dec="1" data-core><span class="ns-leaf__path"><span class="ns-leaf__pre">Line3/</span><b>OEE</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">88.3</span><span class="ns-leaf__unit">%</span><span class="ns-q">GOOD</span></span></li>
+                  <li class="ns-leaf" data-raw="DB_PROD.dbo.T_4411" data-src="SQL" data-noise="2" data-dec="0" data-core><span class="ns-leaf__path"><span class="ns-leaf__pre">Line3/</span><b>Throughput</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">118</span><span class="ns-leaf__unit">cpm</span><span class="ns-q">GOOD</span></span></li>
+                  <li class="ns-leaf" data-raw="Rejects!B14" data-src="xlsx" data-flag="no unit" data-noise="0" data-dec="0"><span class="ns-leaf__path"><span class="ns-leaf__pre">Line3/Checkweigher/Reject/</span><b>Count</b></span><span class="ns-leaf__read"><span class="ns-leaf__v">12</span><span class="ns-q">GOOD</span></span></li>
+                </ul>
+              </li>
+            </ul>
+            <span class="ns-scan" aria-hidden="true"></span>
+          </div>
         </div>
       </div>
     </section>
@@ -970,7 +984,7 @@
   <script src="assets/js/skill-meta.js?v=81d28cd35a" defer></script>
   <script src="assets/js/eggs.js?v=e05e8c5e22" defer></script>
   <script src="assets/js/diagram.js?v=40e3065ccd" defer></script>
-  <script src="assets/js/script.js?v=985398b5f6" defer></script>
+  <script src="assets/js/script.js?v=61cdda5ae9" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->
