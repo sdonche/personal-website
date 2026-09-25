@@ -207,7 +207,7 @@ Plant.buildPackagingPid = function buildPackagingPid() {
   ].join("");
 
   host.innerHTML = `
-    <svg class="pid-svg is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Line 3 packaging P and ID">
+    <svg class="pid-svg is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Line 3 packaging P and ID">
       <title>Heuvelland Packaging Line 3 — P&amp;ID</title>
 
       <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
@@ -312,7 +312,7 @@ Plant.buildMixingPid = function buildMixingPid() {
   ].join("");
 
   host.innerHTML = `
-    <svg class="pid-svg pid-svg--mixing is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heuvelland Mixing Mixer1 P and ID">
+    <svg class="pid-svg pid-svg--mixing is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Heuvelland Mixing Mixer1 P and ID">
       <title>Heuvelland Mixing — Mixer1</title>
       <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
       <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
@@ -426,7 +426,7 @@ Plant.buildTemperingPid = function buildTemperingPid() {
   ].join("");
 
   host.innerHTML = `
-    <svg class="pid-svg pid-svg--tempering is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heuvelland Tempering Temper1 P and ID">
+    <svg class="pid-svg pid-svg--tempering is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Heuvelland Tempering Temper1 P and ID">
       <title>Heuvelland Tempering — Temper1</title>
       <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
       <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
@@ -511,7 +511,7 @@ Plant.buildRefiningPid = function buildRefiningPid() {
   ].join("");
 
   host.innerHTML = `
-    <svg class="pid-svg pid-svg--refining is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heuvelland Refining Refiner1 P and ID">
+    <svg class="pid-svg pid-svg--refining is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Heuvelland Refining Refiner1 P and ID">
       <title>Heuvelland Refining — Refiner1</title>
       <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
       <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
@@ -587,7 +587,7 @@ Plant.buildConchingPid = function buildConchingPid() {
   ].join("");
 
   host.innerHTML = `
-    <svg class="pid-svg pid-svg--conching is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heuvelland Conching Conche1 P and ID">
+    <svg class="pid-svg pid-svg--conching is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Heuvelland Conching Conche1 P and ID">
       <title>Heuvelland Conching — Conche1</title>
       <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
       <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
@@ -671,7 +671,7 @@ Plant.buildMouldingPid = function buildMouldingPid() {
   ].join("");
 
   host.innerHTML = `
-    <svg class="pid-svg pid-svg--moulding is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heuvelland Moulding Moulder1 P and ID">
+    <svg class="pid-svg pid-svg--moulding is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Heuvelland Moulding Moulder1 P and ID">
       <title>Heuvelland Moulding — Moulder1</title>
       <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
       <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />
@@ -761,7 +761,7 @@ Plant.buildOverviewPid = function buildOverviewPid() {
       <text class="pid-overview__hint" x="${b.cx}" y="${b.y + 74}" text-anchor="middle">OPEN</text>
     </g>`).join("");
   host.innerHTML = `
-    <svg class="pid-svg pid-svg--overview is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heuvelland plant overview">
+    <svg class="pid-svg pid-svg--overview is-running" viewBox="0 0 ${vbW} ${vbH}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Heuvelland plant overview">
       <title>Heuvelland plant overview — process flow</title>
       <rect class="pid-sheet" x="12" y="12" width="${vbW - 24}" height="${vbH - 24}" />
       <line class="pid-sheet__rule" x1="12" y1="${vbH - 56}" x2="${vbW - 12}" y2="${vbH - 56}" />

@@ -103,8 +103,8 @@
   <link rel="preload" href="assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/css/fonts.css?v=0f6b5ce264" />
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=ee980a95a2" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=5af1382eec" />
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=9f7594763d" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=2a7925398d" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -132,7 +132,7 @@
   <!-- TOP BAR — logo + desk nav / floor status + mode switch + mobile actions -->
   <header class="fixed top-0 inset-x-0 z-40 px-4 sm:px-6 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
     <div class="max-w-5xl mx-auto h-14 flex items-center justify-between gap-3">
-      <a href="#hero" class="flex items-center gap-2 group shrink-0" aria-label="Home">
+      <a href="#hero" class="flex items-center gap-2 group shrink-0">
         <span class="relative inline-flex h-2.5 w-2.5">
           <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
           <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
@@ -155,12 +155,12 @@
       <div class="flex items-center gap-1.5 sm:gap-3 ml-auto min-w-0">
         <!-- Floor-only: green dot always; "Online" label from sm up (saves bar space on phones) -->
         <div class="floor-status flex items-center gap-2 sm:gap-4 shrink-0">
-          <span id="sys-status" class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-slate-500 cursor-pointer" title="Telemetry">
+          <span id="sys-status" class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-slate-400 cursor-pointer" title="Telemetry">
             <span class="h-1.5 w-1.5 rounded-full bg-accent shrink-0" aria-hidden="true"></span>
             <span class="floor-status__label"><span class="hidden sm:inline">System:&nbsp;</span>Online</span>
           </span>
           <span aria-hidden="true" class="hidden sm:inline text-slate-700 font-mono text-[11px]">|</span>
-          <span id="local-time" class="hidden sm:inline font-mono text-[11px] uppercase tracking-widest text-slate-500" aria-live="off">--:--:--</span>
+          <span id="local-time" class="hidden sm:inline font-mono text-[11px] uppercase tracking-widest text-slate-400" aria-live="off">--:--:--</span>
         </div>
 
         <div class="mode-switch shrink-0" role="group" aria-label="Presentation mode">
@@ -441,13 +441,13 @@
         <div class="mt-10 grid md:grid-cols-3 gap-8 reveal">
           <div class="md:col-span-2 space-y-5 text-slate-300 leading-relaxed">
             <p>
-              I started in biomedical research: four years of doctoral work at UZ Gent on PET-guided radiotherapy and imaging biomarkers, <a href="publications/" class="text-slate-200 hover:text-brand-300 underline-offset-4 hover:underline transition-colors">six peer-reviewed publications</a>, and the kind of data analysis discipline that only comes from staring at noisy signals for a long time.
+              I started in biomedical research: four years of doctoral work at UZ Gent on PET-guided radiotherapy and imaging biomarkers, <a href="publications/" class="text-slate-200 hover:text-brand-300 underline decoration-slate-500 underline-offset-4 hover:decoration-brand-300 transition-colors">six peer-reviewed publications</a>, and the kind of data analysis discipline that only comes from staring at noisy signals for a long time.
             </p>
             <p>
               I moved to industry in 2022, first as a data engineer at <span class="text-slate-200">Clarebout Potatoes</span>, then as MES project engineer at <span class="text-slate-200">Vandemoortele</span>. Same instinct, different context: capture what the process is actually doing, structure it so people trust it, and feed it back to the operators and engineers who make decisions on the floor.
             </p>
             <p>
-              Now I do that work as an Industry 4.0 Consultant at <a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="text-slate-200 hover:text-brand-300 underline-offset-4 hover:underline transition-colors">Mustry Solutions</a>, designing scalable industrial digital architectures across manufacturing, aerospace, textiles and energy. If you&rsquo;d like to work with me, that&rsquo;s where the engagement runs through.
+              Now I do that work as an Industry 4.0 Consultant at <a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="text-slate-200 hover:text-brand-300 underline decoration-slate-500 underline-offset-4 hover:decoration-brand-300 transition-colors">Mustry Solutions</a>, designing scalable industrial digital architectures across manufacturing, aerospace, textiles and energy. If you&rsquo;d like to work with me, that&rsquo;s where the engagement runs through.
             </p>
           </div>
           <aside class="space-y-3 font-mono text-xs">
@@ -693,7 +693,7 @@
             <svg
               id="stack-svg"
               viewBox="0 0 860 400"
-              role="img"
+              role="group"
               aria-label="Reference architecture for a factory data backbone. Field devices and OT protocols reach MQTT via Ignition Edge. Ignition and services sit on the gateway side of the bus, persist to data stores, and feed MES, HMI/SCADA and Grafana. The stack runs on Linux, Docker, Kubernetes and cloud, shipped via GitOps. Hover a skill below to see where it sits."
             >
               <g class="stack-svg__stages"></g>
@@ -781,6 +781,7 @@
 
         <div class="mt-10 grid gap-5 reveal">
           <a href="case-studies/factory-data-backbone/" class="work-card group">
+<!-- partial:work-backbone-diagram -->
             <div class="work-card__media work-card__media--diagram" aria-hidden="true">
               <!-- Schematic of the case study: five sites publish into one namespace, which feeds historian + lake -->
               <svg viewBox="0 0 320 180" class="wk-svg">
@@ -801,6 +802,7 @@
                 <g class="wk-store"><rect x="236" y="113" width="74" height="22" rx="3"/><text x="273" y="127">DATA LAKE</text></g>
               </svg>
             </div>
+<!-- /partial:work-backbone-diagram -->
             <div class="work-card__body">
               <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                 <h3 class="text-lg font-semibold text-slate-100 group-hover:text-brand-300 transition-colors">From data islands to a factory-wide backbone</h3>
@@ -846,7 +848,7 @@
           <p class="section-eyebrow">// Contact</p>
           <h2 class="section-title">Open a channel.</h2>
           <p class="mt-4 text-slate-400 max-w-xl">
-            Got a project at the edge of OT and IT? A pilot you&rsquo;d like a second pair of eyes on? Drop a message. I read everything. Client engagements run through <a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="text-slate-300 hover:text-brand-300 underline-offset-4 hover:underline transition-colors">Mustry Solutions</a>.
+            Got a project at the edge of OT and IT? A pilot you&rsquo;d like a second pair of eyes on? Drop a message. I read everything. Client engagements run through <a href="https://mustrysolutions.com" target="_blank" rel="noopener" class="text-slate-300 hover:text-brand-300 underline decoration-slate-500 underline-offset-4 hover:decoration-brand-300 transition-colors">Mustry Solutions</a>.
           </p>
         </div>
 

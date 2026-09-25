@@ -338,7 +338,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   font-size: 0.65rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
 }
 .skill-index__grid {
   display: grid;
@@ -366,7 +366,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   font-size: 0.62rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
   margin-bottom: 0.55rem;
 }
 .skill-group__icon {
@@ -577,7 +577,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   font-size: 0.7rem;
   color: rgb(226 232 240);
 }
-.tag-nav__filter input::placeholder { color: rgb(100 116 139); }
+.tag-nav__filter input::placeholder { color: rgb(148 163 184); }
 .tag-nav__filter input:focus {
   outline: none;
   border-color: rgba(34, 211, 238, 0.45);
@@ -586,7 +586,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
 .tag-nav__empty {
   padding: 0.5rem;
   font-size: 0.7rem;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
 }
 /* While filtering, the dashed child rail reads as clutter */
 .tag-nav__tree.is-filtered .tag-nav__group > ul { border-left-color: transparent; }
@@ -610,7 +610,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   padding: 0.25rem 0.45rem;
   font-size: 0.625rem;
   letter-spacing: 0.03em;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
   border-bottom: 1px dashed rgba(148, 163, 184, 0.15);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -637,7 +637,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
 .tag-path {
   font-size: 0.6875rem;
   letter-spacing: 0.05em;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
   margin: 0;
   overflow: hidden;
   white-space: nowrap;
@@ -724,7 +724,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   font-size: 0.625rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
 }
 
 /* Tree — flex grows to fill, then footer pins to bottom */
@@ -800,7 +800,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
 .qv-badge {
   font-size: 0.5625rem;          /* 9px */
   letter-spacing: 0.12em;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
   padding: 0.1rem 0.35rem;
   border-radius: 3px;
   border: 1px solid rgba(148, 163, 184, 0.12);
@@ -884,14 +884,14 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   font-size: 0.65rem;
   text-align: center;
   transition: transform .2s ease;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
 }
 .tag-nav__group:not([open]) > summary .tag-nav__chev {
   transform: rotate(-90deg);
 }
 .tag-nav__group-count {
   font-size: 0.5625rem;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
   letter-spacing: 0.05em;
 }
 
@@ -916,7 +916,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   gap: 0.35rem;
   font-size: 0.625rem;
   letter-spacing: 0.04em;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
 }
 .tag-nav__legend p { margin: 0; display: flex; align-items: center; gap: 0.45rem; }
 .tag-nav__legend .legend-dot {
@@ -1093,7 +1093,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
 }
 .cmdk__item-desc {
   font-size: 0.6875rem;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -1124,7 +1124,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   padding: 0.55rem 1rem;
   border-top: 1px solid rgba(148, 163, 184, 0.12);
   font-size: 0.625rem;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   background: rgba(2, 6, 23, 0.4);
@@ -1545,7 +1545,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
 }
 .trend-legend > span { display: inline-flex; align-items: center; gap: 0.4rem; }
 .trend-legend .legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
@@ -1571,7 +1571,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   transition: opacity 0.12s ease;
 }
 .trend-tip.is-visible { opacity: 1; }
-.trend-tip__meta { display: block; margin-top: 2px; color: rgb(100 116 139); }
+.trend-tip__meta { display: block; margin-top: 2px; color: rgb(148 163 184); }
 
 /* Inspector mode: the chart selects which single role card shows below.
    All cards remain in the DOM (SEO / print / no-JS show everything). */
@@ -1599,7 +1599,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   max-width: 520px;
   text-align: center;
   font-size: 0.8125rem;
-  color: rgb(100 116 139);
+  color: rgb(148 163 184);
   line-height: 1.55;
 }
 .stack-diagram__hint {
@@ -1875,7 +1875,7 @@ html.hmi-night body::after {
   font-size: 0.7rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #64748b;
+  color: #94a3b8;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -2005,7 +2005,7 @@ html.line-stopped *::after {
 .egg-discover__star { color: var(--color-brand-400); font-size: 1.1rem; line-height: 1; }
 .egg-discover__body { font-size: 0.74rem; line-height: 1.3; }
 .egg-discover__body b { color: var(--color-brand-300); }
-.egg-discover__meta { display: block; color: #64748b; font-size: 0.66rem; margin-top: 2px; }
+.egg-discover__meta { display: block; color: #94a3b8; font-size: 0.66rem; margin-top: 2px; }
 
 /* ---- Operator Log page (/log/) ---- */
 .oplog-meta {
@@ -2021,10 +2021,10 @@ html.line-stopped *::after {
   padding: 0.6rem 0.9rem;
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
 }
-.oplog-rank__label { display: block; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: #64748b; }
+.oplog-rank__label { display: block; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: #94a3b8; }
 .oplog-rank__value { color: var(--color-brand-300); font-size: 1rem; font-weight: 600; }
 .oplog-progress { font-family: var(--font-mono, "JetBrains Mono"), monospace; }
-.oplog-progress__head { display: flex; justify-content: space-between; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: #64748b; margin-bottom: 0.4rem; }
+.oplog-progress__head { display: flex; justify-content: space-between; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.4rem; }
 .oplog-progress__count { color: #cbd5e1; }
 .oplog-progress__bar { height: 8px; border-radius: 99px; background: rgba(148, 163, 184, 0.15); overflow: hidden; }
 .oplog-progress__bar span { display: block; height: 100%; width: var(--pct, 0%); background: linear-gradient(90deg, var(--color-accent), var(--color-brand-400)); transition: width 0.5s ease; }
@@ -2039,15 +2039,15 @@ html.line-stopped *::after {
 .oplog-item.is-found { border-color: rgba(34, 211, 238, 0.35); }
 .oplog-item__mark { font-family: var(--font-mono, "JetBrains Mono"), monospace; flex-shrink: 0; margin-top: 0.1rem; }
 .oplog-item.is-found .oplog-item__mark { color: var(--color-brand-400); }
-.oplog-item.is-locked .oplog-item__mark { color: #475569; }
+.oplog-item.is-locked .oplog-item__mark { color: #64748b; }
 .oplog-item__name { margin: 0; font-size: 0.92rem; color: #e2e8f0; }
-.oplog-item.is-locked .oplog-item__name { color: #64748b; font-family: var(--font-mono, "JetBrains Mono"), monospace; letter-spacing: 0.05em; }
+.oplog-item.is-locked .oplog-item__name { color: #94a3b8; font-family: var(--font-mono, "JetBrains Mono"), monospace; letter-spacing: 0.05em; }
 .oplog-item__how { margin: 0.2rem 0 0; font-size: 0.78rem; color: #94a3b8; }
-.oplog-item.is-locked .oplog-item__how { color: #475569; font-style: italic; }
+.oplog-item.is-locked .oplog-item__how { color: #94a3b8; font-style: italic; }
 .oplog-foot { margin-top: 2rem; }
 .oplog-reset {
   font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
-  color: #475569; background: none; border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 0.4rem;
+  color: #94a3b8; background: none; border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 0.4rem;
   padding: 0.4rem 0.7rem; cursor: pointer; transition: color 0.15s ease, border-color 0.15s ease;
 }
 .oplog-reset:hover { color: #94a3b8; border-color: rgba(148, 163, 184, 0.3); }
@@ -2245,7 +2245,7 @@ html.line-stopped *::after {
 .hmi-tile__row b {
   flex-shrink: 0;
   width: 3.9rem;
-  color: #64748b;
+  color: #94a3b8;
   font-weight: 600;
   font-size: 0.6rem;
   letter-spacing: 0.1em;
@@ -2396,7 +2396,7 @@ html.line-stopped *::after {
   font-size: 0.56rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #64748b;
+  color: #94a3b8;
   white-space: nowrap;
 }
 .sp-sep {
@@ -2533,7 +2533,7 @@ html.line-stopped *::after {
   font-size: 0.58rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #64748b;
+  color: #94a3b8;
 }
 .note-arrow::before,
 .note-arrow::after {
@@ -2686,7 +2686,7 @@ html.line-stopped *::after {
   font-size: 0.52rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #64748b;
+  color: #94a3b8;
   max-width: 6.5rem;
   line-height: 1.35;
 }
@@ -2813,9 +2813,9 @@ html.line-stopped *::after {
   font-size: 0.55rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #64748b;
+  color: #94a3b8;
 }
-.note-gallery__cap .note-tech { color: #64748b; width: 0.7rem; height: 0.7rem; }
+.note-gallery__cap .note-tech { color: #94a3b8; width: 0.7rem; height: 0.7rem; }
 
 /* Before / after Designer pair */
 .note-prose .note-shot {
@@ -2869,7 +2869,7 @@ html.line-stopped *::after {
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
   font-size: 0.58rem;
   letter-spacing: 0.08em;
-  color: #64748b;
+  color: #94a3b8;
   border-top: 1px solid rgba(148, 163, 184, 0.12);
 }
 
@@ -3136,7 +3136,7 @@ html.line-stopped *::after {
 }
 .ns-leaf__raw.is-file { font-family: var(--font-sans, "Inter"), sans-serif; font-style: italic; font-size: 0.72rem; }
 .ns-leaf__raw.is-plc  { letter-spacing: 0.05em; }
-.ns-leaf__raw.is-sql  { color: rgb(100 116 139); }
+.ns-leaf__raw.is-sql  { color: rgb(148 163 184); }
 .ns-src {
   font-style: normal;
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
@@ -3342,6 +3342,19 @@ html:not([data-mode="floor"]) .ns-leaf[data-raw]:not(.is-raw):hover::after { con
 @media (min-width: 1024px) {
   .work-card { grid-template-columns: 20rem minmax(0, 1fr); }
 }
+
+/* Text-only list cards (notes index) share the work-card surface + hover */
+.list-card {
+  border-radius: 0.75rem;
+  border: 1px solid rgb(30 41 59);
+  background: rgba(15, 23, 42, 0.4);
+  transition: border-color .2s ease, box-shadow .3s ease;
+}
+.list-card:hover {
+  border-color: rgba(34, 211, 238, 0.4);
+  box-shadow: 0 20px 44px -24px rgba(34, 211, 238, 0.3);
+}
+.list-card:focus-visible { outline: 2px solid var(--color-brand-400); outline-offset: 2px; }
 
 /* Case-study schematic (inline SVG) */
 .work-card__media--diagram {
