@@ -100,11 +100,12 @@
   document.addEventListener("DOMContentLoaded", init);
 
   function init() {
+    ensureSidebar();
+    addSidebarModeSwitch();
     wireModeToggle();
     startClock();
     setFooterYear();
     loadVisited();
-    ensureSidebar();
     // On a sub-page, that page's node is the LIVE one (no in-view sections here)
     const pid = currentPageId();
     if (pid) { activeId = pid; visited.add(pid); saveVisited(); }
@@ -115,6 +116,8 @@
     buildCareerTrend();
     observeActiveSection();
     observeReveals();
+    typeFloorEyebrows();
+    buildTagTicker();
     wireContactForm();
     wireEmailLinks();
     wireEasterEggs();
@@ -280,6 +283,24 @@
         </div>
       </div>`;
     document.body.appendChild(aside);
+  }
+
+  /* Phones: the top bar has no room for Desk | Floor next to search + menu,
+     so the switch moves into the slide-in menu (CSS hides the top-bar copy
+     below 640px on pages that have a menu button). Must run before
+     wireModeToggle() so both copies get wired. */
+  function addSidebarModeSwitch() {
+    const header = document.querySelector("#tag-nav .tag-nav__header");
+    if (!header || document.querySelector(".tag-nav__mode")) return;
+    const row = document.createElement("div");
+    row.className = "tag-nav__mode";
+    row.innerHTML = `
+      <span class="tag-nav__mode-label">view</span>
+      <div class="mode-switch" role="group" aria-label="Presentation mode">
+        <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
+        <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
+      </div>`;
+    header.after(row);
   }
 
   /* Registry hrefs are stored site-relative; the sidebar renders on pages at any
@@ -1230,6 +1251,101 @@
   }
 
   /* ----------------------------------------------------
+     7b. Floor mode: section eyebrows ("// About") type themselves
+         out once as they scroll into view. Text stays in the DOM the
+         whole time (CSS clips its width), so screen readers and
+         Desk mode are unaffected.
+     ---------------------------------------------------- */
+  function typeFloorEyebrows() {
+    const els = document.querySelectorAll(".section-eyebrow");
+    if (!els.length || prefersReducedMotion || !("IntersectionObserver" in window)) return;
+
+    els.forEach((el) => {
+      el.style.setProperty("--chars", el.textContent.trim().length);
+      el.classList.add("is-typeable");
+    });
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        // Desk mode: nothing to do — CSS only animates under data-mode="floor"
+        e.target.classList.add("is-typing");
+      });
+    }, { rootMargin: "0px 0px -12% 0px" });
+    els.forEach((el) => io.observe(el));
+  }
+
+  /* ----------------------------------------------------
+     7c. Hero live-tag strip — a small random walk per tile, drawn as
+         a sparkline. Pauses off-screen, in background tabs and on
+         E-STOP; with reduced motion it renders one static snapshot.
+     ---------------------------------------------------- */
+  function buildTagTicker() {
+    const tiles = [...document.querySelectorAll(".tag-tile")];
+    if (!tiles.length) return;
+    const N = 32;          // points per sparkline
+    const W = 120, H = 28; // matches the SVG viewBox
+
+    const state = tiles.map((tile) => {
+      const base  = parseFloat(tile.dataset.base);
+      const noise = parseFloat(tile.dataset.noise);
+      const hi    = tile.dataset.hi ? parseFloat(tile.dataset.hi) : Infinity;
+      const dec   = parseInt(tile.dataset.dec || "0", 10);
+      const pts = [];
+      let v = base;
+      for (let i = 0; i < N; i++) { v = step(v, base, noise); pts.push(v); }
+      return {
+        tile, base, noise, hi, dec, pts,
+        valueEl: tile.querySelector("[data-value]"),
+        qEl: tile.querySelector("[data-quality]"),
+        line: tile.querySelector(".tag-tile__line"),
+        area: tile.querySelector(".tag-tile__area"),
+      };
+    });
+
+    // Mean-reverting walk: stays near base, wanders enough to look alive
+    function step(v, base, noise) {
+      return v + (base - v) * 0.18 + (Math.random() - 0.5) * 2 * noise;
+    }
+
+    function draw(s) {
+      const span = s.noise * 6;
+      const lo = s.base - span / 2;
+      const xy = s.pts.map((p, i) => {
+        const x = (i / (N - 1)) * W;
+        const y = H - 2 - Math.max(0, Math.min(1, (p - lo) / span)) * (H - 4);
+        return [x.toFixed(1), y.toFixed(1)];
+      });
+      const d = "M" + xy.map((p) => p.join(",")).join("L");
+      s.line.setAttribute("d", d);
+      s.area.setAttribute("d", `${d}L${W},${H}L0,${H}Z`);
+      const v = s.pts[N - 1];
+      s.valueEl.textContent = v.toFixed(s.dec);
+      const high = v > s.hi;
+      s.tile.classList.toggle("is-high", high);
+      if (s.qEl) s.qEl.textContent = high ? "HI" : "GOOD";
+    }
+
+    state.forEach(draw);
+    if (prefersReducedMotion) return;
+
+    let onScreen = true;
+    const hero = document.getElementById("hero");
+    if (hero && "IntersectionObserver" in window) {
+      new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; }).observe(hero);
+    }
+    setInterval(() => {
+      if (!onScreen || document.hidden || motionHalted) return;
+      state.forEach((s) => {
+        s.pts.push(step(s.pts[N - 1], s.base, s.noise));
+        s.pts.shift();
+        draw(s);
+      });
+    }, 1400);
+  }
+
+  /* ----------------------------------------------------
      8. Email links
      ---------------------------------------------------- */
   const B64_EMAIL = "c2FtLmRvbmNoZUBtdXN0cnlzb2x1dGlvbnMuY29t";
@@ -1330,8 +1446,12 @@
         ok:      "text-accent",
         err:     "text-rose-400",
       };
-      status.className = `font-mono text-xs ${colors[kind] || "text-slate-500"}`;
+      status.className = `font-mono text-xs ${colors[kind] || "text-slate-400"}`;
       status.innerHTML = msg;
+      // Restart the TX → ACK link animation on each new state
+      delete form.dataset.tx;
+      void form.offsetWidth;
+      form.dataset.tx = kind;
     }
   }
 
