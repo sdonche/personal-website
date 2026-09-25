@@ -1190,7 +1190,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
     height: auto;
   }
 }
-.stack-diagram__caption { color: rgb(100 116 139); }
+.stack-diagram__caption { color: rgb(148 163 184); }
 .stack-diagram__live {
   display: inline-flex;
   align-items: center;
@@ -1484,7 +1484,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   font-size: 10px;
   letter-spacing: 0.05em;
 }
-.career-svg__axis-label { fill: rgb(100 116 139); text-anchor: middle; }
+.career-svg__axis-label { fill: rgb(148 163 184); text-anchor: middle; }
 .career-svg__lane-label { fill: rgb(148 163 184); text-anchor: end; }
 .career-svg__now-label  { fill: var(--color-accent); font-weight: 600; }
 .career-svg__lane { cursor: pointer; }
@@ -2876,4 +2876,412 @@ html.line-stopped *::after {
 @media (prefers-reduced-motion: reduce) {
   .note-gallery__card { transition: none; }
   .note-gallery__card:hover { transform: none; }
+}
+
+
+/* ============================================================
+   VISUAL REFRESH — glass hero card, live-tag strip, work-card
+   thumbnails, floor-mode typed eyebrows, contact TX → ACK link,
+   phone menu mode switch.
+   ============================================================ */
+
+/* ---------- Glass panel ----------
+   Translucent fill + backdrop blur, a 1px gradient rim (masked ::before)
+   and a faint top highlight. Used for the hero profile card + tag strip. */
+.glass-card {
+  position: relative;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: linear-gradient(160deg, rgba(30, 41, 59, 0.55), rgba(15, 23, 42, 0.35) 55%, rgba(2, 6, 23, 0.45));
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(148, 163, 184, 0.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 24px 60px -28px rgba(0, 0, 0, 0.8);
+  transition: box-shadow .3s ease;
+}
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(140deg, rgba(103, 232, 249, 0.55), rgba(103, 232, 249, 0) 32%, rgba(52, 211, 153, 0) 68%, rgba(52, 211, 153, 0.35));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.glass-card:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(34, 211, 238, 0.12),
+    0 24px 60px -24px rgba(34, 211, 238, 0.22);
+}
+
+/* Soft light behind the profile card — gives the blur something to catch */
+.hero-orbs {
+  position: absolute;
+  inset: -2.5rem;
+  z-index: -1;
+  pointer-events: none;
+}
+.hero-orbs span {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(48px);
+  animation: hero-orb-drift 14s ease-in-out infinite alternate;
+}
+.hero-orbs span:first-child {
+  top: 0; right: 0;
+  width: 13rem; height: 13rem;
+  background: rgba(34, 211, 238, 0.26);
+}
+.hero-orbs span:last-child {
+  bottom: 0; left: 0;
+  width: 11rem; height: 11rem;
+  background: rgba(52, 211, 153, 0.16);
+  animation-delay: -7s;
+}
+@keyframes hero-orb-drift {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-1.5rem, 1.25rem); }
+}
+
+/* ---------- Hero live-tag strip ---------- */
+.tag-ticker { padding: 0.6rem; }
+.tag-ticker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.2rem 0.4rem 0.6rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(148 163 184);
+}
+.tag-ticker__caption { display: inline-flex; align-items: center; gap: 0.5rem; min-width: 0; white-space: nowrap; }
+.tag-ticker__pulse {
+  position: relative;
+  width: 6px; height: 6px;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+.tag-ticker__pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-accent);
+  animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+  opacity: 0.6;
+}
+.tag-ticker__link { color: rgb(148 163 184); white-space: nowrap; transition: color .15s ease; }
+.tag-ticker__link:hover { color: var(--color-brand-300); }
+.tag-ticker__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+@media (min-width: 768px) {
+  .tag-ticker__list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.tag-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  padding: 0.6rem 0.7rem 0.45rem;
+  border-radius: 0.5rem;
+  background: rgba(2, 6, 23, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+}
+.tag-tile__path {
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.625rem;
+  color: rgb(148 163 184);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tag-tile__path b { font-weight: 500; color: rgb(226 232 240); }
+.tag-tile__row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+.tag-tile__value {
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  color: rgb(241 245 249);
+  transition: color .3s ease;
+}
+.tag-tile__unit { margin-left: 0.3rem; font-size: 0.68rem; color: rgb(148 163 184); }
+.tag-tile__q {
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+  padding: 0.05rem 0.35rem;
+  border-radius: 3px;
+  color: #6ee7b7;
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+.tag-tile__spark { display: block; width: 100%; height: 28px; overflow: visible; }
+.tag-tile__line {
+  fill: none;
+  stroke: var(--color-brand-400);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.tag-tile__area { fill: rgba(34, 211, 238, 0.08); }
+/* Above the high limit: amber, like an HMI warning */
+.tag-tile.is-high .tag-tile__value { color: #fcd34d; }
+.tag-tile.is-high .tag-tile__line { stroke: #fbbf24; }
+.tag-tile.is-high .tag-tile__area { fill: rgba(251, 191, 36, 0.1); }
+.tag-tile.is-high .tag-tile__q {
+  color: #fcd34d;
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+/* ---------- Work cards with thumbnails ---------- */
+.work-card {
+  display: grid;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(30 41 59);
+  background: rgba(15, 23, 42, 0.4);
+  transition: border-color .2s ease, box-shadow .3s ease;
+}
+.work-card:hover {
+  border-color: rgba(34, 211, 238, 0.4);
+  box-shadow: 0 20px 44px -24px rgba(34, 211, 238, 0.3);
+}
+.work-card:focus-visible { outline: 2px solid var(--color-brand-400); outline-offset: 2px; }
+.work-card__media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #020617;
+  border-bottom: 1px solid rgb(30 41 59);
+}
+.work-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform .6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.work-card:hover .work-card__media img { transform: scale(1.05); }
+/* Fade the image into the card so it reads as one panel */
+.work-card__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(2, 6, 23, 0.55), transparent 45%);
+  pointer-events: none;
+}
+.work-card__badge {
+  position: absolute;
+  z-index: 1;
+  top: 0.6rem;
+  left: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6ee7b7;
+  background: rgba(2, 6, 23, 0.8);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+}
+.work-card__badge::before {
+  content: "";
+  width: 5px; height: 5px;
+  border-radius: 9999px;
+  background: var(--color-accent);
+}
+.work-card__body { padding: 1.25rem; min-width: 0; }
+@media (min-width: 640px) {
+  .work-card { grid-template-columns: 16rem minmax(0, 1fr); }
+  .work-card__media {
+    aspect-ratio: auto;
+    min-height: 100%;
+    border-bottom: 0;
+    border-right: 1px solid rgb(30 41 59);
+  }
+  .work-card__media img { position: absolute; inset: 0; }
+  .work-card__media::after { background: linear-gradient(to left, rgba(2, 6, 23, 0.5), transparent 40%); }
+  .work-card__body { padding: 1.5rem; }
+}
+@media (min-width: 1024px) {
+  .work-card { grid-template-columns: 20rem minmax(0, 1fr); }
+}
+
+/* Case-study schematic (inline SVG) */
+.work-card__media--diagram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background-color: #030a1c;
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.work-card__media--diagram::after { display: none; }
+.wk-svg { display: block; width: 100%; height: auto; max-height: 100%; transition: transform .6s cubic-bezier(0.22, 1, 0.36, 1); }
+.work-card:hover .wk-svg { transform: scale(1.04); }
+.wk-svg text {
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  text-anchor: middle;
+}
+.wk-site rect { fill: rgba(15, 23, 42, 0.95); stroke: rgb(51 65 85); }
+.wk-site text { font-size: 7px; letter-spacing: 0.06em; fill: rgb(148 163 184); }
+.wk-hub rect { fill: rgba(34, 211, 238, 0.1); stroke: rgba(34, 211, 238, 0.65); }
+.wk-hub text { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; fill: var(--color-brand-300); }
+.wk-hub .wk-sub { font-size: 6px; font-weight: 400; letter-spacing: 0.04em; fill: rgb(148 163 184); }
+.wk-store rect { fill: rgba(52, 211, 153, 0.08); stroke: rgba(52, 211, 153, 0.5); }
+.wk-store text { font-size: 7px; letter-spacing: 0.08em; fill: #6ee7b7; }
+.wk-link { fill: none; stroke: rgba(34, 211, 238, 0.4); stroke-width: 1.2; }
+.wk-flow { stroke-dasharray: 2 6; animation: wk-flow 1.6s linear infinite; }
+.wk-flow--out { stroke: rgba(52, 211, 153, 0.5); }
+@keyframes wk-flow { to { stroke-dashoffset: -16; } }
+
+/* ---------- Floor mode: section eyebrows type themselves out ----------
+   JS sets --chars and .is-typeable (skipped with reduced motion), then
+   .is-typing once the eyebrow scrolls into view. Desk mode is untouched. */
+html[data-mode="floor"] .section-eyebrow.is-typeable {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  vertical-align: top;
+  width: 0;
+  padding-right: 0.15em;
+  border-right: 2px solid transparent;
+}
+html[data-mode="floor"] .section-eyebrow.is-typeable.is-typing {
+  width: calc(var(--chars) * (1ch + 0.25em) + 0.3em);
+  animation:
+    eyebrow-type 0.9s steps(var(--chars), end) both,
+    eyebrow-caret 0.55s step-end 5;
+}
+@keyframes eyebrow-type { from { width: 0; } }
+@keyframes eyebrow-caret {
+  0%, 100% { border-right-color: var(--color-brand-400); }
+  50%      { border-right-color: transparent; }
+}
+
+/* ---------- Contact: TX → ACK link ---------- */
+.tx-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.15em;
+  color: rgb(148 163 184);
+  transition: opacity .3s ease, max-height .3s ease;
+}
+form[data-tx] .tx-link { max-height: 2rem; opacity: 1; }
+.tx-link__node {
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  border: 1px solid rgb(51 65 85);
+  transition: color .3s ease .55s, border-color .3s ease .55s, box-shadow .3s ease .55s;
+}
+.tx-link__wire {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, rgba(34, 211, 238, 0.55), rgba(34, 211, 238, 0.15));
+  transition: background .3s ease .55s;
+}
+.tx-link__packet {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 2px;
+  background: var(--color-brand-400);
+  box-shadow: 0 0 10px 2px rgba(34, 211, 238, 0.6);
+  opacity: 0;
+}
+.tx-link__nak { display: none; }
+form[data-tx="pending"] .tx-link__packet { animation: tx-fly 1.1s cubic-bezier(0.5, 0, 0.5, 1) infinite; }
+form[data-tx="ok"] .tx-link__packet { animation: tx-land 0.6s ease-in both; }
+form[data-tx="ok"] .tx-link__wire { background: rgba(52, 211, 153, 0.6); }
+form[data-tx="ok"] .tx-link__node--end {
+  color: #6ee7b7;
+  border-color: rgba(52, 211, 153, 0.6);
+  box-shadow: 0 0 12px -2px rgba(52, 211, 153, 0.6);
+}
+form[data-tx="err"] .tx-link__wire { background: rgba(251, 113, 133, 0.5); transition-delay: 0s; }
+form[data-tx="err"] .tx-link__node--end { color: #fda4af; border-color: rgba(251, 113, 133, 0.6); transition-delay: 0s; }
+form[data-tx="err"] .tx-link__ack { display: none; }
+form[data-tx="err"] .tx-link__nak { display: inline; }
+@keyframes tx-fly {
+  0%   { left: 0; opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { left: calc(100% - 8px); opacity: 0; }
+}
+@keyframes tx-land {
+  0%   { left: 0; opacity: 1; }
+  100% { left: calc(100% - 8px); opacity: 0; }
+}
+
+/* ---------- Phones: Desk | Floor moves into the slide-in menu ---------- */
+.tag-nav__mode { display: none; }
+@media (max-width: 639px) {
+  header:has(#nav-toggle) .mode-switch { display: none; }
+  .tag-nav__mode {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px dashed rgba(148, 163, 184, 0.12);
+  }
+  .tag-nav__mode-label {
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(148 163 184);
+  }
+}
+
+@media print {
+  .tag-ticker,
+  .hero-orbs,
+  .tx-link,
+  .work-card__media { display: none !important; }
+  .work-card { display: block; border: 0; }
+  .work-card__body { padding: 0; }
+  html[data-mode="floor"] .section-eyebrow.is-typeable { width: auto !important; }
+}
+
+/* Phones: tag strip head + paths get more room */
+@media (max-width: 639px) {
+  .tag-ticker__site { display: none; }
+  .tag-tile__path { white-space: normal; line-height: 1.35; }
+  .tag-tile__path b { display: block; }
 }
