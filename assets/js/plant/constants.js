@@ -50,6 +50,7 @@ Plant.DRAWING_FAULTS = {
 };
 
 Plant.TREND_LEN = 60;
+Plant.EVENT_MAX = 80; // operator journal entries kept
 
 /** @typedef {"Good"|"Uncertain"|"Bad"|"Stale"} Quality */
 
@@ -276,6 +277,19 @@ Plant.SETPOINT_FOR = {
   "Tempering/Temper1/Zone2TempC": "Tempering/Temper1/Zone2SP",
   "Tempering/Temper1/Zone3TempC": "Tempering/Temper1/Zone3SP",
   "Moulding/Cooling/AirTempC": "Moulding/Cooling/AirTempSP",
+};
+
+/** Operator-writable setpoints: controller loop, default, write range. The
+    conche SP follows the recipe phase; a write overrides it until the next phase. */
+Plant.SP_WRITE = {
+  SpeedSP: { loop: "SIC-600", def: 38, min: 20, max: 60, step: 1 },
+  "Mixing/Mixer1/JacketTempSP": { loop: "TIC-111", def: 48.5, min: 42, max: 52, step: 0.5 },
+  "Refining/Refiner1/ParticleSP": { loop: "AIC-211", def: 22, min: 18, max: 28, step: 0.5 },
+  "Conching/Conche1/TempSP": { loop: "TIC-310", def: null, min: 45, max: 78, step: 0.5, phase: true },
+  "Tempering/Temper1/Zone1SP": { loop: "TIC-410", def: 45, min: 42, max: 50, step: 0.1 },
+  "Tempering/Temper1/Zone2SP": { loop: "TIC-411", def: 28, min: 26, max: 30, step: 0.1 },
+  "Tempering/Temper1/Zone3SP": { loop: "TIC-412", def: 31.5, min: 30, max: 33, step: 0.1 },
+  "Moulding/Cooling/AirTempSP": { loop: "TIC-520", def: 10, min: 6, max: 14, step: 0.5 },
 };
 
 /** Prefixed stub tags: Line1/OEE, Line2/Infeed/Speed, … */

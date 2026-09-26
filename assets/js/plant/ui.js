@@ -760,7 +760,7 @@ Plant.wire = function wire() {
     const pane = e.target.closest("[data-alarm-pane]");
     if (pane) {
       const v = pane.getAttribute("data-alarm-pane");
-      Plant.state.alarmPane = v === "history" || v === "shelved" ? v : "active";
+      Plant.state.alarmPane = ["history", "shelved", "events"].includes(v) ? v : "active";
       Plant.saveState();
       Plant.renderAlarms();
       return;
@@ -778,8 +778,11 @@ Plant.wire = function wire() {
     const form = e.target.closest("[data-faceplate-write]");
     if (!form) return;
     e.preventDefault();
-    const input = form.querySelector('input[name="speed"]');
-    if (input) Plant.writeSpeedSp(input.value);
+    Plant.faceplateSubmit(form, e.submitter);
+  });
+  document.getElementById("plant-detail")?.addEventListener("click", (e) => {
+    const cancel = e.target.closest("[data-fp-cancel]");
+    if (cancel) Plant.faceplateCancel(cancel.closest("[data-faceplate-write]"));
   });
 }
 

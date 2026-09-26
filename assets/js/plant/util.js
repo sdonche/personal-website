@@ -193,6 +193,13 @@ Plant.areaHealth = function areaHealth(drawing) {
   return "run";
 }
 
+/** Setpoint in force: the operator's write, else the recipe / default value. */
+Plant.spValue = function spValue(tag, recipe) {
+  if (tag === "SpeedSP") return Number(Plant.state.speedSp) > 0 ? Number(Plant.state.speedSp) : 38;
+  const v = Plant.state.sp?.[tag];
+  return Number.isFinite(v) ? v : recipe ?? Plant.SP_WRITE[tag]?.def;
+}
+
 /* ---------------- P&ID ---------------- */
 
 Plant.liveReadout = function liveReadout(tagId) {

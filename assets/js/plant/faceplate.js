@@ -27,15 +27,24 @@ Plant.renderDetail = function renderDetail() {
 Plant.buildFaceplate = function buildFaceplate(el, def) {
   const esc = Plant.escapeHtml;
   const path = Plant.pathOf(def.id);
-  const writable = def.id === "SpeedSP";
   const numeric = def.type === "number";
-  const writeBlock = writable ? `
-    <form class="plant-faceplate__write" data-faceplate-write="SpeedSP">
-      <label class="plant-faceplate__write-label">Write SpeedSP
-        <input type="number" name="speed" min="20" max="60" step="1" value="${esc(String(Plant.state.speedSp))}" class="plant-faceplate__input" />
-        <span class="plant-faceplate__unit">cpm</span>
+  const spTag = Plant.writableSpFor(def.id);
+  const w = spTag && Plant.SP_WRITE[spTag];
+  const spDef = spTag && Plant.TAG_BY_ID[spTag];
+  const writeBlock = w ? `
+    <form class="plant-faceplate__write" data-faceplate-write="${esc(spTag)}" novalidate>
+      <label class="plant-faceplate__write-label">${esc(w.loop)} SP
+        <input type="number" name="sp" min="${w.min}" max="${w.max}" step="${w.step}" value="${esc(String(Plant.live[spTag]?.value ?? ""))}" class="plant-faceplate__input" />
+        <span class="plant-faceplate__unit">${esc(spDef?.unit || "")}</span>
       </label>
-      <button type="submit" class="plant-btn plant-btn--ghost">Confirm write</button>
+      <button type="submit" class="plant-btn plant-btn--ghost" data-fp-step="stage">Write…</button>
+      <span class="plant-faceplate__confirm" data-fp-confirm hidden>
+        <span data-fp-confirm-text></span>
+        <button type="submit" class="plant-btn plant-btn--accent" data-fp-step="confirm">Confirm</button>
+        <button type="button" class="plant-btn plant-btn--ghost" data-fp-cancel>Cancel</button>
+      </span>
+      <span class="plant-faceplate__msg" data-fp-msg role="status"></span>
+      <span class="plant-faceplate__hint">range ${esc(Plant.formatValue(spDef, w.min))} – ${esc(Plant.formatValue(spDef, w.max))}${w.phase ? " · overrides the recipe until the phase ends" : ""}</span>
     </form>` : "";
   el.innerHTML = `
     <div class="plant-faceplate">
@@ -101,7 +110,75 @@ Plant.patchFaceplate = function patchFaceplate(el, def, lv) {
     const dev = Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(1)}${def.unit ? ` ${def.unit}` : ""}` : "—";
     sp.innerHTML = `Setpoint <strong>${esc(Plant.liveReadout(spTag))}</strong> · deviation ${esc(dev)}`;
   }
+  // Follow the SP in force unless the operator is editing or confirming a write
+  const form = el.querySelector("[data-faceplate-write]");
+  const input = form?.querySelector('input[name="sp"]');
+  if (input && document.activeElement !== input && form.dataset.staged == null) {
+    const v = Plant.live[form.getAttribute("data-faceplate-write")]?.value;
+    if (Number.isFinite(v) && Number(input.value) !== v) input.value = String(v);
+  }
   if (def.type === "number") Plant.paintTrend(el, def);
+}
+
+/** The setpoint an operator can write from this tag's faceplate (the SP itself or its PV). */
+Plant.writableSpFor = function writableSpFor(tagId) {
+  if (Plant.SP_WRITE[tagId]) return tagId;
+  const sp = Plant.SETPOINT_FOR[tagId];
+  return sp && Plant.SP_WRITE[sp] ? sp : null;
+}
+
+/* Two-step write: Write… validates and asks, Confirm writes. */
+Plant.faceplateSubmit = function faceplateSubmit(form, submitter) {
+  const tag = form.getAttribute("data-faceplate-write");
+  const w = Plant.SP_WRITE[tag];
+  const def = Plant.TAG_BY_ID[tag];
+  const input = form.querySelector('input[name="sp"]');
+  const msg = form.querySelector("[data-fp-msg]");
+  const confirm = form.querySelector("[data-fp-confirm]");
+  const stageBtn = form.querySelector('[data-fp-step="stage"]');
+  if (!w || !def || !input) return;
+  const step = submitter?.getAttribute("data-fp-step") || (form.dataset.staged != null ? "confirm" : "stage");
+  if (step === "stage") {
+    const n = Plant.roundSp(tag, input.value);
+    if (n == null) {
+      msg.textContent = `Out of range — ${Plant.formatValue(def, w.min)} to ${Plant.formatValue(def, w.max)}`;
+      msg.dataset.tone = "bad";
+      return;
+    }
+    form.dataset.staged = String(n);
+    input.disabled = true;
+    stageBtn.hidden = true;
+    confirm.hidden = false;
+    msg.textContent = "";
+    confirm.querySelector("[data-fp-confirm-text]").textContent =
+      `${w.loop} SP ${Plant.formatValue(def, Plant.live[tag]?.value)} → ${Plant.formatValue(def, n)}?`;
+    confirm.querySelector('[data-fp-step="confirm"]').focus();
+    return;
+  }
+  const n = Number(form.dataset.staged);
+  Plant.faceplateCancel(form);
+  if (Plant.writeSp(tag, n)) {
+    msg.textContent = `Written ${Plant.plantTime(Plant.tick)}`;
+    msg.dataset.tone = "good";
+  }
+}
+
+Plant.faceplateCancel = function faceplateCancel(form) {
+  delete form.dataset.staged;
+  const input = form.querySelector('input[name="sp"]');
+  input.disabled = false;
+  form.querySelector('[data-fp-step="stage"]').hidden = false;
+  form.querySelector("[data-fp-confirm]").hidden = true;
+  form.querySelector("[data-fp-msg]").textContent = "";
+}
+
+/** Snap to the write step; null when outside the write range. */
+Plant.roundSp = function roundSp(tag, raw) {
+  const w = Plant.SP_WRITE[tag];
+  const v = Number(raw);
+  if (!w || String(raw).trim() === "" || !Number.isFinite(v)) return null;
+  const n = Number((Math.round(v / w.step) * w.step).toFixed(2));
+  return n >= w.min && n <= w.max ? n : null;
 }
 
 /* ---------------- Trend (historian-style, 1 h plant window) ---------------- */
@@ -226,10 +303,23 @@ Plant.paintTrend = function paintTrend(el, def) {
   }
 }
 
-Plant.writeSpeedSp = function writeSpeedSp(next) {
-  const n = Number(next);
-  if (!Number.isFinite(n) || n < 20 || n > 60) return false;
-  Plant.state.speedSp = Math.round(n);
+Plant.writeSp = function writeSp(tag, next) {
+  const n = Plant.roundSp(tag, next);
+  if (n == null) return false;
+  const w = Plant.SP_WRITE[tag];
+  const def = Plant.TAG_BY_ID[tag];
+  const old = Plant.live[tag]?.value;
+  if (tag === "SpeedSP") Plant.state.speedSp = n;
+  else {
+    Plant.state.sp[tag] = n;
+    // A phase-bound SP holds only for the recipe phase it was written in
+    if (w.phase) Plant.state.spPhase[tag] = String(Plant.live["Conching/Conche1/Phase"]?.value ?? "");
+  }
+  const area = tag === "SpeedSP" ? "Packaging" : tag.split("/")[0];
+  Plant.logEvent({
+    kind: "sp", area,
+    text: `${w.loop} SP ${Number.isFinite(old) ? Plant.formatValue(def, old) : "—"} → ${Plant.formatValue(def, n)}${w.phase ? " (recipe override)" : ""}`,
+  });
   Plant.saveState();
   Plant.computeLive();
   Plant.renderAll();

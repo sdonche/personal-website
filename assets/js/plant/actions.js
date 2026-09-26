@@ -28,6 +28,7 @@ Plant.setConcheScenario = (name) => Plant.simulate("conching", name);
 Plant.setMouldScenario = (name) => Plant.simulate("moulding", name);
 
 Plant.resetReject = function resetReject() {
+  Plant.logEvent({ kind: "op", area: "Packaging", text: `Reject counter reset (was ${Plant.state.rejectCount})` });
   Plant.state.rejectCount = 0;
   Plant.saveState();
   Plant.computeLive();
@@ -54,6 +55,7 @@ Plant.recoverAll = function recoverAll() {
   Plant.state.concheScenario = null;
   Plant.state.mouldScenario = null;
   Plant.state.units = Plant.defaultUnits(Plant.tick);
+  Plant.logEvent({ kind: "sim", text: "SIM restore all — faults cleared, every unit back to running" });
   Plant.saveState();
   Plant.computeLive();
   Plant.renderAll();
@@ -62,6 +64,8 @@ Plant.recoverAll = function recoverAll() {
 
 Plant.resetLine = function resetLine() {
   Plant.state = Plant.defaultState();
+  Plant.tick = 0;
+  Plant.logEvent({ kind: "sys", text: "Plant reset — new shift at 06:00" });
   Plant.trends = {};
   Plant.trendTick = null;
   Plant.pvState = {};

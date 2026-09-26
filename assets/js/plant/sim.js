@@ -32,7 +32,7 @@ Plant.computeLive = function computeLive() {
   /* Line 3 runs at the line's mass rate: Moulding makes 18 moulds/min × 8 bars
      of 100 g = 144 bars/min → 36 cartons of 4 bars (≈ 865 kg/h), 12 cartons
      per case → 3 cases/min, 60 cases per pallet → a pallet every 20 min. */
-  const speedSp = Number(Plant.state.speedSp) > 0 ? Number(Plant.state.speedSp) : 38;
+  const speedSp = Plant.spValue("SpeedSP");
   const cartonerSpeed = pkgDown ? 0 : feedStarved ? Plant.drift(11, 1.5, 1) : Plant.drift(36, 0.9, 1);
   const infeedSpeed = feedStarved ? Plant.drift(4, 1.2, 2) : jam ? Plant.drift(22, 3, 2) : pkgDown ? 0 : Plant.drift(28, 1.5, 2);
   const caseSpeed = cartonerSpeed / 12;
@@ -138,8 +138,10 @@ Plant.computeLive = function computeLive() {
   const cocoaOpen = dosing;
   const sugarOpen = dosing;
   const outletOpen = mixPhase === "DISCHARGE" && !mixDown;
-  const jacket = mixOver ? Plant.clamp(Plant.drift(62, 1.5, 8), 58, 68) : Plant.clamp(Plant.drift(48.5, 0.6, 8), 44, 55);
-  const massT = mixOver ? Plant.clamp(Plant.drift(58, 1.2, 9), 54, 64) : Plant.clamp(Plant.drift(46.2, 0.5, 9), 40, 52);
+  // Controlled loops track the setpoint in force (operator writes via the faceplate)
+  const jacketSp = Plant.spValue("Mixing/Mixer1/JacketTempSP");
+  const jacket = mixOver ? Plant.clamp(Plant.drift(62, 1.5, 8), 58, 68) : Plant.clamp(Plant.drift(jacketSp, 0.6, 8), jacketSp - 4.5, jacketSp + 6.5);
+  const massT = mixOver ? Plant.clamp(Plant.drift(58, 1.2, 9), 54, 64) : Plant.clamp(Plant.drift(jacketSp - 2.3, 0.5, 9), jacketSp - 8.5, jacketSp + 3.5);
   const rpm = mixEmpty ? 0 : mixDown ? Plant.clamp(Plant.drift(8, 2, 10), 0, 15)
     : mixPhase === "MIX" ? Plant.clamp(Plant.drift(42, 2, 10), 30, 55) : Plant.clamp(Plant.drift(24, 2, 10), 15, 35);
   const cocoaFlow = cocoaOpen ? Math.max(0, Plant.drift(1560, 40, 11)) : 0;
@@ -154,7 +156,7 @@ Plant.computeLive = function computeLive() {
   Plant.live["Mixing/Mixer1/Running"] = { value: mixRun, quality: mixQ };
   Plant.live["Mixing/Mixer1/Phase"] = { value: mixPhase, quality: mixQ };
   Plant.live["Mixing/Mixer1/WeightKg"] = { value: Math.max(0, mixWeight), quality: mixValve ? "Uncertain" : "Good" };
-  Plant.live["Mixing/Mixer1/JacketTempSP"] = { value: 48.5, quality: "Good" };
+  Plant.live["Mixing/Mixer1/JacketTempSP"] = { value: jacketSp, quality: "Good" };
   Plant.live["Mixing/CocoaLiquor/DosedKg"] = { value: liquorKg, quality: mixValve ? "Bad" : "Good" };
   Plant.live["Mixing/Sugar/DosedKg"] = { value: sugarKg, quality: "Good" };
   Plant.live["Mixing/Mixer1/AgitatorRpm"] = { value: rpm, quality: mixFault ? "Uncertain" : "Good" };
@@ -178,11 +180,12 @@ Plant.computeLive = function computeLive() {
     : !refineRun
       ? Plant.clamp(Plant.drift(12, 3, 23), 0, 25)
       : Plant.clamp(Plant.drift(62, 3.5, 23), 45, 78);
+  const particleSp = Plant.spValue("Refining/Refiner1/ParticleSP");
   const particle = refineParticle
     ? Plant.clamp(Plant.drift(42, 2.5, 24), 34, 52)
     : !refineRun
-      ? Plant.clamp(Plant.drift(24, 1, 24), 20, 28)
-      : Plant.clamp(Plant.drift(22, 1.2, 24), 18, 28);
+      ? Plant.clamp(Plant.drift(particleSp + 2, 1, 24), particleSp - 2, particleSp + 6)
+      : Plant.clamp(Plant.drift(particleSp, 1.2, 24), particleSp - 4, particleSp + 6);
   const refineInOpen = refineRun;
   const refineOutOpen = refineRun;
   // Fed continuously from the refiner feed buffer that the batch mixer discharges into
@@ -208,7 +211,7 @@ Plant.computeLive = function computeLive() {
   Plant.live["Refining/BatchId"] = { value: areaBatch(1), quality: "Good" };
   Plant.live["Refining/Refiner1/Running"] = { value: refineRun, quality: refineQ };
   Plant.live["Refining/Refiner1/LoadPct"] = { value: refineLoad, quality: refineStarve || refineParticle ? "Uncertain" : "Good" };
-  Plant.live["Refining/Refiner1/ParticleSP"] = { value: 22, quality: "Good" };
+  Plant.live["Refining/Refiner1/ParticleSP"] = { value: particleSp, quality: "Good" };
   Plant.live["Refining/Refiner1/RollTempC"] = { value: rollTemp, quality: refinePressure ? "Uncertain" : "Good" };
   Plant.live["Refining/Refiner1/ParticleUm"] = { value: particle, quality: refineParticle ? "Bad" : refineStarve ? "Uncertain" : "Good" };
   Plant.live["Refining/Refiner1/RollPressureBar"] = { value: rollPressure, quality: refinePressure ? "Bad" : refineStarve ? "Uncertain" : "Good" };
@@ -229,7 +232,13 @@ Plant.computeLive = function computeLive() {
      while Conche1 is not in FILL. */
   const ct = Plant.unit("Conching").clock % 390;
   const conchePhase = concheEmpty ? "IDLE" : ct < 90 ? "FILL" : ct < 210 ? "DRY" : ct < 300 ? "PASTY" : ct < 360 ? "LIQUEFY" : "EMPTY";
-  const concheSp = { IDLE: 55, FILL: 55, DRY: 70, PASTY: 74, LIQUEFY: 65, EMPTY: 60 }[conchePhase];
+  // Recipe SP per phase; an operator override holds until the phase changes
+  const concheSpTag = "Conching/Conche1/TempSP";
+  if (Plant.state.sp[concheSpTag] != null && Plant.state.spPhase[concheSpTag] !== conchePhase) {
+    delete Plant.state.sp[concheSpTag];
+    Plant.logEvent?.({ kind: "sys", area: "Conching", text: `TIC-310 override released — recipe SP for ${conchePhase}` });
+  }
+  const concheSp = Plant.spValue(concheSpTag, { IDLE: 55, FILL: 55, DRY: 70, PASTY: 74, LIQUEFY: 65, EMPTY: 60 }[conchePhase]);
   const concheTemp = concheOver
     ? Plant.clamp(Plant.drift(82, 1.8, 27), 76, 90)
     : concheStarve || concheEmpty
@@ -280,10 +289,13 @@ Plant.computeLive = function computeLive() {
   /* Tempering — temper machine zones; starve on mix / refine / conche cascade. */
   const temperStarve = Plant.unitStarved("Tempering");
   const temperRun = Plant.unitProducing("Tempering");
-  const z1 = temperWarm ? Plant.clamp(Plant.drift(52, 0.9, 14), 48, 56) : Plant.clamp(Plant.drift(45.0, 0.8, 14), 42, 48);
-  const z2 = temperWarm ? Plant.clamp(Plant.drift(36, 0.8, 15), 33, 40) : Plant.clamp(Plant.drift(28.0, 0.7, 15), 26, 30);
-  const z3 = temperWarm ? Plant.clamp(Plant.drift(38, 0.7, 16), 35, 42) : Plant.clamp(Plant.drift(32.0, 0.6, 16), 30, 34);
-  const massOut = temperWarm ? Plant.clamp(Plant.drift(37, 0.6, 17), 34, 40) : Plant.clamp(Plant.drift(31.5, 0.5, 17), 29, 34);
+  const z1Sp = Plant.spValue("Tempering/Temper1/Zone1SP");
+  const z2Sp = Plant.spValue("Tempering/Temper1/Zone2SP");
+  const z3Sp = Plant.spValue("Tempering/Temper1/Zone3SP");
+  const z1 = temperWarm ? Plant.clamp(Plant.drift(52, 0.9, 14), 48, 56) : Plant.clamp(Plant.drift(z1Sp, 0.8, 14), z1Sp - 3, z1Sp + 3);
+  const z2 = temperWarm ? Plant.clamp(Plant.drift(36, 0.8, 15), 33, 40) : Plant.clamp(Plant.drift(z2Sp, 0.35, 15), z2Sp - 1.2, z2Sp + 1.2);
+  const z3 = temperWarm ? Plant.clamp(Plant.drift(38, 0.7, 16), 35, 42) : Plant.clamp(Plant.drift(z3Sp + 0.5, 0.6, 16), z3Sp - 1.5, z3Sp + 2.5);
+  const massOut = temperWarm ? Plant.clamp(Plant.drift(37, 0.6, 17), 34, 40) : Plant.clamp(Plant.drift(z3Sp, 0.5, 17), z3Sp - 2.5, z3Sp + 2.5);
   const screw = temperDrive ? 0 : !temperRun ? Plant.clamp(Plant.drift(2.5, 0.6, 18), 0.5, 4.5) : Plant.clamp(Plant.drift(18, 1.2, 18), 12, 26);
   const inOpen = temperRun;
   const outOpen = temperRun;
@@ -292,7 +304,8 @@ Plant.computeLive = function computeLive() {
   // Temper index (temper meter slope): 4–6 is well tempered; warm zones under-temper
   const temperIndex = temperWarm ? Plant.clamp(Plant.drift(2.4, 0.3, 44), 1.5, 3.4)
     : temperStarve ? Plant.clamp(Plant.drift(4.6, 0.3, 44), 3.5, 5.5)
-      : Plant.clamp(Plant.drift(5.1, 0.25, 44), 4.3, 5.8);
+      // A warmer cooling zone grows fewer stable crystals: the temper index drops
+      : Plant.clamp(Plant.drift(5.1 - 1.1 * (z2Sp - 28) - 0.4 * (z3Sp - 31.5), 0.25, 44), 1.5, 6.8);
   const tOutFlow = temperRun ? Math.max(0, inFlow * 0.98 + Plant.drift(0, 15, 20)) : 0;
   const cwFlow = Plant.clamp(Plant.drift(temperWarm ? 8 : 12.5, 0.8, 21), 6, 18);
   const cwSupply = Plant.clamp(Plant.drift(temperWarm ? 9.5 : 6.5, 0.4, 22), 4, 11);
@@ -307,10 +320,11 @@ Plant.computeLive = function computeLive() {
   Plant.live["Tempering/Temper1/Zone1TempC"] = { value: z1, quality: temperWarm ? "Bad" : "Good" };
   Plant.live["Tempering/Temper1/Zone2TempC"] = { value: z2, quality: temperWarm ? "Bad" : "Good" };
   Plant.live["Tempering/Temper1/Zone3TempC"] = { value: z3, quality: temperWarm ? "Bad" : "Good" };
-  Plant.live["Tempering/Temper1/TemperIndex"] = { value: temperIndex, quality: temperWarm ? "Bad" : temperStarve ? "Uncertain" : "Good" };
-  Plant.live["Tempering/Temper1/Zone1SP"] = { value: 45, quality: "Good" };
-  Plant.live["Tempering/Temper1/Zone2SP"] = { value: 28, quality: "Good" };
-  Plant.live["Tempering/Temper1/Zone3SP"] = { value: 31.5, quality: "Good" };
+  // 4–6 is well tempered; outside it the reading is flagged for the QA check
+  Plant.live["Tempering/Temper1/TemperIndex"] = { value: temperIndex, quality: temperWarm ? "Bad" : temperStarve || temperIndex < 4 || temperIndex > 6 ? "Uncertain" : "Good" };
+  Plant.live["Tempering/Temper1/Zone1SP"] = { value: z1Sp, quality: "Good" };
+  Plant.live["Tempering/Temper1/Zone2SP"] = { value: z2Sp, quality: "Good" };
+  Plant.live["Tempering/Temper1/Zone3SP"] = { value: z3Sp, quality: "Good" };
   Plant.live["Tempering/Temper1/MassTempC"] = { value: massOut, quality: temperWarm ? "Bad" : "Good" };
   Plant.live["Tempering/Inlet/ValveOpen"] = { value: inOpen, quality: temperStarve ? "Uncertain" : "Good" };
   Plant.live["Tempering/Inlet/FlowKgH"] = { value: Math.max(0, inFlow), quality: temperStarve ? "Bad" : "Good" };
@@ -329,11 +343,12 @@ Plant.computeLive = function computeLive() {
       : Plant.clamp(Plant.drift(18, 1.5, 31), 12, 24);
   // Moulds are pre-warmed just below the tempered mass (~28 °C); they cool when idle
   const mouldTemp = !mouldRun && !mouldCool ? Plant.clamp(Plant.drift(24.5, 0.6, 32), 21, 27) : Plant.clamp(Plant.drift(28, 0.4, 32), 26, 30);
+  const airSp = Plant.spValue("Moulding/Cooling/AirTempSP");
   const airTemp = mouldCool
     ? Plant.clamp(Plant.drift(22, 1.2, 33), 18, 28)
     : mouldStarve
-      ? Plant.clamp(Plant.drift(12, 0.8, 33), 9, 14)
-      : Plant.clamp(Plant.drift(10, 0.5, 33), 7, 13);
+      ? Plant.clamp(Plant.drift(airSp + 2, 0.8, 33), airSp - 1, airSp + 4)
+      : Plant.clamp(Plant.drift(airSp, 0.5, 33), airSp - 3, airSp + 3);
   const mouldInOpen = mouldRun;
   const mouldOutOpen = mouldRun;
   const mouldInFlow = mouldRun ? Math.max(0, tOutFlow * 0.98 + Plant.drift(0, 14, 34)) : 0;
@@ -351,7 +366,7 @@ Plant.computeLive = function computeLive() {
   Plant.live["Moulding/Inlet/FlowKgH"] = { value: Math.max(0, mouldInFlow), quality: mouldStarve ? "Bad" : "Good" };
   Plant.live["Moulding/Outlet/ValveOpen"] = { value: mouldOutOpen, quality: mouldJam || mouldStarve ? "Uncertain" : "Good" };
   Plant.live["Moulding/Outlet/FlowKgH"] = { value: Math.max(0, mouldOutFlow), quality: mouldJam || mouldStarve ? "Bad" : "Good" };
-  Plant.live["Moulding/Cooling/AirTempSP"] = { value: 10, quality: "Good" };
+  Plant.live["Moulding/Cooling/AirTempSP"] = { value: airSp, quality: "Good" };
   Plant.live["Moulding/Cooling/AirTempC"] = { value: airTemp, quality: mouldCool ? "Bad" : mouldStarve ? "Uncertain" : "Good" };
 
   /* Heuvelland site meta — worst area state wins: FAULT > HOLD > STARVED > AUTO. */

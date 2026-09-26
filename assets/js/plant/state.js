@@ -19,10 +19,13 @@ Plant.defaultState = function defaultState() {
     alarms: /** @type {Alarm[]} */ ([]),
     alarmHistory: /** @type {AlarmHistoryEntry[]} */ ([]),
     alarmFilter: /** @type {"all"|"critical"|"warning"|"low"} */ ("all"),
-    alarmPane: /** @type {"active"|"shelved"|"history"} */ ("active"),
+    alarmPane: /** @type {"active"|"shelved"|"history"|"events"} */ ("active"),
     shelved: /** @type {Record<string, number>} alarm id → plant tick it unshelves */ ({}),
     tick: 0, // plant minutes since the shift started; persists so plant time carries on
     units: Plant.defaultUnits(0), // ISA-88 / PackML state per area (units.js)
+    sp: /** @type {Record<string, number>} operator-written setpoints (Plant.SP_WRITE) */ ({}),
+    spPhase: /** @type {Record<string, string>} recipe phase a phase-bound SP override belongs to */ ({}),
+    events: /** @type {{tick: number, kind: string, area: string, text: string}[]} operator journal, newest first */ ([]),
     openNodes: Plant.DEFAULT_OPEN.slice(),
   };
 }
@@ -37,7 +40,7 @@ Plant.loadState = function loadState() {
     const alarmFilter = ["critical", "warning", "low"].includes(parsed.alarmFilter)
       ? parsed.alarmFilter
       : "all";
-    const alarmPane = ["shelved", "history"].includes(parsed.alarmPane) ? parsed.alarmPane : "active";
+    const alarmPane = ["shelved", "history", "events"].includes(parsed.alarmPane) ? parsed.alarmPane : "active";
     const tick = Number.isFinite(Number(parsed.tick)) && Number(parsed.tick) >= 0 ? Number(parsed.tick) : 0;
     const alarmHistory = Array.isArray(parsed.alarmHistory)
       ? parsed.alarmHistory.slice(0, 30).map((h) => ({
@@ -91,6 +94,18 @@ Plant.loadState = function loadState() {
         : null,
     };
     out.units = Plant.loadUnits(parsed.units, out);
+    // Setpoints: only known writable tags, inside their write range
+    out.sp = {};
+    for (const [tag, v] of Object.entries(parsed.sp && typeof parsed.sp === "object" ? parsed.sp : {})) {
+      const w = Plant.SP_WRITE[tag];
+      if (w && tag !== "SpeedSP" && Number.isFinite(v) && v >= w.min && v <= w.max) out.sp[tag] = v;
+    }
+    out.spPhase = parsed.spPhase && typeof parsed.spPhase === "object" ? parsed.spPhase : {};
+    out.events = Array.isArray(parsed.events)
+      ? parsed.events.slice(0, Plant.EVENT_MAX).filter((e) => e && Number.isFinite(e.tick)).map((e) => ({
+          tick: e.tick, kind: String(e.kind || "op"), area: String(e.area || ""), text: String(e.text || ""),
+        }))
+      : [];
     return out;
   } catch (e) {
     return Plant.defaultState();

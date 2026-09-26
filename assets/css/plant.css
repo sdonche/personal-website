@@ -1551,6 +1551,69 @@
   color: rgb(100 116 139);
 }
 
+.plant-faceplate__confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgb(253 230 138);
+}
+.plant-faceplate__confirm[hidden] { display: none; }
+.plant-faceplate__msg {
+  font-size: 0.62rem;
+  color: rgb(148 163 184);
+}
+.plant-faceplate__msg:empty { display: none; }
+.plant-faceplate__msg[data-tone="bad"] { color: #fca5a5; }
+.plant-faceplate__msg[data-tone="good"] { color: var(--plant-good); }
+.plant-faceplate__hint {
+  flex-basis: 100%;
+  font-size: 0.58rem;
+  color: rgb(100 116 139);
+}
+.plant-faceplate__input:disabled { opacity: 0.6; }
+
+/* Event journal (alarm pane, Events view) */
+.plant-event {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: baseline;
+  gap: 0.15rem 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.64rem;
+  color: rgb(203 213 225);
+}
+.plant-event__time {
+  color: rgb(100 116 139);
+  font-variant-numeric: tabular-nums;
+}
+.plant-event__kind {
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 2px;
+  color: rgb(148 163 184);
+  text-align: center;
+}
+.plant-event[data-kind="cmd"] .plant-event__kind,
+.plant-event[data-kind="sp"] .plant-event__kind {
+  border-color: rgba(34, 211, 238, 0.45);
+  color: var(--color-brand-300, #67e8f9);
+}
+.plant-event[data-kind="sim"] .plant-event__kind {
+  border-color: rgba(251, 191, 36, 0.45);
+  color: #fcd34d;
+}
+.plant-event__text { min-width: 0; overflow-wrap: anywhere; }
+.plant-event__area {
+  grid-column: 3;
+  font-size: 0.56rem;
+  color: rgb(100 116 139);
+}
+
 /* Trend: historian-style, last plant hour. PV cyan, SP dashed slate, alarm
    limits in their priority colour, markers at alarm activation / RTN. */
 .plant-trend {

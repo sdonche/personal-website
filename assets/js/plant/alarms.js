@@ -83,6 +83,11 @@ Plant.renderAlarms = function renderAlarms() {
     btn.classList.toggle("is-active", btn.getAttribute("data-alarm-filter") === Plant.state.alarmFilter);
   });
 
+  // Priority filters only apply to alarms, not to the journal
+  const filterRow = document.querySelector('.plant-alarm-tools__row[aria-label="Priority filter"]');
+  if (filterRow) filterRow.hidden = Plant.state.alarmPane === "events";
+  if (Plant.state.alarmPane === "events") return Plant.renderEvents(list);
+
   const filterSev = (a) => Plant.state.alarmFilter === "all" || a.severity === Plant.state.alarmFilter;
   const empty = (msg) => { list.innerHTML = `<li class="plant-alarms-empty">${msg}</li>`; };
 
@@ -119,6 +124,37 @@ Plant.updateAlarmTimes = function updateAlarmTimes() {
   if (Plant.alarmsDirty) Plant.renderAlarms();
 }
 
+/* ---------------- Event journal ----------------
+   What the operator did, and what the control system did on its own, stamped
+   with plant time: commands, setpoint writes, acks, shelving, simulated faults. */
+
+Plant.EVENT_KINDS = { cmd: "CMD", sp: "SP", ack: "ACK", shelve: "SHELVE", sim: "SIM", op: "OP", sys: "SYS" };
+
+Plant.logEvent = function logEvent(ev) {
+  const S = Plant.state;
+  S.events = [{ tick: Plant.tick, kind: ev.kind, area: ev.area || "", text: ev.text }, ...(S.events || [])].slice(0, Plant.EVENT_MAX);
+  Plant.alarmsDirty = true;
+}
+
+/** Alarm tag + description without the value part: "TI-310 Conche1 mass temperature HI". */
+Plant.alarmShort = function alarmShort(a) {
+  return String(a.message || a.id).split(" — ")[0];
+}
+
+Plant.renderEvents = function renderEvents(list) {
+  const ev = Plant.state.events || [];
+  if (!ev.length) {
+    list.innerHTML = `<li class="plant-alarms-empty">No operator actions yet this shift</li>`;
+    return;
+  }
+  list.innerHTML = ev.map((e) => `<li class="plant-event" data-kind="${Plant.escapeHtml(e.kind)}">
+      <span class="plant-event__time">${Plant.plantTime(e.tick)}</span>
+      <span class="plant-event__kind">${Plant.escapeHtml(Plant.EVENT_KINDS[e.kind] || e.kind.toUpperCase())}</span>
+      <span class="plant-event__text">${Plant.escapeHtml(e.text)}</span>
+      ${e.area ? `<span class="plant-event__area">${Plant.escapeHtml(e.area)}</span>` : ""}
+    </li>`).join("");
+}
+
 Plant.ackAlarm = function ackAlarm(a) {
   if (!a.rtn) return { ...a, acked: true };
   // Acknowledging a returned alarm completes it: it moves to history
@@ -127,6 +163,8 @@ Plant.ackAlarm = function ackAlarm(a) {
 }
 
 Plant.ackAll = function ackAll() {
+  const n = Plant.state.alarms.filter((a) => !a.acked && !Plant.isShelved(a) && !Plant.isSuppressed(a)).length;
+  if (n) Plant.logEvent({ kind: "ack", text: `ACK ALL — ${n} alarm${n === 1 ? "" : "s"}` });
   Plant.state.alarms = Plant.state.alarms
     .map((a) => (Plant.isShelved(a) || Plant.isSuppressed(a) ? a : Plant.ackAlarm(a)))
     .filter(Boolean);
@@ -136,6 +174,8 @@ Plant.ackAll = function ackAll() {
 }
 
 Plant.ackOne = function ackOne(id) {
+  const hit = Plant.state.alarms.find((a) => a.id === id && !a.acked);
+  if (hit) Plant.logEvent({ kind: "ack", area: hit.area, text: `ACK ${Plant.alarmShort(hit)}${hit.rtn ? " (RTN)" : ""}` });
   Plant.state.alarms = Plant.state.alarms.map((a) => (a.id === id ? Plant.ackAlarm(a) : a)).filter(Boolean);
   Plant.saveState();
   Plant.renderAlarms();
@@ -144,12 +184,16 @@ Plant.ackOne = function ackOne(id) {
 
 /** Shelve for one plant hour (60 ticks). */
 Plant.shelveAlarm = function shelveAlarm(id) {
+  const hit = Plant.state.alarms.find((a) => a.id === id);
+  if (hit) Plant.logEvent({ kind: "shelve", area: hit.area, text: `SHELVE ${Plant.alarmShort(hit)} until ${Plant.plantTime(Plant.tick + 60)}` });
   Plant.state.shelved = { ...(Plant.state.shelved || {}), [id]: Plant.tick + 60 };
   Plant.saveState();
   Plant.renderAll();
 }
 
 Plant.unshelveAlarm = function unshelveAlarm(id) {
+  const hit = Plant.state.alarms.find((a) => a.id === id);
+  if (hit) Plant.logEvent({ kind: "shelve", area: hit.area, text: `UNSHELVE ${Plant.alarmShort(hit)}` });
   const next = { ...(Plant.state.shelved || {}) };
   delete next[id];
   Plant.state.shelved = next;
