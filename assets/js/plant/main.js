@@ -9,7 +9,9 @@ Plant.init = function init() {
   if (noscript) noscript.hidden = true;
 
   Plant.tick = Plant.state.tick || 0;
+  const wantTour = location.hash === "#tour"; // before the hash is normalised below
   Plant.wire();
+  Plant.wireTour();
   Plant.startClock();
   Plant.computeLive();
 
@@ -19,6 +21,8 @@ Plant.init = function init() {
   }
 
   Plant.timer = setInterval(Plant.tickOnce, Plant.TICK_MS);
+  if (wantTour) Plant.startTour();
+  else Plant.maybeShowTourHint();
 
   window.addEventListener("hashchange", () => {
     Plant.applyHashState({ skipHash: true });

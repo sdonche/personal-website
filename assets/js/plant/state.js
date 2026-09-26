@@ -123,6 +123,8 @@ Plant.loadState = function loadState() {
 }
 
 Plant.saveState = function saveState() {
+  // The guided tour runs on a scratch plant: never let it overwrite the visitor's
+  if (Plant.tour?.active) return;
   try {
     localStorage.setItem(Plant.STORAGE_KEY, JSON.stringify(Plant.state));
   } catch (e) { /* ignore */ }
