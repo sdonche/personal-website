@@ -380,6 +380,8 @@ Plant.computeLive = function computeLive() {
   Plant.live.__batchPhase = { value: batchPhase, quality: "Good" };
   Plant.live.__trackedBatch = { value: trackedBatch, quality: "Good" };
 
+  Plant.applyProcessLag();
+
   Plant.syncScenarioAlarms();
   Plant.recordTrends();
 }

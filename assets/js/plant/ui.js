@@ -738,10 +738,16 @@ Plant.tickOnce = function tickOnce() {
 }
 
 Plant.startClock = function startClock() {
+  // Plant time: the simulation starts the shift at 06:00 and one tick is one
+  // plant minute, so the plant clock runs 60× faster than the wall clock.
   const el = document.getElementById("plant-clock");
   const paint = () => {
     if (!el) return;
-    el.textContent = new Date().toLocaleTimeString(undefined, { hour12: false });
+    const mins = 6 * 60 + Plant.tick;
+    const hh = String(Math.floor(mins / 60) % 24).padStart(2, "0");
+    const mm = String(mins % 60).padStart(2, "0");
+    el.textContent = `Plant ${hh}:${mm}`;
+    el.title = `Plant time (simulated, 60× real time) · day ${1 + Math.floor(mins / 1440)}`;
   };
   paint();
   setInterval(paint, 1000);

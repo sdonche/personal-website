@@ -65,8 +65,36 @@ Plant.pathOf = function pathOf(rel) {
   return `${Plant.PROVIDER}${Plant.AREA_ROOT}/${Plant.LIVE_LINE}/${rel}`;
 }
 
-Plant.drift = function drift(base, amp, phase) {
-  return base + Math.sin((Plant.tick + phase) / 4.2) * amp + (Math.random() - 0.5) * amp * 0.15;
+/* Process noise: every signal key gets its own slowly wandering AR(1) noise
+   (≈10-tick correlation, standard deviation ≈ 0.6 × amp) instead of a shared
+   sine, so trends look like instruments, not a metronome. */
+Plant.noiseState = {};
+Plant.drift = function drift(base, amp, key) {
+  const a = 0.9;
+  const gauss = (Math.random() + Math.random() + Math.random() - 1.5) * 2; // ≈ N(0, 1)
+  const prev = Plant.noiseState[key] ?? 0;
+  const next = prev * a + gauss * amp * 0.26;
+  Plant.noiseState[key] = next;
+  return base + next;
+}
+
+/* Process dynamics: numeric tags follow their computed target through a
+   first-order lag (time constant in plant minutes = ticks), so a fault
+   makes a temperature creep and a flow ramp instead of jumping. Setpoints,
+   counters and batch clocks are not lagged. */
+Plant.LAG_TAU = { "°C": 6, "kg/h": 1.2, "m³/h": 1.5, "rpm": 1.2, "%": 2, "µm": 3, "bar": 1.5, "kW": 1.5, "cpm": 1, "cases/min": 1, "cycles/min": 1, "m/min": 1 };
+Plant.pvState = {};
+Plant.applyProcessLag = function applyProcessLag() {
+  for (const [id, lv] of Object.entries(Plant.live)) {
+    const def = Plant.TAG_BY_ID[id];
+    if (!def || def.type !== "number" || typeof lv.value !== "number") continue;
+    const tau = Plant.LAG_TAU[def.unit];
+    if (!tau || /SP$/.test(id)) continue;
+    const prev = Plant.pvState[id];
+    const next = prev == null ? lv.value : prev + (lv.value - prev) * (1 - Math.exp(-1 / tau));
+    Plant.pvState[id] = next;
+    lv.value = next;
+  }
 }
 
 Plant.clamp = function clamp(n, lo, hi) {
