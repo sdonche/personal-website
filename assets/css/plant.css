@@ -2626,3 +2626,124 @@ path.plant-trend__mark { stroke: none; }
 @media (max-width: 639px) {
   .plant-site-bar__how { display: none; }
 }
+
+/* ---------------- Guided tour ---------------- */
+.plant-tour-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  appearance: none;
+  border: 1px solid rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.08);
+  color: var(--color-brand-300, #67e8f9);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.plant-tour-btn svg { width: 0.6rem; height: 0.6rem; fill: currentColor; }
+.plant-tour-btn:hover { border-color: rgba(34, 211, 238, 0.8); color: rgb(207 250 254); }
+.plant-tour-btn:focus-visible { outline: 2px solid var(--color-brand-400); outline-offset: 1px; }
+
+/* First-visit hint: an inline chip beside the Tour button; never opens anything by itself */
+.plant-tour-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0 0.1rem 0 0.5rem;
+  border: 1px dashed rgba(34, 211, 238, 0.45);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.plant-tour-hint__go,
+.plant-tour-hint__close {
+  appearance: none;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+.plant-tour-hint__go { color: rgb(207 250 254); padding: 0.15rem 0; }
+.plant-tour-hint__go:hover { color: #fff; text-decoration: underline; text-underline-offset: 0.2em; }
+.plant-tour-hint__close { color: rgb(148 163 184); font-size: 0.9rem; line-height: 1; padding: 0.1rem 0.35rem; }
+.plant-tour-hint__close:hover { color: rgb(226 232 240); }
+
+/* Spotlight: the target stays lit, everything around it dims (the shadow is not clickable) */
+.plant-tour { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
+.plant-tour__spot {
+  position: fixed;
+  border-radius: 0.4rem;
+  outline: 2px solid var(--color-brand-400, #22d3ee);
+  outline-offset: 0;
+  box-shadow: 0 0 0 200vmax rgba(2, 6, 23, 0.62);
+}
+.plant-tour__card {
+  position: fixed;
+  width: min(23rem, calc(100vw - 16px));
+  pointer-events: auto;
+  padding: 0.9rem 1rem 0.85rem;
+  border: 1px solid rgba(34, 211, 238, 0.45);
+  border-radius: 0.5rem;
+  background: rgb(6 13 28);
+  box-shadow: 0 16px 48px rgba(2, 6, 23, 0.75);
+  color: rgb(203 213 225);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+.plant-tour__eyebrow {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 0.35rem;
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-brand-300, #67e8f9);
+}
+.plant-tour__eyebrow span + span { color: rgb(148 163 184); font-variant-numeric: tabular-nums; }
+.plant-tour__title {
+  margin: 0 0 0.4rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: rgb(241 245 249);
+  outline: none;
+}
+.plant-tour__body p { margin: 0 0 0.5rem; }
+.plant-tour__body strong { color: rgb(241 245 249); font-weight: 600; }
+.plant-tour__body a { color: var(--color-brand-300); text-decoration: underline; text-underline-offset: 0.2em; }
+.plant-tour__wait {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fcd34d;
+}
+.plant-tour__checklist { margin: 0 0 0.5rem; padding-left: 1.3rem; }
+.plant-tour__checklist li { margin: 0.15rem 0; }
+.plant-tour__checklist li span { color: rgb(100 116 139); }
+.plant-tour__checklist li.is-done { color: rgb(100 116 139); text-decoration: line-through; }
+.plant-tour__checklist li.is-done::marker { color: var(--plant-good); }
+.plant-tour__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+.plant-tour__close { margin-left: auto; }
+/* Phones: the card docks at the bottom, the spotlight still marks the target */
+body.plant-tour-docked { padding-bottom: 60vh; }
+.plant-tour.is-docked .plant-tour__card {
+  left: 8px !important;
+  right: 8px;
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  top: auto !important;
+  width: auto;
+  max-height: 55vh;
+  overflow-y: auto;
+}

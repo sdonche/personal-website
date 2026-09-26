@@ -10,6 +10,7 @@
  *   · a fault latches its unit, and Clear → Reset → Start brings it back
  *   · alarms raise, and the events journal records operator actions
  *   · a setpoint write goes through its two-step confirm
+ *   · the guided tour runs end to end and leaves the visitor's plant alone
  *   · the deep links used by the notes and the case study open what they promise
  *
  * Needs Node 18+ and Playwright:
@@ -154,6 +155,36 @@ try {
     await close();
   });
 
+  await scenario("Guided tour", async () => {
+    const { page, errors, close } = await open("#mixing");
+    check(await page.locator("#plant-tour-hint").isVisible(), "first visit shows the tour hint");
+    const mine = await page.evaluate(() => localStorage.getItem("samdonche.plant.v15"));
+    await page.locator("#plant-tour-btn").click();
+    const seen = [];
+    for (let i = 0; i < 20; i++) {
+      await page.clock.runFor(1500);
+      seen.push(await text(page, "[data-tour-count]"));
+      if (await page.locator('[data-tour="keep"]').count()) break;
+      if (await page.locator('[data-tour="auto"]').count()) await page.locator('[data-tour="auto"]').click();
+      else if (await page.locator('[data-tour="next"]:not([disabled])').count()) await page.locator('[data-tour="next"]').click();
+    }
+    check(new Set(seen).size === 7 && seen.at(-1) === "7 / 7", `walks all seven steps (${[...new Set(seen)].join(", ")})`);
+    const trail = await page.locator(".plant-event").allTextContents();
+    check(["SIM", "ACK", "RESET", "START"].every((k) => trail.some((t) => t.includes(k))), "the journal holds the incident");
+    check((await page.evaluate(() => localStorage.getItem("samdonche.plant.v15"))) === mine, "the tour never saves over the visitor's plant");
+    await page.locator('[data-tour="skip"]').click();
+    const back = await page.evaluate(() => ({ tour: !!document.querySelector("#plant-tour"), hash: location.hash }));
+    check(!back.tour && back.hash === "#mixing", "Back to my shift restores the visitor's plant");
+    await close();
+
+    const deep = await open("#tour");
+    check(await deep.page.locator("#plant-tour").isVisible(), "#tour opens the tour");
+    await deep.page.keyboard.press("Escape");
+    check(!(await deep.page.locator("#plant-tour").count()), "Esc closes it");
+    check(errors.length === 0 && deep.errors.length === 0, `no console errors${[...errors, ...deep.errors].length ? `: ${[...errors, ...deep.errors][0]}` : ""}`);
+    await deep.close();
+  });
+
   await scenario("Deep links from the notes and case study", async () => {
     // Every plant link in the writing must open a drawing, tag or view that exists
     const pages = ["case-studies/plant-hmi/index.html", "notes/mes-scada-vs-historian/index.html", "notes/mqtt-sparkplug-b/index.html"];
@@ -162,6 +193,7 @@ try {
       for (const m of readFileSync(join(ROOT, p), "utf8").matchAll(/href="(?:\.\.\/)+plant\/(#[^"]+)"/g)) links.add(m[1]);
     }
     check(links.size >= 5, `${links.size} plant deep links found`);
+    links.delete("#tour"); // the tour has its own scenario above
     for (const hash of links) {
       const { page, errors, close } = await open(hash);
       const q = new URLSearchParams(hash.split("?")[1] || "");
