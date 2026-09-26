@@ -106,7 +106,7 @@
   <link rel="preload" href="assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/css/fonts.css?v=0f6b5ce264" />
   <link rel="stylesheet" href="assets/css/tailwind.css?v=9f7594763d" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=3e1763aed9" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=bc8731949d" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -678,12 +678,13 @@
         <!--
           Layered reference architecture — the section's only visual. Each band
           is one layer of the factory data backbone and holds its own skill
-          chips, so the diagram *is* the tool index. Data flows up the rail from
-          the field; the Unified Namespace band is the bus every layer talks to.
+          chips, so the diagram *is* the tool index. Deliberately not the ISA-95
+          pyramid: no level numbers, and every layer taps a shared bus spine
+          (pub/sub both ways) into the Unified Namespace hub.
           Chip icons + click popovers come from assets/js/diagram.js
           (data: assets/js/skill-meta.js). The broker button is the MQTT egg.
         -->
-        <figure class="stack-layers reveal" aria-label="Reference architecture for a factory data backbone, layer by layer. Click any tool for a one-line description.">
+        <figure class="stack-layers reveal" aria-label="Reference architecture for a factory data backbone. Not a pyramid: edge, data services and apps all publish to and subscribe from one Unified Namespace hub. Click any tool for a one-line description.">
           <div class="stack-layers__header">
             <span class="stack-layers__caption">[ REFERENCE ARCHITECTURE ]</span>
             <span class="stack-layers__live">
@@ -692,13 +693,11 @@
           </div>
 
           <div class="stack-layers__flow">
-            <span class="stack-layers__rail" aria-hidden="true"><i></i><i></i><i></i></span>
             <ol class="stack-layers__bands">
               <li class="stack-band">
                 <div class="stack-band__head">
-                  <span class="stack-band__id">L5</span>
                   <h3 class="stack-band__name">Apps &amp; insight</h3>
-                  <p class="stack-band__role">Where people see the data and act on it</p>
+                  <p class="stack-band__role">Subscribe to live context, write decisions back</p>
                 </div>
                 <div class="skill-chips">
                   <button type="button" class="skill-chip" data-skill="mes">MES</button>
@@ -706,12 +705,12 @@
                   <button type="button" class="skill-chip" data-skill="grafana">Grafana</button>
                   <button type="button" class="skill-chip" data-skill="prometheus">Prometheus</button>
                 </div>
+                <span class="stack-band__tap" aria-hidden="true"><i></i><i></i></span>
               </li>
               <li class="stack-band">
                 <div class="stack-band__head">
-                  <span class="stack-band__id">L4</span>
                   <h3 class="stack-band__name">Data &amp; services</h3>
-                  <p class="stack-band__role">Store, model and compute on it</p>
+                  <p class="stack-band__role">Historise, model and compute, publish results back</p>
                 </div>
                 <div class="skill-chips">
                   <button type="button" class="skill-chip" data-skill="python">Python</button>
@@ -720,12 +719,12 @@
                   <button type="button" class="skill-chip" data-skill="timescaledb">TimescaleDB</button>
                   <button type="button" class="skill-chip" data-skill="factry">Factry</button>
                 </div>
+                <span class="stack-band__tap" aria-hidden="true"><i></i><i></i></span>
               </li>
               <li class="stack-band stack-band--bus">
                 <div class="stack-band__head">
-                  <span class="stack-band__id">L3</span>
                   <h3 class="stack-band__name">Unified Namespace</h3>
-                  <p class="stack-band__role">One real-time hub every layer publishes to and subscribes from</p>
+                  <p class="stack-band__role">The hub: every layer publishes here and subscribes here, no point-to-point links</p>
                 </div>
                 <div class="skill-chips">
                   <button type="button" class="skill-chip" data-skill="mqtt">MQTT</button>
@@ -739,20 +738,19 @@
               </li>
               <li class="stack-band">
                 <div class="stack-band__head">
-                  <span class="stack-band__id">L2</span>
                   <h3 class="stack-band__name">Edge &amp; gateway</h3>
-                  <p class="stack-band__role">Bridge OT to IT, close to the machines</p>
+                  <p class="stack-band__role">Publish machine data, take commands back down</p>
                 </div>
                 <div class="skill-chips">
                   <button type="button" class="skill-chip" data-skill="ignition">Ignition</button>
                   <button type="button" class="skill-chip" data-skill="opc-ua">OPC UA</button>
                 </div>
+                <span class="stack-band__tap" aria-hidden="true"><i></i><i></i></span>
               </li>
               <li class="stack-band stack-band--field">
                 <div class="stack-band__head">
-                  <span class="stack-band__id">L1</span>
                   <h3 class="stack-band__name">Field</h3>
-                  <p class="stack-band__role">Where the data is born</p>
+                  <p class="stack-band__role">Where the data is born, reached through the edge</p>
                 </div>
                 <p class="stack-band__things">PLCs · sensors · drives · production lines</p>
               </li>
@@ -781,7 +779,7 @@
           </div>
 
           <figcaption class="stack-layers__cap">
-            The backbone I build, from factory floor to dashboards.
+            Not a pyramid: every layer talks through one namespace.
             <span class="stack-layers__hint">Click any tool for what it is.</span>
           </figcaption>
         </figure>
