@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- partial:head-boot -->
+  <script>
+    document.documentElement.classList.add('js');
+    try {
+      if (localStorage.getItem('samdonche.nav.rail') === '1') {
+        document.documentElement.classList.add('nav-rail');
+      }
+      var params = new URLSearchParams(location.search);
+      var mode = params.get('mode');
+      // Canonical: desk | floor. Legacy: site/briefing → desk, operator → floor.
+      if (mode === 'briefing' || mode === 'site') mode = 'desk';
+      if (mode === 'operator') mode = 'floor';
+      if (mode === 'desk' || mode === 'floor') {
+        localStorage.setItem('samdonche.mode', mode);
+      } else {
+        mode = localStorage.getItem('samdonche.mode');
+        if (mode === 'briefing' || mode === 'site') mode = 'desk';
+        if (mode === 'operator') mode = 'floor';
+      }
+      if (mode !== 'floor') mode = 'desk';
+      document.documentElement.setAttribute('data-mode', mode);
+    } catch (e) {
+      document.documentElement.setAttribute('data-mode', 'desk');
+    }
+  </script>
+<!-- /partial:head-boot -->
+  <meta name="theme-color" content="#020617" />
+  <meta name="description" content="Case study: a simulated chocolate-bar plant HMI built to the standards real plants run on: ISA-88 and PackML unit states, ISA-18.2 alarm management, a historian trend, recipe, batch genealogy and OEE." />
+  <meta name="author" content="Sam Donche" />
+  <title>A chocolate plant in a browser tab — Sam Donche</title>
+
+  <link rel="canonical" href="https://samdonche.com/case-studies/plant-hmi/" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Sam Donche" />
+  <meta property="og:title" content="A chocolate plant in a browser tab" />
+  <meta property="og:description" content="A simulated chocolate plant you can operate: ISA-88 and PackML states, ISA-18.2 alarms, trends, recipes, genealogy and OEE, running in the browser." />
+  <meta property="og:url" content="https://samdonche.com/case-studies/plant-hmi/" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://samdonche.com/assets/img/og/plant-hmi.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="A chocolate plant in a browser tab — Sam Donche" />
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="A chocolate plant in a browser tab" />
+  <meta name="twitter:description" content="A simulated chocolate plant you can operate: ISA-88 and PackML states, ISA-18.2 alarms, trends, recipes, genealogy and OEE, running in the browser." />
+  <meta name="twitter:image" content="https://samdonche.com/assets/img/og/plant-hmi.jpg" />
+
+  <!-- Structured data: Article (authorship, rich-result eligibility) + breadcrumb -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "A chocolate plant in a browser tab",
+        "description": "Case study: a simulated chocolate-bar plant HMI built to the standards real plants run on: ISA-88 and PackML unit states, ISA-18.2 alarm management, a historian trend, recipe, batch genealogy and OEE.",
+        "image": "https://samdonche.com/assets/img/og/plant-hmi.jpg",
+        "datePublished": "2026-09-26",
+        "dateModified": "2026-09-26",
+        "inLanguage": "en",
+        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "publisher": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
+        "mainEntityOfPage": "https://samdonche.com/case-studies/plant-hmi/",
+        "keywords": "HMI, ISA-101, ISA-88, PackML, ISA-18.2, alarm management, historian, MES, OEE, batch genealogy, SCADA"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Selected Work", "item": "https://samdonche.com/#work" },
+          { "@type": "ListItem", "position": 3, "name": "A chocolate plant in a browser tab", "item": "https://samdonche.com/case-studies/plant-hmi/" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- partial:favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23020617'/%3E%3Cpath d='M9 11 L14 16 L9 21' fill='none' stroke='%2322d3ee' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='16' y='18.7' width='7.5' height='2.6' rx='1.3' fill='%2322d3ee'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/img/apple-touch-icon.png" />
+<!-- /partial:favicon -->
+
+<!-- partial:head-assets -->
+  <link rel="preload" href="../../assets/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../../assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../../assets/css/fonts.css?v=0f6b5ce264" />
+  <link rel="stylesheet" href="../../assets/css/tailwind.css?v=9f7594763d" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=72d8684485" />
+<!-- /partial:head-assets -->
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
+
+<!-- partial:site-bg -->
+  <div aria-hidden="true" class="fixed inset-0 -z-10 bg-slate-950">
+    <div class="absolute inset-0 grid-bg opacity-[0.35]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08),_transparent_60%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(52,211,153,0.05),_transparent_50%)]"></div>
+  </div>
+<!-- /partial:site-bg -->
+
+<!-- partial:subpage-topbar -->
+<!-- Top bar -->
+  <header class="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-slate-950/60 border-b border-slate-800/60">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <a href="../../" class="flex items-center gap-2 group shrink-0">
+        <span class="relative inline-flex h-2.5 w-2.5">
+          <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-60"></span>
+          <span class="relative rounded-full h-2.5 w-2.5 bg-accent"></span>
+        </span>
+        <span class="brand-mark brand-mark--floor font-mono text-xs sm:text-sm tracking-wider text-slate-300 group-hover:text-brand-300 transition-colors">
+          sam.donche<span class="brand-mark__host"><span class="text-brand-400">@</span>edge</span>
+        </span>
+        <span class="brand-mark brand-mark--desk text-sm sm:text-base font-semibold tracking-tight text-slate-100 group-hover:text-brand-300 transition-colors">
+          Sam Donche
+        </span>
+      </a>
+      <div class="flex items-center gap-1.5 sm:gap-3 min-w-0">
+        <div class="mode-switch shrink-0" role="group" aria-label="Presentation mode">
+          <button type="button" class="mode-switch__btn" data-mode-set="desk" aria-pressed="true">Desk</button>
+          <button type="button" class="mode-switch__btn" data-mode-set="floor" aria-pressed="false">Floor</button>
+        </div>
+        <a href="../" class="subpage-back font-mono text-[11px] uppercase tracking-widest text-slate-400 hover:text-brand-300 transition-colors shrink-0">← case studies</a>
+        <button id="nav-toggle" type="button" class="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-700 text-brand-300 hover:bg-slate-800/60 hover:border-brand-400/50 transition" aria-label="Open navigation" aria-expanded="false" aria-controls="tag-nav"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      </div>
+    </div>
+  </header>
+<!-- /partial:subpage-topbar -->
+
+  <div class="lg:pl-64">
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-24">
+
+    <article>
+      <div class="hero-enter">
+        <p class="section-eyebrow">// Case Study</p>
+        <h1 class="section-title">A chocolate plant in a browser tab.</h1>
+        <p class="mt-4 font-mono text-xs tracking-wider text-slate-400">
+          Personal project <span class="text-slate-700">·</span> HMI &amp; MES design <span class="text-slate-700">·</span> ISA-88 · ISA-18.2 · ISA-101
+        </p>
+      </div>
+
+      <div class="note-prose reveal mt-10">
+        <p>
+          Most of my work lives behind a plant firewall. The screens are the client&rsquo;s, the data is
+          the client&rsquo;s, and a screenshot of an HMI says very little anyway. What matters on a real
+          floor is how the system <em>behaves</em>: what an operator sees when something breaks, what
+          they&rsquo;re allowed to do about it, and whether the numbers afterwards still add up.
+        </p>
+        <p>
+          So I built a plant you can operate. <a href="../../plant/">Heuvelland</a> is a fictional
+          chocolate-bar factory with six areas, from the mixer to the palletizer, running entirely in
+          your browser. There&rsquo;s no backend and no real PLC; everything is simulated. The goal was
+          never pretty screens. It was an HMI that behaves the way one should on a production floor.
+        </p>
+
+        <h2>A process, not a random-number generator</h2>
+        <p>
+          Mass flows Mixing &rarr; Refining &rarr; Conching &rarr; Tempering &rarr; Moulding &rarr;
+          Line&nbsp;3, and each area runs its own process. The mixer weigh-doses a 440&nbsp;kg batch every
+          30 minutes. The conche runs a 6.5-hour cycle through fill, dry, pasty, liquefy and empty, each
+          phase with its own temperature setpoint. Line&nbsp;3 packs 36 cartons a minute and closes a
+          pallet every 20.
+        </p>
+        <p>
+          The plant clock runs 60&times; real time: one second is one plant minute, so a full conche
+          batch takes six and a half minutes to watch. Measurements carry noise and a first-order lag,
+          so a setpoint change produces the curve you&rsquo;d expect from a real loop rather than a jump.
+          And areas depend on each other: stop the refiner and everything downstream runs dry.
+        </p>
+
+        <h2>The standards are the design spec</h2>
+        <p>
+          The quickest way to make a demo feel real was to follow the standards real plants are held to.
+        </p>
+        <ul>
+          <li><strong>ISA-5.1 naming.</strong> Every instrument has a loop tag (TI-310, XV-101, WI-631) and every area its drawing, from PID-000 to PID-600.</li>
+          <li><strong>ISA-88 and PackML states.</strong> Process units run the ISA-88 model (Start, Hold, Restart, Stop, Reset); the moulder and packaging line run PackML. A fault latches the unit in ABORTED or HELD, and it stays there until the operator brings it back. You can&rsquo;t restart while the fault condition is still active.</li>
+          <li><strong>ISA-18.2 alarms.</strong> Three priorities; unacknowledged, acknowledged and returned-to-normal states; one-hour shelving; a first-out marker; and consequential alarms suppressed while their root cause is active, so a single failure doesn&rsquo;t bury the operator in follow-on alarms.</li>
+          <li><strong>ISA-101 display.</strong> High-performance HMIs keep normal operation grey so abnormal states stand out. I went hybrid: normal values are neutral, colour means something is wrong, and green is kept for a single meaning, a unit that is running.</li>
+        </ul>
+
+        <h2>What an operator can do</h2>
+        <p>
+          Every area has its unit controls in the toolbar and a faceplate for whatever tag you select.
+          Setpoints can be written from the faceplate in two steps (Write, then Confirm), range-checked
+          and logged. Each faceplate carries an hour of trend with the setpoint, the alarm limits and a
+          marker wherever an alarm came in or cleared. Every action lands in an events journal stamped
+          with plant time.
+        </p>
+        <p>
+          The simulator can also break things on purpose: a stuck valve, a tripped agitator, a jammed
+          cartoner. Or quieter failures, like a transmitter going bad: its value freezes at the last
+          reading, quality drops to Bad and the trend flatlines. That one is worth seeing, because a flat
+          line on a trend doesn&rsquo;t always mean a stable process.
+        </p>
+
+        <h2>The MES layer on top</h2>
+        <p>
+          SCADA shows what&rsquo;s happening; <a href="../../notes/mes-scada-vs-historian/">MES accounts for
+          what got made</a>. The plant runs a master recipe, Dark&nbsp;70&nbsp;%, which sets the mixer doses
+          and the targets. Select any batch and you get its genealogy: the raw-material lots that went in,
+          its route through each area with times, a quality check per step taken from the historian, and
+          the pallets that came out.
+        </p>
+        <p>
+          OEE is computed rather than displayed: availability &times; performance &times; quality,
+          booked minute by minute over an eight-hour shift. Every minute the line isn&rsquo;t producing
+          is booked against a reason, whether that&rsquo;s the fault that latched a unit upstream or an
+          operator hold, and the reasons roll up into a downtime Pareto. That&rsquo;s the chart a
+          production meeting actually argues about.
+        </p>
+
+        <h2>What it leaves out</h2>
+        <p>
+          It&rsquo;s a model, and it cuts corners where a demo can. There&rsquo;s no PLC, no network and
+          no real historian behind it; the trend buffer lives in the page. Batches move through the areas
+          on a fixed 15-minute schedule, even while an area is held, and there&rsquo;s a single recipe. The
+          aim was the behaviour an operator sees and the structure behind it, not a process simulation
+          you could tune a real conche with.
+        </p>
+
+        <h2>How it&rsquo;s built</h2>
+        <p>
+          Plain JavaScript modules, no framework: the simulation, the unit state machines, the alarm
+          engine, OEE accounting, the faceplate and the SVG drawings each live in their own file. Plant
+          state is kept in the browser, so the shift carries on where you left it. A headless-browser
+          smoke test in CI walks every drawing and a full fault-to-recovery cycle on each push, so
+          the plant keeps working as it grows.
+        </p>
+      </div>
+
+      <blockquote class="mt-8 border-l-2 border-brand-400/60 pl-5 py-1 text-lg text-slate-200 reveal">
+        A good HMI isn&rsquo;t judged on a quiet shift. It&rsquo;s judged on the night something breaks and
+        the operator has to know, in seconds, what happened and what to do next.
+      </blockquote>
+
+      <div class="mt-10 flex flex-wrap gap-2 font-mono text-[10px] reveal">
+        <span class="tag">HMI</span><span class="tag">ISA-101</span><span class="tag">ISA-88</span><span class="tag">PackML</span><span class="tag">ISA-18.2</span><span class="tag">Historian</span><span class="tag">MES</span><span class="tag">OEE</span>
+      </div>
+    </article>
+
+    <!-- Deep links into the demo: each opens the plant at the point the text describes -->
+    <nav class="mt-12 reveal" aria-label="Try it in the plant">
+      <p class="section-eyebrow">// Try it in the plant</p>
+      <ul class="mt-4 grid gap-3">
+        <li>
+          <a href="../../plant/#conching?fault=overtemp" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+            <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Overheat the conche, then bring it back: Clear, Reset, Start</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-400 shrink-0">Try it ↗</span>
+          </a>
+        </li>
+        <li>
+          <a href="../../plant/#tempering?tag=Tempering/Temper1/Zone2TempC" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+            <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Raise the temper cooling-zone setpoint and watch the trend and temper index</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-400 shrink-0">Try it ↗</span>
+          </a>
+        </li>
+        <li>
+          <a href="../../plant/#packaging?tag=BatchId" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+            <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Follow a batch: recipe, raw-material lots, route and pallets</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-400 shrink-0">Try it ↗</span>
+          </a>
+        </li>
+        <li>
+          <a href="../../plant/#packaging?tag=OEE" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+            <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">Line 3 OEE as availability × performance × quality, with its downtime Pareto</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-400 shrink-0">Try it ↗</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <nav class="mt-12 reveal" aria-label="Related reading">
+      <p class="section-eyebrow">// Related</p>
+      <ul class="mt-4 grid gap-3">
+        <li>
+          <a href="../../notes/mes-scada-vs-historian/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+            <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">MES vs SCADA vs historian: what actually goes where</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-400 shrink-0">Note ↗</span>
+          </a>
+        </li>
+        <li>
+          <a href="../factory-data-backbone/" class="group flex items-baseline justify-between gap-4 rounded-md border border-slate-800 bg-slate-900/40 px-4 py-3 hover:border-brand-400/40 transition-colors">
+            <span class="text-sm text-slate-200 group-hover:text-brand-300 transition-colors">From data islands to a factory-wide backbone</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-slate-400 shrink-0">Case study ↗</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <p class="mt-14 reveal">
+      <a href="../../#contact" class="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-slate-400 hover:text-brand-300 transition-colors">
+        <span class="text-accent" aria-hidden="true">&#9679;</span>
+        Want an HMI that holds up on a bad night? Open a channel
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+    </p>
+  </main>
+  </div>
+
+<!-- partial:subpage-footer -->
+  <footer class="border-t border-slate-800/60 lg:pl-64">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-sm text-slate-400">
+      <p class="font-mono text-xs">&copy; <span id="year"></span> Sam Donche</p>
+    </div>
+  </footer>
+<!-- /partial:subpage-footer -->
+
+<!-- partial:site-scripts -->
+  <script src="../../assets/js/eggs.js?v=e05e8c5e22" defer></script>
+  <script src="../../assets/js/script.js?v=e57734c050" defer></script>
+  <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../../assets/js/goatcounter.js"></script>
+<!-- /partial:site-scripts -->
+</body>
+</html>

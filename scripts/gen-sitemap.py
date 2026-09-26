@@ -21,6 +21,7 @@ PAGES = [
     {"loc": "https://samdonche.com/", "file": "index.html", "changefreq": "monthly", "priority": "1.0"},
     {"loc": "https://samdonche.com/case-studies/", "file": "case-studies/index.html", "changefreq": "monthly", "priority": "0.7"},
     {"loc": "https://samdonche.com/case-studies/factory-data-backbone/", "file": "case-studies/factory-data-backbone/index.html", "changefreq": "yearly", "priority": "0.7"},
+    {"loc": "https://samdonche.com/case-studies/plant-hmi/", "file": "case-studies/plant-hmi/index.html", "changefreq": "yearly", "priority": "0.7"},
     {"loc": "https://samdonche.com/notes/", "file": "notes/index.html", "changefreq": "monthly", "priority": "0.6"},
     {"loc": "https://samdonche.com/notes/ignition-secrets/", "file": "notes/ignition-secrets/index.html", "changefreq": "yearly", "priority": "0.6"},
     {"loc": "https://samdonche.com/notes/ignition-observability/", "file": "notes/ignition-observability/index.html", "changefreq": "yearly", "priority": "0.6"},

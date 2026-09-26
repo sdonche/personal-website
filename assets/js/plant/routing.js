@@ -3,21 +3,27 @@ import { Plant } from "./ns.js?v=c600f295ec";
 
 Plant.parseHash = function parseHash() {
   const raw = (location.hash || "").replace(/^#/, "");
-  if (!raw) return { drawing: null, fault: null };
+  if (!raw) return { drawing: null, fault: null, tag: null, pane: null };
   const qIdx = raw.indexOf("?");
   const drawingPart = (qIdx >= 0 ? raw.slice(0, qIdx) : raw).toLowerCase();
   const query = qIdx >= 0 ? raw.slice(qIdx + 1) : "";
   const drawing = Plant.ALL_DRAWING_IDS.includes(drawingPart) ? drawingPart : null;
   let fault = null;
+  let tag = null;
+  let pane = null;
   if (query) {
     try {
-      fault = new URLSearchParams(query).get("fault");
+      const q = new URLSearchParams(query);
+      fault = q.get("fault");
       if (fault === "belt") fault = "drive"; // legacy deep links
+      // One-shot deep-link extras (from the notes): open a tag's faceplate, pick an alarm-pane view
+      tag = q.get("tag");
+      pane = q.get("pane");
     } catch (e) {
       fault = null;
     }
   }
-  return { drawing, fault };
+  return { drawing, fault, tag, pane };
 }
 
 Plant.syncHash = function syncHash(drawing) {
@@ -34,7 +40,7 @@ Plant.syncHash = function syncHash(drawing) {
 
 Plant.applyHashState = function applyHashState(opts) {
   const skipHash = opts && opts.skipHash;
-  const { drawing, fault } = Plant.parseHash();
+  const { drawing, fault, tag, pane } = Plant.parseHash();
   if (!drawing) return false;
   let faultChanged = false;
   if (drawing !== "overview") {
@@ -51,6 +57,15 @@ Plant.applyHashState = function applyHashState(opts) {
     Plant.computeLive();
   }
   Plant.setActiveDrawing(drawing, { skipHash: true });
+  // A tag on this drawing (or any Heuvelland tag from the overview) opens its faceplate
+  if (tag && Plant.TAG_BY_ID[tag] && (drawing === "overview" || Plant.drawingForTag(tag) === drawing)) {
+    Plant.selectTag(tag, { skipHash: true });
+  }
+  if (["active", "shelved", "history", "events"].includes(pane) && Plant.state.alarmPane !== pane) {
+    Plant.state.alarmPane = pane;
+    Plant.saveState();
+    Plant.renderAlarms();
+  }
   if (faultChanged) Plant.renderAll();
   if (!skipHash) Plant.syncHash(drawing);
   return true;
