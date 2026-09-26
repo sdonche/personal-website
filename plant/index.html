@@ -70,7 +70,7 @@
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=9f7594763d" />
   <link rel="stylesheet" href="../assets/css/styles.css?v=2a7925398d" />
 <!-- /partial:head-assets -->
-  <link rel="stylesheet" href="../assets/css/plant.css?v=9fe92a5e8f" />
+  <link rel="stylesheet" href="../assets/css/plant.css?v=43d61f2628" />
 </head>
 
 <body class="plant-page bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -277,12 +277,14 @@
           <div class="plant-alarm-tools" role="toolbar" aria-label="Alarm filters">
             <div class="plant-alarm-tools__row" role="group" aria-label="Alarm view">
               <button type="button" class="plant-btn plant-btn--ghost is-active" data-alarm-pane="active">Active</button>
+              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-pane="shelved">Shelved</button>
               <button type="button" class="plant-btn plant-btn--ghost" data-alarm-pane="history">History</button>
             </div>
-            <div class="plant-alarm-tools__row" role="group" aria-label="Severity filter">
+            <div class="plant-alarm-tools__row" role="group" aria-label="Priority filter">
               <button type="button" class="plant-btn plant-btn--ghost is-active" data-alarm-filter="all">All</button>
-              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="critical">Crit</button>
-              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="warning">Warn</button>
+              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="critical">High</button>
+              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="warning">Med</button>
+              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="low">Low</button>
             </div>
           </div>
           <div class="plant-pane__body">
@@ -294,7 +296,7 @@
   </main>
 
 <!-- partial:plant-scripts -->
-  <script type="module" src="../assets/js/plant.js?v=fd25ebfb0b"></script>
+  <script type="module" src="../assets/js/plant.js?v=d426721a5f"></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../assets/js/goatcounter.js"></script>
 <!-- /partial:plant-scripts -->
 </body>

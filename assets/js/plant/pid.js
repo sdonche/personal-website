@@ -860,16 +860,14 @@ Plant.paintPid = function paintPid() {
       if (idx === here) g.classList.add("is-batch");
       const healthEl = g.querySelector("[data-overview-health]");
       if (healthEl) {
-        const label = health === "run" ? "RUN"
-          : health === "fault" ? "FAULT"
-            : health === "starved" ? "STARVED"
-              : "HOLD";
-        healthEl.textContent = label;
+        const stateTag = d === "packaging" ? "State" : `${d.charAt(0).toUpperCase() + d.slice(1)}/State`;
+        healthEl.textContent = String(Plant.live[stateTag]?.value ?? "—");
       }
     });
     const banner = document.getElementById("plant-pid-alarm");
     if (banner) {
-      const crit = Plant.state.alarms.find((a) => a.severity === "critical") || Plant.state.alarms[0];
+      const ann = Plant.annunciatedAlarms();
+      const crit = ann.find((a) => a.severity === "critical") || ann[0];
       if (!crit) {
         banner.hidden = true;
         banner.textContent = "";
@@ -898,10 +896,10 @@ Plant.paintPid = function paintPid() {
   const concheAgit = Plant.state.concheScenario === "agitator";
   const mouldJam = Plant.state.mouldScenario === "jam";
   const mouldCool = Plant.state.mouldScenario === "cool";
-  const refineStarved = (Plant.live["Refining/Mode"]?.value ?? "") === "STARVED";
-  const concheStarved = (Plant.live["Conching/Mode"]?.value ?? "") === "STARVED";
-  const temperStarved = (Plant.live["Tempering/Mode"]?.value ?? "") === "STARVED";
-  const mouldStarved = (Plant.live["Moulding/Mode"]?.value ?? "") === "STARVED";
+  const refineStarved = Plant.live["Refining/State"]?.value === "PAUSED";
+  const concheStarved = Plant.live["Conching/State"]?.value === "PAUSED";
+  const temperStarved = Plant.live["Tempering/State"]?.value === "PAUSED";
+  const mouldStarved = Plant.live["Moulding/State"]?.value === "SUSPENDED";
 
   svg.classList.remove("is-running", "is-fault", "is-warn");
   if (mixing) svg.classList.add(mixOver ? "is-fault" : mixValve ? "is-warn" : "is-running");
@@ -1053,14 +1051,14 @@ Plant.paintPid = function paintPid() {
   svg.querySelectorAll(".pid-balloon, .pid-equip, .pid-valve").forEach((el) => {
     el.classList.remove("is-alarm", "is-warn", "is-fault");
   });
-  const sheetAlarms = Plant.state.alarms.filter((a) => Plant.ALARM_PID[a.id]?.drawing === drawing);
+  const sheetAlarms = Plant.annunciatedAlarms().filter((a) => Plant.ALARM_PID[a.id]?.drawing === drawing);
   sheetAlarms.forEach((a) => {
     const meta = Plant.ALARM_PID[a.id];
     if (!meta) return;
     const nodes = svg.querySelectorAll(`[data-equip="${CSS.escape(meta.equip)}"]`);
     nodes.forEach((el) => {
       el.classList.add("is-alarm");
-      if (meta.severity === "critical") el.classList.add("is-fault");
+      if (a.severity === "critical") el.classList.add("is-fault");
       else el.classList.add("is-warn");
     });
   });

@@ -73,6 +73,7 @@ Plant.STUB_LINES = [
 Plant.STUB_LINE_TAGS = [
   { id: "Running", name: "Running", type: "bool" },
   { id: "Mode", name: "Mode", type: "string" },
+  { id: "State", name: "State", type: "string" },
   { id: "OEE", name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1) },
   { id: "Throughput", name: "Throughput", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
   { id: "SpeedSP", name: "SpeedSP", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
@@ -97,6 +98,7 @@ Plant.EQUIPMENT = [
 Plant.LINE3_TAGS = [
   { id: "Running", name: "Running", type: "bool" },
   { id: "Mode", name: "Mode", type: "string" },
+  { id: "State", name: "State", type: "string" },
   { id: "OEE", name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1) },
   { id: "Throughput", name: "Throughput", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
   { id: "SpeedSP", name: "SpeedSP", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
@@ -143,6 +145,7 @@ Plant.LINE3_TAGS = [
 Plant.MIXING_TAGS = [
   { id: "Mixing/Running", name: "Running", type: "bool" },
   { id: "Mixing/Mode", name: "Mode", type: "string" },
+  { id: "Mixing/State", name: "State", type: "string" },
   { id: "Mixing/BatchId", name: "BatchId", type: "string" },
 
   { id: "Mixing/Mixer1/Running", name: "Running", type: "bool" },
@@ -171,6 +174,7 @@ Plant.MIXING_TAGS = [
 Plant.REFINING_TAGS = [
   { id: "Refining/Running", name: "Running", type: "bool" },
   { id: "Refining/Mode", name: "Mode", type: "string" },
+  { id: "Refining/State", name: "State", type: "string" },
   { id: "Refining/BatchId", name: "BatchId", type: "string" },
 
   { id: "Refining/Refiner1/Running", name: "Running", type: "bool" },
@@ -193,6 +197,7 @@ Plant.REFINING_TAGS = [
 Plant.CONCHING_TAGS = [
   { id: "Conching/Running", name: "Running", type: "bool" },
   { id: "Conching/Mode", name: "Mode", type: "string" },
+  { id: "Conching/State", name: "State", type: "string" },
   { id: "Conching/BatchId", name: "BatchId", type: "string" },
 
   { id: "Conching/Conche1/Running", name: "Running", type: "bool" },
@@ -217,6 +222,7 @@ Plant.CONCHING_TAGS = [
 Plant.TEMPERING_TAGS = [
   { id: "Tempering/Running", name: "Running", type: "bool" },
   { id: "Tempering/Mode", name: "Mode", type: "string" },
+  { id: "Tempering/State", name: "State", type: "string" },
   { id: "Tempering/BatchId", name: "BatchId", type: "string" },
 
   { id: "Tempering/Temper1/Running", name: "Running", type: "bool" },
@@ -244,6 +250,7 @@ Plant.TEMPERING_TAGS = [
 Plant.MOULDING_TAGS = [
   { id: "Moulding/Running", name: "Running", type: "bool" },
   { id: "Moulding/Mode", name: "Mode", type: "string" },
+  { id: "Moulding/State", name: "State", type: "string" },
   { id: "Moulding/BatchId", name: "BatchId", type: "string" },
 
   { id: "Moulding/Moulder1/Running", name: "Running", type: "bool" },
@@ -380,11 +387,7 @@ Plant.DEFAULT_OPEN = [
 Plant.ALARM_PID = {
   "alm-cartoner-jam": { drawing: "packaging", equip: "Cartoner", severity: "critical" },
   "alm-infeed-starved": { drawing: "packaging", equip: "Infeed", severity: "warning" },
-  "alm-pack-upstream": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "mixing", navTag: "Mixing/Mixer1/Running" },
-  "alm-pack-temper": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "tempering", navTag: "Tempering/Temper1/ScrewRpm" },
-  "alm-pack-refine": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "refining", navTag: "Refining/Refiner1/LoadPct" },
-  "alm-pack-conche": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "conching", navTag: "Conching/Conche1/TempC" },
-  "alm-pack-mould": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "moulding", navTag: "Moulding/Moulder1/CyclesPerMin" },
+  "alm-pack-upstream": { drawing: "packaging", equip: "Infeed", severity: "low" },
   "alm-mix-overtemp": { drawing: "mixing", equip: "Mixer1", severity: "critical" },
   "alm-mix-valve": { drawing: "mixing", equip: "CocoaLiquor", severity: "warning" },
   "alm-temper-warm": { drawing: "tempering", equip: "Temper1", severity: "critical" },
@@ -400,6 +403,20 @@ Plant.ALARM_PID = {
   "alm-mould-jam": { drawing: "moulding", equip: "Moulder1", severity: "critical" },
   "alm-mould-cool": { drawing: "moulding", equip: "Cooling", severity: "warning" },
 };
+
+/* Analog alarms (ISA-18.2 style): active while the PV is beyond its limit,
+   clearing only once it is back inside by the deadband. */
+Plant.ALARM_ANALOG = [
+  { id: "alm-mix-overtemp", tag: "Mixing/Mixer1/JacketTempC", dir: "HI", limit: 55, db: 1.5, isa: "TI-111", desc: "Mixer1 jacket temperature", area: "Mixing", severity: "critical" },
+  { id: "alm-refine-pressure", tag: "Refining/Hydraulic/PressureBar", dir: "LO", limit: 60, db: 5, isa: "PI-220", desc: "Refiner1 hydraulic pressure", area: "Refining", severity: "critical" },
+  { id: "alm-refine-particle", tag: "Refining/Refiner1/ParticleUm", dir: "HI", limit: 30, db: 1, isa: "AI-211", desc: "Refiner1 particle size", area: "Refining", severity: "warning" },
+  { id: "alm-conche-overtemp", tag: "Conching/Conche1/TempC", dir: "HI", limit: 79, db: 2, isa: "TI-310", desc: "Conche1 mass temperature", area: "Conching", severity: "critical" },
+  { id: "alm-temper-warm", tag: "Tempering/Temper1/Zone2TempC", dir: "HI", limit: 30.5, db: 0.8, isa: "TI-411", desc: "Temper1 cooling zone temperature", area: "Tempering", severity: "critical" },
+  { id: "alm-mould-cool", tag: "Moulding/Cooling/AirTempC", dir: "HI", limit: 15, db: 1, isa: "TI-520", desc: "Cooling tunnel air temperature", area: "Moulding", severity: "warning" },
+];
+
+/** Alarm priorities as shown to the operator (ISA-18.2: high / medium / low). */
+Plant.ALARM_PRIORITY = { critical: "High", warning: "Medium", low: "Low" };
 
 Plant.BATCH_STEPS = ["mixing", "refining", "conching", "tempering", "moulding", "packaging"];
 Plant.BATCH_HOME_TAG = {

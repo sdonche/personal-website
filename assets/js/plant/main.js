@@ -8,6 +8,7 @@ Plant.init = function init() {
   const noscript = document.getElementById("plant-noscript");
   if (noscript) noscript.hidden = true;
 
+  Plant.tick = Plant.state.tick || 0;
   Plant.wire();
   Plant.startClock();
   Plant.computeLive();

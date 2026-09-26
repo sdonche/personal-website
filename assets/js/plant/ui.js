@@ -44,7 +44,7 @@ Plant.renderKpis = function renderKpis() {
   if (overview) {
     const oee = Plant.live.OEE?.value ?? 0;
     const batchId = String(Plant.live.__trackedBatch?.value ?? "—");
-    const almN = Plant.state.alarms.length;
+    const almN = Plant.visibleAlarms().length;
     const fleet = Plant.fleetSummaryLabel();
     const anyFault = Plant.PLANT_AREAS.some((a) => Plant.areaHealth(a.drawing) === "fault");
     const anyWarn = Plant.PLANT_AREAS.some((a) => areaHeld(a.drawing));
@@ -61,56 +61,56 @@ Plant.renderKpis = function renderKpis() {
     setLabel("kpi-a-label", "Weight");
     setLabel("kpi-b-label", "Jacket");
     setLabel("kpi-c-label", "Phase");
-    setLabel("kpi-d-label", "Mode");
+    setLabel("kpi-d-label", "State");
     setKpi("kpi-a", val("Mixing/Mixer1/WeightKg"), mixValve ? "warn" : "good");
     setKpi("kpi-b", val("Mixing/Mixer1/JacketTempC"), mixOver ? "bad" : qTone("Mixing/Mixer1/JacketTempC"));
     setKpi("kpi-c", String(Plant.live["Mixing/Mixer1/Phase"]?.value ?? "—"), mixOver || mixValve ? "warn" : "good");
-    setKpi("kpi-d", String(Plant.live["Mixing/Mode"]?.value ?? "—"), mixOver ? "bad" : mixValve ? "warn" : "good");
+    setKpi("kpi-d", String(Plant.live["Mixing/State"]?.value ?? "—"), mixOver ? "bad" : mixValve ? "warn" : "good");
   } else if (refining) {
-    const mode = Plant.live["Refining/Mode"]?.value ?? "—";
+    const mode = Plant.live["Refining/State"]?.value ?? "—";
     const refinePressure = Plant.state.refineScenario === "pressure";
     const refineParticle = Plant.state.refineScenario === "particle";
-    const starvedRefine = mode === "STARVED";
+    const starvedRefine = mode === "PAUSED";
     setLabel("kpi-a-label", "Load");
     setLabel("kpi-b-label", "Particle");
     setLabel("kpi-c-label", "Outlet");
-    setLabel("kpi-d-label", "Mode");
+    setLabel("kpi-d-label", "State");
     setKpi("kpi-a", val("Refining/Refiner1/LoadPct"), refinePressure || starvedRefine ? "warn" : "good");
     setKpi("kpi-b", val("Refining/Refiner1/ParticleUm"), refineParticle ? "bad" : starvedRefine ? "warn" : "good");
     setKpi("kpi-c", val("Refining/Outlet/FlowKgH"), refinePressure || starvedRefine ? "warn" : "good");
     setKpi("kpi-d", String(mode), refinePressure ? "bad" : refineParticle || starvedRefine ? "warn" : "good");
   } else if (conching) {
-    const mode = Plant.live["Conching/Mode"]?.value ?? "—";
+    const mode = Plant.live["Conching/State"]?.value ?? "—";
     const concheOver = Plant.state.concheScenario === "overtemp";
     const concheAgit = Plant.state.concheScenario === "agitator";
-    const starvedConche = mode === "STARVED";
+    const starvedConche = mode === "PAUSED";
     setLabel("kpi-a-label", "Temp");
     setLabel("kpi-b-label", "Agitator");
     setLabel("kpi-c-label", "Phase");
-    setLabel("kpi-d-label", "Mode");
+    setLabel("kpi-d-label", "State");
     setKpi("kpi-a", val("Conching/Conche1/TempC"), concheOver ? "bad" : starvedConche ? "warn" : "good");
     setKpi("kpi-b", val("Conching/Conche1/AgitatorRpm"), concheAgit ? "bad" : starvedConche ? "warn" : "good");
     setKpi("kpi-c", `${Plant.live["Conching/Conche1/Phase"]?.value ?? "—"} · ${val("Conching/Conche1/BatchTimeH")}`, "good");
     setKpi("kpi-d", String(mode), concheOver ? "bad" : concheAgit || starvedConche ? "warn" : "good");
   } else if (tempering) {
-    const temperStarve = (Plant.live["Tempering/Mode"]?.value ?? "") === "STARVED";
+    const temperStarve = (Plant.live["Tempering/State"]?.value ?? "") === "PAUSED";
     setLabel("kpi-a-label", "Temper index");
     setLabel("kpi-b-label", "Mass out");
     setLabel("kpi-c-label", "Screw");
-    setLabel("kpi-d-label", "Mode");
+    setLabel("kpi-d-label", "State");
     setKpi("kpi-a", val("Tempering/Temper1/TemperIndex"), temperWarm ? "bad" : qTone("Tempering/Temper1/TemperIndex"));
     setKpi("kpi-b", val("Tempering/Temper1/MassTempC"), temperWarm ? "bad" : "good");
     setKpi("kpi-c", val("Tempering/Temper1/ScrewRpm"), temperDrive ? "bad" : temperStarve ? "warn" : "good");
-    setKpi("kpi-d", String(Plant.live["Tempering/Mode"]?.value ?? "—"), temperWarm ? "bad" : temperDrive || temperStarve ? "warn" : "good");
+    setKpi("kpi-d", String(Plant.live["Tempering/State"]?.value ?? "—"), temperWarm ? "bad" : temperDrive || temperStarve ? "warn" : "good");
   } else if (moulding) {
-    const mode = Plant.live["Moulding/Mode"]?.value ?? "—";
+    const mode = Plant.live["Moulding/State"]?.value ?? "—";
     const mouldJamSc = Plant.state.mouldScenario === "jam";
     const mouldCoolSc = Plant.state.mouldScenario === "cool";
-    const starvedMould = mode === "STARVED";
+    const starvedMould = mode === "SUSPENDED";
     setLabel("kpi-a-label", "Cycles");
     setLabel("kpi-b-label", "Mould");
     setLabel("kpi-c-label", "Air");
-    setLabel("kpi-d-label", "Mode");
+    setLabel("kpi-d-label", "State");
     setKpi("kpi-a", val("Moulding/Moulder1/CyclesPerMin"), mouldJamSc ? "bad" : starvedMould ? "warn" : "good");
     setKpi("kpi-b", val("Moulding/Moulder1/MouldTempC"), starvedMould ? "warn" : "good");
     setKpi("kpi-c", val("Moulding/Cooling/AirTempC"), mouldCoolSc ? "bad" : starvedMould ? "warn" : "good");
@@ -119,11 +119,11 @@ Plant.renderKpis = function renderKpis() {
     const oee = Plant.live.OEE?.value ?? 0;
     setLabel("kpi-a-label", "OEE");
     setLabel("kpi-b-label", "Thru");
-    setLabel("kpi-c-label", "Mode");
+    setLabel("kpi-c-label", "State");
     setLabel("kpi-d-label", "Rejects");
     setKpi("kpi-a", val("OEE"), jam ? "bad" : feedStarved ? "warn" : oee >= 80 ? "good" : "warn");
     setKpi("kpi-b", val("Throughput"), jam ? "bad" : feedStarved ? "warn" : "good");
-    setKpi("kpi-c", String(Plant.live.Mode?.value ?? "—"), jam ? "bad" : feedStarved ? "warn" : "good");
+    setKpi("kpi-c", String(Plant.live.State?.value ?? "—"), jam ? "bad" : feedStarved ? "warn" : "good");
     setKpi("kpi-d", String(Math.round(Plant.live["Checkweigher/Reject/Count"]?.value ?? 0)), "warn");
   }
 
@@ -177,7 +177,7 @@ Plant.renderKpis = function renderKpis() {
   });
   document.querySelectorAll("[data-temper-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-temper-scenario");
-    const temperUpstream = (Plant.live["Tempering/Mode"]?.value ?? "") === "STARVED" && Plant.state.temperScenario === null;
+    const temperUpstream = (Plant.live["Tempering/State"]?.value ?? "") === "PAUSED" && Plant.state.temperScenario === null;
     if (sc === "recover") {
       paintRecover(btn, Plant.state.temperScenario != null, { blocked: temperUpstream });
       return;
@@ -186,7 +186,7 @@ Plant.renderKpis = function renderKpis() {
   });
   document.querySelectorAll("[data-refine-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-refine-scenario");
-    const refineUpstream = (Plant.live["Refining/Mode"]?.value ?? "") === "STARVED" && Plant.state.refineScenario === null;
+    const refineUpstream = (Plant.live["Refining/State"]?.value ?? "") === "PAUSED" && Plant.state.refineScenario === null;
     if (sc === "recover") {
       paintRecover(btn, Plant.state.refineScenario != null, { blocked: refineUpstream });
       return;
@@ -195,7 +195,7 @@ Plant.renderKpis = function renderKpis() {
   });
   document.querySelectorAll("[data-conche-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-conche-scenario");
-    const concheUpstream = (Plant.live["Conching/Mode"]?.value ?? "") === "STARVED" && Plant.state.concheScenario === null;
+    const concheUpstream = (Plant.live["Conching/State"]?.value ?? "") === "PAUSED" && Plant.state.concheScenario === null;
     if (sc === "recover") {
       paintRecover(btn, Plant.state.concheScenario != null, { blocked: concheUpstream });
       return;
@@ -204,7 +204,7 @@ Plant.renderKpis = function renderKpis() {
   });
   document.querySelectorAll("[data-mould-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-mould-scenario");
-    const mouldUpstream = (Plant.live["Moulding/Mode"]?.value ?? "") === "STARVED" && Plant.state.mouldScenario === null;
+    const mouldUpstream = (Plant.live["Moulding/State"]?.value ?? "") === "SUSPENDED" && Plant.state.mouldScenario === null;
     if (sc === "recover") {
       paintRecover(btn, Plant.state.mouldScenario != null, { blocked: mouldUpstream });
       return;
@@ -276,7 +276,7 @@ Plant.renderKpis = function renderKpis() {
 
   const headerAlarms = document.getElementById("plant-header-alarms");
   const headerAlarmCount = document.getElementById("plant-header-alarm-count");
-  const almN = Plant.state.alarms.length;
+  const almN = Plant.visibleAlarms().length;
   if (headerAlarms && headerAlarmCount) {
     headerAlarmCount.textContent = String(almN);
     const noun = document.getElementById("plant-header-alarm-noun");
@@ -491,8 +491,7 @@ Plant.renderAll = function renderAll(opts) {
   Plant.renderKpis();
   Plant.renderBatchTrail();
   Plant.renderDetail();
-  if (forceAlarms || Plant.tick % 5 === 0 || Plant.tick <= 1) Plant.renderAlarms();
-  else Plant.updateAlarmTimes();
+  if (forceAlarms || Plant.alarmsDirty) Plant.renderAlarms();
 }
 
 Plant.renderBatchTrail = function renderBatchTrail() {
@@ -685,6 +684,18 @@ Plant.wire = function wire() {
       Plant.ackOne(btn.getAttribute("data-ack"));
       return;
     }
+    const shelveBtn = e.target.closest("[data-shelve]");
+    if (shelveBtn) {
+      e.stopPropagation();
+      Plant.shelveAlarm(shelveBtn.getAttribute("data-shelve"));
+      return;
+    }
+    const unshelveBtn = e.target.closest("[data-unshelve]");
+    if (unshelveBtn) {
+      e.stopPropagation();
+      Plant.unshelveAlarm(unshelveBtn.getAttribute("data-unshelve"));
+      return;
+    }
     const row = e.target.closest(".plant-alarm[data-alarm-id]");
     if (!row) return;
     const id = row.getAttribute("data-alarm-id");
@@ -707,7 +718,8 @@ Plant.wire = function wire() {
   document.querySelector(".plant-alarm-tools")?.addEventListener("click", (e) => {
     const pane = e.target.closest("[data-alarm-pane]");
     if (pane) {
-      Plant.state.alarmPane = pane.getAttribute("data-alarm-pane") === "history" ? "history" : "active";
+      const v = pane.getAttribute("data-alarm-pane");
+      Plant.state.alarmPane = v === "history" || v === "shelved" ? v : "active";
       Plant.saveState();
       Plant.renderAlarms();
       return;
@@ -715,7 +727,7 @@ Plant.wire = function wire() {
     const filt = e.target.closest("[data-alarm-filter]");
     if (filt) {
       const v = filt.getAttribute("data-alarm-filter");
-      Plant.state.alarmFilter = v === "critical" || v === "warning" ? v : "all";
+      Plant.state.alarmFilter = ["critical", "warning", "low"].includes(v) ? v : "all";
       Plant.saveState();
       Plant.renderAlarms();
     }
@@ -732,6 +744,7 @@ Plant.wire = function wire() {
 
 Plant.tickOnce = function tickOnce() {
   Plant.tick += 1;
+  Plant.state.tick = Plant.tick;
   Plant.computeLive();
   Plant.saveState();
   Plant.renderAll({ alarms: false });

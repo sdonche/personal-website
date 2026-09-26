@@ -2228,3 +2228,31 @@
   color: rgb(148 163 184);
 }
 .plant-faceplate__sp strong { color: rgb(226 232 240); font-weight: 500; }
+
+/* ISA-18.2 alarm list details */
+.plant-alarm[data-sev="low"] .plant-alarm__sev { color: #7dd3fc; }
+.plant-alarm__state {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  padding: 0.05rem 0.28rem;
+  border-radius: 2px;
+  border: 1px solid rgb(51 65 85);
+  color: rgb(203 213 225);
+}
+.plant-alarm__time {
+  margin-left: auto;
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.625rem;
+  color: rgb(148 163 184);
+  font-variant-numeric: tabular-nums;
+}
+.plant-alarm.is-rtn { opacity: 0.72; border-style: dashed; }
+.plant-alarm.is-rtn .plant-alarm__state { color: var(--plant-uncertain); border-color: rgba(251, 191, 36, 0.4); }
+.plant-alarm__supp {
+  margin: 0.3rem 0 0;
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.6rem;
+  color: rgb(148 163 184);
+}
+.plant-alarm__ack { display: flex; gap: 0.35rem; }

@@ -244,10 +244,36 @@ Plant.sparklineSvg = function sparklineSvg(samples) {
   return `<svg class="plant-sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polyline class="plant-sparkline__line" points="${pts}" fill="none" /></svg>`;
 }
 
+/** Plant clock: the shift starts at 06:00 and one tick is one plant minute. */
+Plant.plantTime = function plantTime(tick) {
+  const mins = 6 * 60 + (Number(tick) || 0);
+  return `${String(Math.floor(mins / 60) % 24).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
+}
+
+Plant.isShelved = function isShelved(a) {
+  return (Plant.state.shelved?.[a.id] ?? -1) > Plant.tick;
+}
+
+/** A consequential alarm is suppressed while an alarm in its source area is active. */
+Plant.isSuppressed = function isSuppressed(a) {
+  // Shelving the root doesn't release its consequences: the cause is still active
+  return !!a.causedBy && Plant.state.alarms.some((r) => r.area === a.causedBy && !r.causedBy && !r.rtn);
+}
+
+/** Alarms the operator sees in the active list (not shelved, not suppressed). */
+Plant.visibleAlarms = function visibleAlarms() {
+  return Plant.state.alarms.filter((a) => !Plant.isShelved(a) && !Plant.isSuppressed(a));
+}
+
+/** Annunciated = visible and still active (RTN alarms no longer light the drawing). */
+Plant.annunciatedAlarms = function annunciatedAlarms() {
+  return Plant.visibleAlarms().filter((a) => !a.rtn);
+}
+
 Plant.firstOutAlarmId = function firstOutAlarmId(alarms) {
-  const unacked = alarms.filter((a) => !a.acked);
+  const unacked = alarms.filter((a) => !a.acked && !a.rtn && !a.causedBy);
   if (!unacked.length) return null;
-  return unacked.slice().sort((a, b) => a.ts - b.ts)[0].id;
+  return unacked.slice().sort((a, b) => (a.tick - b.tick) || (a.ts - b.ts))[0].id;
 }
 
 Plant.tagFromAlarmPath = function tagFromAlarmPath(path) {
