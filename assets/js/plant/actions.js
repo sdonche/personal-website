@@ -72,7 +72,6 @@ Plant.resetReject = function resetReject() {
 Plant.clearCartonerJam = function clearCartonerJam() {
   if (Plant.state.packScenario === "jam") {
     Plant.state.packScenario = null;
-    Plant.state.alarms = Plant.state.alarms.filter((a) => a.id !== "alm-cartoner-jam");
   }
   Plant.saveState();
   Plant.computeLive();
@@ -96,6 +95,8 @@ Plant.recoverAll = function recoverAll() {
 Plant.resetLine = function resetLine() {
   Plant.state = Plant.defaultState();
   Plant.trends = {};
+  Plant.pvState = {};
+  Plant.noiseState = {};
   Plant.saveState();
   Plant.tick = 0;
   Plant.treeBuilt = false;

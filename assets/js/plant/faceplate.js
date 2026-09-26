@@ -27,7 +27,7 @@ Plant.renderDetail = function renderDetail() {
   const writeBlock = writable ? `
     <form class="plant-faceplate__write" data-faceplate-write="SpeedSP">
       <label class="plant-faceplate__write-label">Write SpeedSP
-        <input type="number" name="speed" min="40" max="180" step="1" value="${Plant.escapeHtml(String(Plant.state.speedSp))}" class="plant-faceplate__input" />
+        <input type="number" name="speed" min="20" max="60" step="1" value="${Plant.escapeHtml(String(Plant.state.speedSp))}" class="plant-faceplate__input" />
         <span class="plant-faceplate__unit">cpm</span>
       </label>
       <button type="submit" class="plant-btn plant-btn--ghost">Confirm write</button>
@@ -42,6 +42,7 @@ Plant.renderDetail = function renderDetail() {
           <span class="plant-q plant-q--${Plant.escapeHtml(lv.quality.toLowerCase())}">${Plant.escapeHtml(lv.quality)}</span>
           <span class="plant-faceplate__meta">${Plant.escapeHtml(def.type)}${def.unit ? ` · ${Plant.escapeHtml(def.unit)}` : ""} · ${Plant.escapeHtml(def.name)}</span>
         </div>
+        ${Plant.SETPOINT_FOR[def.id] ? `<p class="plant-faceplate__sp">Setpoint <strong>${Plant.escapeHtml(Plant.liveReadout(Plant.SETPOINT_FOR[def.id]))}</strong> · deviation ${Plant.escapeHtml((() => { const d = Number(lv.value) - Number(Plant.live[Plant.SETPOINT_FOR[def.id]]?.value); return Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(1)}${def.unit ? ` ${def.unit}` : ""}` : "—"; })())}</p>` : ""}
         ${writeBlock}
       </div>
       ${numeric ? `<div class="plant-faceplate__trend" title="Last ${Plant.TREND_LEN} samples">${spark}</div>` : ""}
@@ -50,7 +51,7 @@ Plant.renderDetail = function renderDetail() {
 
 Plant.writeSpeedSp = function writeSpeedSp(next) {
   const n = Number(next);
-  if (!Number.isFinite(n) || n < 40 || n > 180) return false;
+  if (!Number.isFinite(n) || n < 20 || n > 60) return false;
   Plant.state.speedSp = Math.round(n);
   Plant.saveState();
   Plant.computeLive();

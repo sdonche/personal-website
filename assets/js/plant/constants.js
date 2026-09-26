@@ -65,14 +65,15 @@ Plant.TREND_LEN = 60;
 
 /** Sibling lines — live tags, no P&ID yet (center pane stays Line3). */
 Plant.STUB_LINES = [
-  { id: "Line1", speedSp: 95, oeeBase: 81.5, thruBase: 92, phase: 11 },
-  { id: "Line2", speedSp: 108, oeeBase: 76.2, thruBase: 101, phase: 23 },
+  { id: "Line1", speedSp: 32, oeeBase: 81.5, thruBase: 30, phase: 11 },
+  { id: "Line2", speedSp: 36, oeeBase: 76.2, thruBase: 34, phase: 23 },
 ];
 
 /** Thin tag set for stub lines (ids relative to the line). */
 Plant.STUB_LINE_TAGS = [
   { id: "Running", name: "Running", type: "bool" },
   { id: "Mode", name: "Mode", type: "string" },
+  { id: "State", name: "State", type: "string" },
   { id: "OEE", name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1) },
   { id: "Throughput", name: "Throughput", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
   { id: "SpeedSP", name: "SpeedSP", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
@@ -97,6 +98,7 @@ Plant.EQUIPMENT = [
 Plant.LINE3_TAGS = [
   { id: "Running", name: "Running", type: "bool" },
   { id: "Mode", name: "Mode", type: "string" },
+  { id: "State", name: "State", type: "string" },
   { id: "OEE", name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1) },
   { id: "Throughput", name: "Throughput", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
   { id: "SpeedSP", name: "SpeedSP", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
@@ -126,7 +128,7 @@ Plant.LINE3_TAGS = [
 
   { id: "CasePacker/Running", name: "Running", type: "bool" },
   { id: "CasePacker/Speed", name: "Speed", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
-  { id: "CasePacker/CasesPerMin", name: "CasesPerMin", type: "number", unit: "cpm", format: (v) => v.toFixed(1) },
+  { id: "CasePacker/CasesPerMin", name: "CasesPerMin", type: "number", unit: "cases/min", format: (v) => v.toFixed(1) },
   { id: "CasePacker/Jam", name: "Jam", type: "bool" },
 
   { id: "Palletizer/Running", name: "Running", type: "bool" },
@@ -143,19 +145,24 @@ Plant.LINE3_TAGS = [
 Plant.MIXING_TAGS = [
   { id: "Mixing/Running", name: "Running", type: "bool" },
   { id: "Mixing/Mode", name: "Mode", type: "string" },
+  { id: "Mixing/State", name: "State", type: "string" },
   { id: "Mixing/BatchId", name: "BatchId", type: "string" },
 
   { id: "Mixing/Mixer1/Running", name: "Running", type: "bool" },
-  { id: "Mixing/Mixer1/LevelPct", name: "LevelPct", type: "number", unit: "%", format: (v) => v.toFixed(1) },
+  { id: "Mixing/Mixer1/Phase", name: "Phase", type: "string" },
+  { id: "Mixing/Mixer1/WeightKg", name: "WeightKg", type: "number", unit: "kg", format: (v) => String(Math.round(v)) },
   { id: "Mixing/Mixer1/AgitatorRpm", name: "AgitatorRpm", type: "number", unit: "rpm", format: (v) => String(Math.round(v)) },
   { id: "Mixing/Mixer1/JacketTempC", name: "JacketTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
+  { id: "Mixing/Mixer1/JacketTempSP", name: "JacketTempSP", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
   { id: "Mixing/Mixer1/MassTempC", name: "MassTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
 
   { id: "Mixing/CocoaLiquor/ValveOpen", name: "ValveOpen", type: "bool" },
   { id: "Mixing/CocoaLiquor/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)) },
+  { id: "Mixing/CocoaLiquor/DosedKg", name: "DosedKg", type: "number", unit: "kg", format: (v) => String(Math.round(v)) },
 
   { id: "Mixing/Sugar/ValveOpen", name: "ValveOpen", type: "bool" },
   { id: "Mixing/Sugar/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)) },
+  { id: "Mixing/Sugar/DosedKg", name: "DosedKg", type: "number", unit: "kg", format: (v) => String(Math.round(v)) },
 
   { id: "Mixing/Outlet/ValveOpen", name: "ValveOpen", type: "bool" },
   { id: "Mixing/Outlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)) },
@@ -167,11 +174,14 @@ Plant.MIXING_TAGS = [
 Plant.REFINING_TAGS = [
   { id: "Refining/Running", name: "Running", type: "bool" },
   { id: "Refining/Mode", name: "Mode", type: "string" },
+  { id: "Refining/State", name: "State", type: "string" },
   { id: "Refining/BatchId", name: "BatchId", type: "string" },
 
   { id: "Refining/Refiner1/Running", name: "Running", type: "bool" },
   { id: "Refining/Refiner1/LoadPct", name: "LoadPct", type: "number", unit: "%", format: (v) => v.toFixed(1) },
   { id: "Refining/Refiner1/ParticleUm", name: "ParticleUm", type: "number", unit: "µm", format: (v) => v.toFixed(1) },
+  { id: "Refining/Refiner1/ParticleSP", name: "ParticleSP", type: "number", unit: "µm", format: (v) => v.toFixed(1) },
+  { id: "Refining/Refiner1/RollTempC", name: "RollTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
   { id: "Refining/Refiner1/RollPressureBar", name: "RollPressureBar", type: "number", unit: "bar", format: (v) => v.toFixed(1) },
 
   { id: "Refining/Inlet/ValveOpen", name: "ValveOpen", type: "bool" },
@@ -187,12 +197,16 @@ Plant.REFINING_TAGS = [
 Plant.CONCHING_TAGS = [
   { id: "Conching/Running", name: "Running", type: "bool" },
   { id: "Conching/Mode", name: "Mode", type: "string" },
+  { id: "Conching/State", name: "State", type: "string" },
   { id: "Conching/BatchId", name: "BatchId", type: "string" },
 
   { id: "Conching/Conche1/Running", name: "Running", type: "bool" },
+  { id: "Conching/Conche1/Phase", name: "Phase", type: "string" },
   { id: "Conching/Conche1/TempC", name: "TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
+  { id: "Conching/Conche1/TempSP", name: "TempSP", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
   { id: "Conching/Conche1/AgitatorRpm", name: "AgitatorRpm", type: "number", unit: "rpm", format: (v) => String(Math.round(v)) },
-  { id: "Conching/Conche1/TimeMin", name: "TimeMin", type: "number", unit: "min", format: (v) => String(Math.round(v)) },
+  { id: "Conching/Conche1/BatchTimeH", name: "BatchTimeH", type: "number", unit: "h", format: (v) => v.toFixed(1) },
+  { id: "Conching/Conche1/PowerKw", name: "PowerKw", type: "number", unit: "kW", format: (v) => String(Math.round(v)) },
 
   { id: "Conching/Inlet/ValveOpen", name: "ValveOpen", type: "bool" },
   { id: "Conching/Inlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)) },
@@ -208,6 +222,7 @@ Plant.CONCHING_TAGS = [
 Plant.TEMPERING_TAGS = [
   { id: "Tempering/Running", name: "Running", type: "bool" },
   { id: "Tempering/Mode", name: "Mode", type: "string" },
+  { id: "Tempering/State", name: "State", type: "string" },
   { id: "Tempering/BatchId", name: "BatchId", type: "string" },
 
   { id: "Tempering/Temper1/Running", name: "Running", type: "bool" },
@@ -216,6 +231,10 @@ Plant.TEMPERING_TAGS = [
   { id: "Tempering/Temper1/Zone2TempC", name: "Zone2TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
   { id: "Tempering/Temper1/Zone3TempC", name: "Zone3TempC", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
   { id: "Tempering/Temper1/MassTempC", name: "MassTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
+  { id: "Tempering/Temper1/TemperIndex", name: "TemperIndex", type: "number", format: (v) => v.toFixed(1) },
+  { id: "Tempering/Temper1/Zone1SP", name: "Zone1SP", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
+  { id: "Tempering/Temper1/Zone2SP", name: "Zone2SP", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
+  { id: "Tempering/Temper1/Zone3SP", name: "Zone3SP", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
 
   { id: "Tempering/Inlet/ValveOpen", name: "ValveOpen", type: "bool" },
   { id: "Tempering/Inlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)) },
@@ -231,10 +250,11 @@ Plant.TEMPERING_TAGS = [
 Plant.MOULDING_TAGS = [
   { id: "Moulding/Running", name: "Running", type: "bool" },
   { id: "Moulding/Mode", name: "Mode", type: "string" },
+  { id: "Moulding/State", name: "State", type: "string" },
   { id: "Moulding/BatchId", name: "BatchId", type: "string" },
 
   { id: "Moulding/Moulder1/Running", name: "Running", type: "bool" },
-  { id: "Moulding/Moulder1/CyclesPerMin", name: "CyclesPerMin", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
+  { id: "Moulding/Moulder1/CyclesPerMin", name: "CyclesPerMin", type: "number", unit: "cycles/min", format: (v) => String(Math.round(v)) },
   { id: "Moulding/Moulder1/MouldTempC", name: "MouldTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
 
   { id: "Moulding/Inlet/ValveOpen", name: "ValveOpen", type: "bool" },
@@ -244,7 +264,19 @@ Plant.MOULDING_TAGS = [
   { id: "Moulding/Outlet/FlowKgH", name: "FlowKgH", type: "number", unit: "kg/h", format: (v) => String(Math.round(v)) },
 
   { id: "Moulding/Cooling/AirTempC", name: "AirTempC", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
+  { id: "Moulding/Cooling/AirTempSP", name: "AirTempSP", type: "number", unit: "°C", format: (v) => v.toFixed(1) },
 ];
+
+/** Controlled variables and their setpoint tags (shown as PV + SP). */
+Plant.SETPOINT_FOR = {
+  "Mixing/Mixer1/JacketTempC": "Mixing/Mixer1/JacketTempSP",
+  "Refining/Refiner1/ParticleUm": "Refining/Refiner1/ParticleSP",
+  "Conching/Conche1/TempC": "Conching/Conche1/TempSP",
+  "Tempering/Temper1/Zone1TempC": "Tempering/Temper1/Zone1SP",
+  "Tempering/Temper1/Zone2TempC": "Tempering/Temper1/Zone2SP",
+  "Tempering/Temper1/Zone3TempC": "Tempering/Temper1/Zone3SP",
+  "Moulding/Cooling/AirTempC": "Moulding/Cooling/AirTempSP",
+};
 
 /** Prefixed stub tags: Line1/OEE, Line2/Infeed/Speed, … */
 Plant.STUB_TAGS = Plant.STUB_LINES.flatMap((line) =>
@@ -355,11 +387,7 @@ Plant.DEFAULT_OPEN = [
 Plant.ALARM_PID = {
   "alm-cartoner-jam": { drawing: "packaging", equip: "Cartoner", severity: "critical" },
   "alm-infeed-starved": { drawing: "packaging", equip: "Infeed", severity: "warning" },
-  "alm-pack-upstream": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "mixing", navTag: "Mixing/Mixer1/Running" },
-  "alm-pack-temper": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "tempering", navTag: "Tempering/Temper1/ScrewRpm" },
-  "alm-pack-refine": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "refining", navTag: "Refining/Refiner1/LoadPct" },
-  "alm-pack-conche": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "conching", navTag: "Conching/Conche1/TempC" },
-  "alm-pack-mould": { drawing: "packaging", equip: "Infeed", severity: "warning", navDrawing: "moulding", navTag: "Moulding/Moulder1/CyclesPerMin" },
+  "alm-pack-upstream": { drawing: "packaging", equip: "Infeed", severity: "low" },
   "alm-mix-overtemp": { drawing: "mixing", equip: "Mixer1", severity: "critical" },
   "alm-mix-valve": { drawing: "mixing", equip: "CocoaLiquor", severity: "warning" },
   "alm-temper-warm": { drawing: "tempering", equip: "Temper1", severity: "critical" },
@@ -376,6 +404,20 @@ Plant.ALARM_PID = {
   "alm-mould-cool": { drawing: "moulding", equip: "Cooling", severity: "warning" },
 };
 
+/* Analog alarms (ISA-18.2 style): active while the PV is beyond its limit,
+   clearing only once it is back inside by the deadband. */
+Plant.ALARM_ANALOG = [
+  { id: "alm-mix-overtemp", tag: "Mixing/Mixer1/JacketTempC", dir: "HI", limit: 55, db: 1.5, isa: "TI-111", desc: "Mixer1 jacket temperature", area: "Mixing", severity: "critical" },
+  { id: "alm-refine-pressure", tag: "Refining/Hydraulic/PressureBar", dir: "LO", limit: 60, db: 5, isa: "PI-220", desc: "Refiner1 hydraulic pressure", area: "Refining", severity: "critical" },
+  { id: "alm-refine-particle", tag: "Refining/Refiner1/ParticleUm", dir: "HI", limit: 30, db: 1, isa: "AI-211", desc: "Refiner1 particle size", area: "Refining", severity: "warning" },
+  { id: "alm-conche-overtemp", tag: "Conching/Conche1/TempC", dir: "HI", limit: 79, db: 2, isa: "TI-310", desc: "Conche1 mass temperature", area: "Conching", severity: "critical" },
+  { id: "alm-temper-warm", tag: "Tempering/Temper1/Zone2TempC", dir: "HI", limit: 30.5, db: 0.8, isa: "TI-411", desc: "Temper1 cooling zone temperature", area: "Tempering", severity: "critical" },
+  { id: "alm-mould-cool", tag: "Moulding/Cooling/AirTempC", dir: "HI", limit: 15, db: 1, isa: "TI-520", desc: "Cooling tunnel air temperature", area: "Moulding", severity: "warning" },
+];
+
+/** Alarm priorities as shown to the operator (ISA-18.2: high / medium / low). */
+Plant.ALARM_PRIORITY = { critical: "High", warning: "Medium", low: "Low" };
+
 Plant.BATCH_STEPS = ["mixing", "refining", "conching", "tempering", "moulding", "packaging"];
 Plant.BATCH_HOME_TAG = {
   mixing: "Mixing/BatchId",
@@ -388,7 +430,7 @@ Plant.BATCH_HOME_TAG = {
 
 Plant.DRAWING_HOME_TAG = {
   packaging: "OEE",
-  mixing: "Mixing/Mixer1/LevelPct",
+  mixing: "Mixing/Mixer1/WeightKg",
   refining: "Refining/Refiner1/LoadPct",
   conching: "Conching/Conche1/TempC",
   tempering: "Tempering/Temper1/Zone1TempC",

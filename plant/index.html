@@ -70,7 +70,7 @@
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=9f7594763d" />
   <link rel="stylesheet" href="../assets/css/styles.css?v=2a7925398d" />
 <!-- /partial:head-assets -->
-  <link rel="stylesheet" href="../assets/css/plant.css?v=800f443902" />
+  <link rel="stylesheet" href="../assets/css/plant.css?v=43d61f2628" />
 </head>
 
 <body class="plant-page bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -97,7 +97,7 @@
             sam.donche<span class="text-brand-400">@</span>edge
           </span>
         </a>
-        <span class="plant-sim-badge" title="Simulated demoware — not a live plant">SIM</span>
+        <span class="plant-sim-badge" title="Simulated plant, not live data. Plant time runs 60× real time: one second is one plant minute, so a 6.5-hour conche batch takes 6.5 minutes.">SIM ×60</span>
       </div>
       <a href="../" class="font-mono text-[11px] uppercase tracking-widest text-slate-500 hover:text-brand-300 transition-colors shrink-0">← Sam Donche</a>
     </div>
@@ -277,12 +277,14 @@
           <div class="plant-alarm-tools" role="toolbar" aria-label="Alarm filters">
             <div class="plant-alarm-tools__row" role="group" aria-label="Alarm view">
               <button type="button" class="plant-btn plant-btn--ghost is-active" data-alarm-pane="active">Active</button>
+              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-pane="shelved">Shelved</button>
               <button type="button" class="plant-btn plant-btn--ghost" data-alarm-pane="history">History</button>
             </div>
-            <div class="plant-alarm-tools__row" role="group" aria-label="Severity filter">
+            <div class="plant-alarm-tools__row" role="group" aria-label="Priority filter">
               <button type="button" class="plant-btn plant-btn--ghost is-active" data-alarm-filter="all">All</button>
-              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="critical">Crit</button>
-              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="warning">Warn</button>
+              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="critical">High</button>
+              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="warning">Med</button>
+              <button type="button" class="plant-btn plant-btn--ghost" data-alarm-filter="low">Low</button>
             </div>
           </div>
           <div class="plant-pane__body">
@@ -294,7 +296,7 @@
   </main>
 
 <!-- partial:plant-scripts -->
-  <script type="module" src="../assets/js/plant.js?v=6ac12ed297"></script>
+  <script type="module" src="../assets/js/plant.js?v=d426721a5f"></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../assets/js/goatcounter.js"></script>
 <!-- /partial:plant-scripts -->
 </body>

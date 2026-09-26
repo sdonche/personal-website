@@ -13,13 +13,15 @@ Plant.defaultState = function defaultState() {
     underCount: 3,
     overCount: 1,
     palletsDone: 47,
-    speedSp: 120,
+    speedSp: 38,
     selectedTag: "OEE",
     activeDrawing: /** @type {"overview"|"packaging"|"mixing"|"refining"|"conching"|"tempering"|"moulding"} */ ("packaging"),
     alarms: /** @type {Alarm[]} */ ([]),
     alarmHistory: /** @type {AlarmHistoryEntry[]} */ ([]),
-    alarmFilter: /** @type {"all"|"critical"|"warning"} */ ("all"),
-    alarmPane: /** @type {"active"|"history"} */ ("active"),
+    alarmFilter: /** @type {"all"|"critical"|"warning"|"low"} */ ("all"),
+    alarmPane: /** @type {"active"|"shelved"|"history"} */ ("active"),
+    shelved: /** @type {Record<string, number>} alarm id → plant tick it unshelves */ ({}),
+    tick: 0, // plant minutes since the shift started; persists so plant time carries on
     openNodes: Plant.DEFAULT_OPEN.slice(),
   };
 }
@@ -31,10 +33,11 @@ Plant.loadState = function loadState() {
     const parsed = JSON.parse(raw);
     const base = Plant.defaultState();
     const speedSp = Number(parsed.speedSp);
-    const alarmFilter = parsed.alarmFilter === "critical" || parsed.alarmFilter === "warning"
+    const alarmFilter = ["critical", "warning", "low"].includes(parsed.alarmFilter)
       ? parsed.alarmFilter
       : "all";
-    const alarmPane = parsed.alarmPane === "history" ? "history" : "active";
+    const alarmPane = ["shelved", "history"].includes(parsed.alarmPane) ? parsed.alarmPane : "active";
+    const tick = Number.isFinite(Number(parsed.tick)) && Number(parsed.tick) >= 0 ? Number(parsed.tick) : 0;
     const alarmHistory = Array.isArray(parsed.alarmHistory)
       ? parsed.alarmHistory.slice(0, 30).map((h) => ({
           id: String(h.id || ""),
@@ -49,11 +52,14 @@ Plant.loadState = function loadState() {
     return {
       ...base,
       ...parsed,
-      alarms: Array.isArray(parsed.alarms) ? parsed.alarms : [],
+      // Alarms saved before plant time existed have no tick: let them re-raise from live conditions
+      alarms: Array.isArray(parsed.alarms) ? parsed.alarms.filter((x) => Number.isFinite(x?.tick)) : [],
       alarmHistory,
       alarmFilter,
       alarmPane,
-      speedSp: Number.isFinite(speedSp) && speedSp > 0 ? speedSp : 120,
+      tick,
+      shelved: parsed.shelved && typeof parsed.shelved === "object" ? parsed.shelved : {},
+      speedSp: Number.isFinite(speedSp) && speedSp >= 20 && speedSp <= 60 ? speedSp : 38,
       openNodes: Array.isArray(parsed.openNodes) ? parsed.openNodes : base.openNodes,
       selectedTag: Plant.TAG_BY_ID[parsed.selectedTag] ? parsed.selectedTag : base.selectedTag,
       activeDrawing: Plant.ALL_DRAWING_IDS.includes(parsed.activeDrawing)

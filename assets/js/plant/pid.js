@@ -68,6 +68,7 @@ Plant.balloon = function balloon(cx, cy, top, bot, tagId, anchorX, anchorY, equi
       <text class="pid-balloon__top" x="${cx}" y="${cy - 4}" text-anchor="middle">${Plant.escapeHtml(top)}</text>
       <text class="pid-balloon__bot" x="${cx}" y="${cy + 11}" text-anchor="middle">${Plant.escapeHtml(bot)}</text>
       <text class="pid-balloon__val" data-pid-val="${Plant.escapeHtml(tagId)}" x="${cx + 22}" y="${cy + 4}" text-anchor="start">${Plant.escapeHtml(val)}</text>
+      ${Plant.SETPOINT_FOR[tagId] ? `<text class="pid-balloon__sp" data-pid-sp="${Plant.escapeHtml(Plant.SETPOINT_FOR[tagId])}" x="${cx + 22}" y="${cy + 14}" text-anchor="start">SP ${Plant.escapeHtml(Plant.liveReadout(Plant.SETPOINT_FOR[tagId]))}</text>` : ""}
     </g>`;
 }
 
@@ -305,7 +306,7 @@ Plant.buildMixingPid = function buildMixingPid() {
   const levelInnerH = tankH - jacketInset * 2 - 16;
 
   const balloons = [
-    Plant.balloon(tankCx - 120, 52, "LI", "110", "Mixing/Mixer1/LevelPct", tankCx - 60, tankY, "Mixer1"),
+    Plant.balloon(tankCx - 120, 52, "WI", "110", "Mixing/Mixer1/WeightKg", tankCx - 60, tankY, "Mixer1"),
     Plant.balloon(tankCx - 25, 52, "TI", "111", "Mixing/Mixer1/JacketTempC", tankCx - 20, tankY, "Mixer1"),
     Plant.balloon(tankCx + 70, 52, "TI", "112", "Mixing/Mixer1/MassTempC", tankCx + 30, tankY, "Mixer1"),
     Plant.balloon(tankCx + 165, 52, "SI", "113", "Mixing/Mixer1/AgitatorRpm", tankCx + 70, tankY, "Mixer1"),
@@ -333,7 +334,7 @@ Plant.buildMixingPid = function buildMixingPid() {
       </g>
 
       <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — CHOCOLATE MASS</text>
-      <text class="pid-sheet__sub" x="24" y="52">Cocoa liquor + sugar → Mixer1 → mass out to Refining</text>
+      <text class="pid-sheet__sub" x="24" y="52">Liquor + sugar weighed into Mixer1 → batch to refiner buffer</text>
 
       <text class="pid-flow-label" x="28" y="${cocoaY - 10}" text-anchor="start">COCOA LIQUOR</text>
       <line class="pid-pipe pid-pipe--main" x1="28" y1="${cocoaY}" x2="${tankX}" y2="${cocoaY}" />
@@ -353,8 +354,9 @@ Plant.buildMixingPid = function buildMixingPid() {
         <rect class="pid-tank__level" data-pid-level data-tank-top="${levelTop}" data-tank-inner-h="${levelInnerH}" x="${tankX + levelInset}" y="${levelTop + levelInnerH * 0.4}" width="${tankW - levelInset * 2}" height="${levelInnerH * 0.6}" rx="2" />
         <line class="pid-tank__agitator" x1="${tankCx}" y1="${tankY + 32}" x2="${tankCx}" y2="${tankY + tankH - 32}" />
         <circle class="pid-tank__hub" cx="${tankCx}" cy="${tankY + 44}" r="8" />
-        <text class="pid-equip__pid" x="${tankCx}" y="${tankY - 12}" text-anchor="middle">MX-100</text>
+        <text class="pid-equip__pid" x="${tankX - 8}" y="${tankY + 16}" text-anchor="end">MX-100</text>
         <text class="pid-equip__name" x="${tankCx + 12}" y="${tankY + tankH + 16}" text-anchor="start">Mixer1</text>
+        <text class="pid-phase" data-pid-phase="Mixing/Mixer1/Phase" x="${tankCx}" y="${tankY + 30}" text-anchor="middle">—</text>
       </g>
 
       <line class="pid-pipe pid-pipe--main" x1="${tankX + tankW}" y1="${outY}" x2="920" y2="${outY}" />
@@ -362,7 +364,7 @@ Plant.buildMixingPid = function buildMixingPid() {
       ${Plant.pumpSymbol(660, outY)}
       ${Plant.mixValve(720, outY, "Mixing/Outlet/ValveOpen", "Outlet", "XV-105")}
       ${Plant.flowArrow(800, outY)}
-      <text class="pid-flow-label" x="932" y="${outY - 10}" text-anchor="end">TO REFINE</text>
+      <text class="pid-flow-label" x="932" y="${outY - 10}" text-anchor="end">TO BUFFER</text>
       ${Plant.massFlowLine(tankX + tankW, outY, 920, outY)}
 
       <text class="pid-flow-label" x="28" y="352" text-anchor="start">JACKET WATER</text>
@@ -424,6 +426,7 @@ Plant.buildTemperingPid = function buildTemperingPid() {
     Plant.balloon(tunnelX + tunnelW / 2 + 70, 330, "TI", "413", "Tempering/Temper1/MassTempC", tunnelX + tunnelW / 2 + 40, tunnelY + tunnelH, "Temper1"),
     Plant.balloon(90, inY - 52, "FI", "401", "Tempering/Inlet/FlowKgH", 140, inY, "Inlet"),
     Plant.balloon(850, outY - 52, "FI", "405", "Tempering/Outlet/FlowKgH", 800, outY, "Outlet"),
+    Plant.balloon(850, outY + 56, "AI", "415", "Tempering/Temper1/TemperIndex", 780, outY, "Temper1"),
     Plant.balloon(200, 352, "FI", "420", "Tempering/ChilledWater/FlowM3H", 200, tunnelY + tunnelH + 10, "ChilledWater"),
     Plant.balloon(640, 352, "TI", "421", "Tempering/ChilledWater/SupplyTempC", 640, tunnelY + tunnelH + 10, "ChilledWater"),
   ].join("");
@@ -447,9 +450,9 @@ Plant.buildTemperingPid = function buildTemperingPid() {
       </g>
 
       <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — TEMPER MACHINE</text>
-      <text class="pid-sheet__sub" x="24" y="52">Mass from Conching → crystallisation zones → to Moulding</text>
+      <text class="pid-sheet__sub" x="24" y="52">From storage → heat / cool / reheat zones → to Moulding</text>
 
-      <text class="pid-flow-label" x="28" y="${inY - 10}" text-anchor="start">FROM CONCHE</text>
+      <text class="pid-flow-label" x="28" y="${inY - 10}" text-anchor="start">FROM STORAGE</text>
       <line class="pid-pipe pid-pipe--main" x1="28" y1="${inY}" x2="${tunnelX}" y2="${inY}" />
       ${Plant.flowArrow(95, inY)}
       ${Plant.mixValve(140, inY, "Tempering/Inlet/ValveOpen", "Inlet", "XV-401")}
@@ -509,6 +512,7 @@ Plant.buildRefiningPid = function buildRefiningPid() {
     Plant.balloon(machineCx - 100, 68, "JI", "210", "Refining/Refiner1/LoadPct", machineCx - 50, machineY, "Refiner1"),
     Plant.balloon(machineCx, 68, "AI", "211", "Refining/Refiner1/ParticleUm", machineCx, machineY, "Refiner1"),
     Plant.balloon(machineCx + 100, 68, "PI", "212", "Refining/Refiner1/RollPressureBar", machineCx + 50, machineY, "Refiner1"),
+    Plant.balloon(machineCx + 200, 68, "TI", "213", "Refining/Refiner1/RollTempC", machineCx + 160, machineY, "Refiner1"),
     Plant.balloon(850, midY - 52, "FI", "205", "Refining/Outlet/FlowKgH", 800, midY, "Outlet"),
     Plant.balloon(480, 352, "PI", "220", "Refining/Hydraulic/PressureBar", 480, machineY + machineH + 8, "Hydraulic"),
   ].join("");
@@ -532,9 +536,9 @@ Plant.buildRefiningPid = function buildRefiningPid() {
       </g>
 
       <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — FIVE-ROLL REFINER</text>
-      <text class="pid-sheet__sub" x="24" y="52">Mass in from Mixing → Refiner1 → mass out to Conching</text>
+      <text class="pid-sheet__sub" x="24" y="52">From refiner buffer → Refiner1 → fills Conche1–4 in turn</text>
 
-      <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">FROM MIX</text>
+      <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">FROM BUFFER</text>
       <line class="pid-pipe pid-pipe--main" x1="28" y1="${midY}" x2="${machineX}" y2="${midY}" />
       ${Plant.flowArrow(95, midY)}
       ${Plant.mixValve(140, midY, "Refining/Inlet/ValveOpen", "Inlet", "XV-201")}
@@ -543,7 +547,7 @@ Plant.buildRefiningPid = function buildRefiningPid() {
       <g class="pid-refiner pid-equip--run" data-equip="Refiner1" data-tag="Refining/Refiner1/Running" role="button" tabindex="0">
         <rect class="pid-refiner__shell" x="${machineX}" y="${machineY}" width="${machineW}" height="${machineH}" rx="5" />
         ${rolls}
-        <text class="pid-equip__pid" x="${machineCx}" y="${machineY - 12}" text-anchor="middle">RF-200</text>
+        <text class="pid-equip__pid" x="${machineX + 6}" y="${machineY - 8}" text-anchor="start">RF-200</text>
         <text class="pid-equip__name" x="${machineCx}" y="${machineY + machineH + 22}" text-anchor="middle">Refiner1</text>
       </g>
 
@@ -552,7 +556,7 @@ Plant.buildRefiningPid = function buildRefiningPid() {
       ${Plant.pumpSymbol(780, midY)}
       ${Plant.mixValve(820, midY, "Refining/Outlet/ValveOpen", "Outlet", "XV-205")}
       ${Plant.flowArrow(875, midY)}
-      <text class="pid-flow-label" x="932" y="${midY - 10}" text-anchor="end">TO CONCHE</text>
+      <text class="pid-flow-label" x="932" y="${midY - 10}" text-anchor="end">TO CONCHES</text>
       ${Plant.massFlowLine(28, midY, 920, midY)}
 
       <text class="pid-flow-label" x="28" y="352" text-anchor="start">HYDRAULIC</text>
@@ -582,7 +586,8 @@ Plant.buildConchingPid = function buildConchingPid() {
   const balloons = [
     Plant.balloon(tankCx - 90, 52, "TI", "310", "Conching/Conche1/TempC", tankCx - 50, tankY, "Conche1"),
     Plant.balloon(tankCx + 90, 52, "SI", "311", "Conching/Conche1/AgitatorRpm", tankCx + 50, tankY, "Conche1"),
-    Plant.balloon(tankCx + 120, 300, "KI", "312", "Conching/Conche1/TimeMin", tankCx + 60, tankY + tankH - 20, "Conche1"),
+    Plant.balloon(tankCx + 120, 300, "KI", "312", "Conching/Conche1/BatchTimeH", tankCx + 60, tankY + tankH - 20, "Conche1"),
+    Plant.balloon(270, 270, "JI", "313", "Conching/Conche1/PowerKw", 340, 300, "Conche1"),
     Plant.balloon(90, midY - 52, "FI", "301", "Conching/Inlet/FlowKgH", 140, midY, "Inlet"),
     Plant.balloon(850, midY - 52, "FI", "305", "Conching/Outlet/FlowKgH", 800, midY, "Outlet"),
     Plant.balloon(200, 352, "FI", "320", "Conching/Jacket/FlowM3H", 200, tankY + tankH, "Jacket"),
@@ -608,7 +613,7 @@ Plant.buildConchingPid = function buildConchingPid() {
       </g>
 
       <text class="pid-sheet__head" x="24" y="36">PROCESS FLOW — CONCHE</text>
-      <text class="pid-sheet__sub" x="24" y="52">Mass in from Refining → Conche1 → mass out to Tempering</text>
+      <text class="pid-sheet__sub" x="24" y="52">6.5 h batch: fill → dry → pasty → liquefy → empty</text>
 
       <text class="pid-flow-label" x="28" y="${midY - 10}" text-anchor="start">FROM REFINE</text>
       <line class="pid-pipe pid-pipe--main" x1="28" y1="${midY}" x2="${tankX}" y2="${midY}" />
@@ -623,7 +628,8 @@ Plant.buildConchingPid = function buildConchingPid() {
         <circle class="pid-tank__hub" cx="${tankCx}" cy="${tankY + 44}" r="8" />
         <line class="pid-tank__agitator" x1="${tankCx - 40}" y1="${tankY + 100}" x2="${tankCx + 40}" y2="${tankY + 100}" />
         <line class="pid-tank__agitator" x1="${tankCx - 40}" y1="${tankY + 150}" x2="${tankCx + 40}" y2="${tankY + 150}" />
-        <text class="pid-equip__pid" x="${tankCx}" y="${tankY - 12}" text-anchor="middle">CN-300</text>
+        <text class="pid-equip__pid" x="${tankX + 6}" y="${tankY - 8}" text-anchor="start">CN-300</text>
+        <text class="pid-phase" data-pid-phase="Conching/Conche1/Phase" x="${tankCx}" y="${tankY + 30}" text-anchor="middle">—</text>
         <text class="pid-equip__name" x="${tankCx}" y="${tankY + tankH + 20}" text-anchor="middle">Conche1</text>
       </g>
 
@@ -632,7 +638,7 @@ Plant.buildConchingPid = function buildConchingPid() {
       ${Plant.pumpSymbol(780, midY)}
       ${Plant.mixValve(820, midY, "Conching/Outlet/ValveOpen", "Outlet", "XV-305")}
       ${Plant.flowArrow(875, midY)}
-      <text class="pid-flow-label" x="932" y="${midY - 10}" text-anchor="end">TO TEMPER</text>
+      <text class="pid-flow-label" x="932" y="${midY - 10}" text-anchor="end">TO STORAGE</text>
       ${Plant.massFlowLine(28, midY, 920, midY)}
 
       <text class="pid-flow-label" x="28" y="352" text-anchor="start">JACKET WATER</text>
@@ -704,7 +710,7 @@ Plant.buildMouldingPid = function buildMouldingPid() {
       <g class="pid-moulder pid-equip--run" data-equip="Moulder1" data-tag="Moulding/Moulder1/Running" role="button" tabindex="0">
         <rect class="pid-moulder__shell" x="${machineX}" y="${machineY}" width="${machineW}" height="${machineH}" rx="5" />
         ${cavities}
-        <text class="pid-equip__pid" x="${machineCx}" y="${machineY - 12}" text-anchor="middle">MD-500</text>
+        <text class="pid-equip__pid" x="${machineX + 6}" y="${machineY - 8}" text-anchor="start">MD-500</text>
         <text class="pid-equip__name" x="${machineCx}" y="${machineY + machineH + 22}" text-anchor="middle">Moulder1</text>
       </g>
 
@@ -854,16 +860,14 @@ Plant.paintPid = function paintPid() {
       if (idx === here) g.classList.add("is-batch");
       const healthEl = g.querySelector("[data-overview-health]");
       if (healthEl) {
-        const label = health === "run" ? "RUN"
-          : health === "fault" ? "FAULT"
-            : health === "starved" ? "STARVED"
-              : "HOLD";
-        healthEl.textContent = label;
+        const stateTag = d === "packaging" ? "State" : `${d.charAt(0).toUpperCase() + d.slice(1)}/State`;
+        healthEl.textContent = String(Plant.live[stateTag]?.value ?? "—");
       }
     });
     const banner = document.getElementById("plant-pid-alarm");
     if (banner) {
-      const crit = Plant.state.alarms.find((a) => a.severity === "critical") || Plant.state.alarms[0];
+      const ann = Plant.annunciatedAlarms();
+      const crit = ann.find((a) => a.severity === "critical") || ann[0];
       if (!crit) {
         banner.hidden = true;
         banner.textContent = "";
@@ -892,10 +896,10 @@ Plant.paintPid = function paintPid() {
   const concheAgit = Plant.state.concheScenario === "agitator";
   const mouldJam = Plant.state.mouldScenario === "jam";
   const mouldCool = Plant.state.mouldScenario === "cool";
-  const refineStarved = (Plant.live["Refining/Mode"]?.value ?? "") === "STARVED";
-  const concheStarved = (Plant.live["Conching/Mode"]?.value ?? "") === "STARVED";
-  const temperStarved = (Plant.live["Tempering/Mode"]?.value ?? "") === "STARVED";
-  const mouldStarved = (Plant.live["Moulding/Mode"]?.value ?? "") === "STARVED";
+  const refineStarved = Plant.live["Refining/State"]?.value === "PAUSED";
+  const concheStarved = Plant.live["Conching/State"]?.value === "PAUSED";
+  const temperStarved = Plant.live["Tempering/State"]?.value === "PAUSED";
+  const mouldStarved = Plant.live["Moulding/State"]?.value === "SUSPENDED";
 
   svg.classList.remove("is-running", "is-fault", "is-warn");
   if (mixing) svg.classList.add(mixOver ? "is-fault" : mixValve ? "is-warn" : "is-running");
@@ -936,7 +940,8 @@ Plant.paintPid = function paintPid() {
       /* Valve scenario faults CocoaLiquor only — do not warn Mixer1 tank. */
       if (mixOver) tank.classList.add("is-fault");
     }
-    const level = (Plant.live["Mixing/Mixer1/LevelPct"] || {}).value ?? 50;
+    // Fill drawn from the load-cell weight (Mixer1 holds a 500 kg batch)
+    const level = Math.min(100, (((Plant.live["Mixing/Mixer1/WeightKg"] || {}).value ?? 0) / 500) * 100);
     const levelEl = svg.querySelector("[data-pid-level]");
     if (levelEl) {
       const tankTop = Number(levelEl.getAttribute("data-tank-top") || 134);
@@ -1046,14 +1051,14 @@ Plant.paintPid = function paintPid() {
   svg.querySelectorAll(".pid-balloon, .pid-equip, .pid-valve").forEach((el) => {
     el.classList.remove("is-alarm", "is-warn", "is-fault");
   });
-  const sheetAlarms = Plant.state.alarms.filter((a) => Plant.ALARM_PID[a.id]?.drawing === drawing);
+  const sheetAlarms = Plant.annunciatedAlarms().filter((a) => Plant.ALARM_PID[a.id]?.drawing === drawing);
   sheetAlarms.forEach((a) => {
     const meta = Plant.ALARM_PID[a.id];
     if (!meta) return;
     const nodes = svg.querySelectorAll(`[data-equip="${CSS.escape(meta.equip)}"]`);
     nodes.forEach((el) => {
       el.classList.add("is-alarm");
-      if (meta.severity === "critical") el.classList.add("is-fault");
+      if (a.severity === "critical") el.classList.add("is-fault");
       else el.classList.add("is-warn");
     });
   });
@@ -1078,6 +1083,12 @@ Plant.paintPid = function paintPid() {
     if (tagId === Plant.state.selectedTag) g.classList.add("is-selected");
     const valEl = g.querySelector("[data-pid-val]");
     if (valEl) valEl.textContent = Plant.liveReadout(tagId);
+    const spEl = g.querySelector("[data-pid-sp]");
+    if (spEl) spEl.textContent = `SP ${Plant.liveReadout(spEl.getAttribute("data-pid-sp"))}`;
+  });
+
+  svg.querySelectorAll("[data-pid-phase]").forEach((t) => {
+    t.textContent = String(Plant.live[t.getAttribute("data-pid-phase")]?.value ?? "—");
   });
 
   if (Plant.pidHover) Plant.applyPidHover(Plant.pidHover.tagId, Plant.pidHover.equip);
