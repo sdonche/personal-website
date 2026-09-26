@@ -1,0 +1,54 @@
+{
+  "case-studies/factory-data-backbone/index.html": {
+    "hash": "406801aed5527cd1",
+    "modified": "2026-07-23"
+  },
+  "case-studies/plant-hmi/index.html": {
+    "hash": "2ad8afad268d303d",
+    "modified": "2026-09-26"
+  },
+  "notes/ignition-alarms/index.html": {
+    "hash": "dd98b18e96711c95",
+    "modified": "2026-09-22"
+  },
+  "notes/ignition-amqp/index.html": {
+    "hash": "d7d11ea8e93628a6",
+    "modified": "2026-09-22"
+  },
+  "notes/ignition-dark-mode/index.html": {
+    "hash": "2f6325ac0deb19b4",
+    "modified": "2026-09-22"
+  },
+  "notes/ignition-doom/index.html": {
+    "hash": "d4a5898afe2821eb",
+    "modified": "2026-09-22"
+  },
+  "notes/ignition-historian/index.html": {
+    "hash": "944050cd30087465",
+    "modified": "2026-09-22"
+  },
+  "notes/ignition-modules/index.html": {
+    "hash": "2545a5619d0106ce",
+    "modified": "2026-09-22"
+  },
+  "notes/ignition-observability/index.html": {
+    "hash": "3c50cedc3a6c08e8",
+    "modified": "2026-09-22"
+  },
+  "notes/ignition-perspective/index.html": {
+    "hash": "600b280b1ee2f518",
+    "modified": "2026-09-22"
+  },
+  "notes/ignition-secrets/index.html": {
+    "hash": "774f83ac1f53c20e",
+    "modified": "2026-09-22"
+  },
+  "notes/mes-scada-vs-historian/index.html": {
+    "hash": "b754150fb0d75389",
+    "modified": "2026-07-23"
+  },
+  "notes/mqtt-sparkplug-b/index.html": {
+    "hash": "835184d373d85eab",
+    "modified": "2026-07-25"
+  }
+}

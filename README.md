@@ -45,8 +45,9 @@ A few small stdlib-Python helpers in `scripts/` prepare files before you commit.
 | `make og-cards` | regenerate homepage + per-page Open Graph JPEGs (needs Pillow); commit the images under `assets/img/og/` |
 | `make thumbs` | re-capture the "Selected work" screenshots in `assets/img/work/` from the live pages (needs Node + Playwright, see [`tools/capture-work-thumbs.mjs`](tools/capture-work-thumbs.mjs)); run after the plant HMI's look changes, then commit the images |
 | `make smoke` | headless smoke test of the plant HMI: every drawing, a fault → recovery cycle, a setpoint write, the guided tour and the plant deep links in the notes and case study (needs Node + Playwright, see [`tools/smoke-plant.mjs`](tools/smoke-plant.mjs)); CI runs it on every push |
+| `make seo` | refresh structured data (schema.org JSON-LD): article `dateModified` follows each article's own text (hash in [`scripts/article-dates.json`](scripts/article-dates.json); edit an article, run `make`, and it shows "updated <today>"), `wordCount`, author linked to the homepage Person, plus the notes / case-studies / publications collection blocks |
 | `make sitemap` / `make feed` | regenerate [`sitemap.xml`](sitemap.xml) and [`notes/feed.xml`](notes/feed.xml) |
-| `make check` | assert partial markers are present + in sync, and every skill chip has an icon/description mapped to a diagram node |
+| `make check` | assert partial markers are present + in sync, every skill chip has an icon/description mapped to a diagram node, and every sitemap page has a title ≤ 60 characters, a description of 70–160, a matching canonical and valid JSON-LD (`scripts/check-seo.py`) |
 
 `scripts/stamp-assets.py` stamps a **content hash** onto each `?v=` asset URL in the HTML, so returning visitors always fetch the current file — no more hand-bumping version strings.
 

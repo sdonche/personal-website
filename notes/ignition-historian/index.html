@@ -30,9 +30,9 @@
   </script>
 <!-- /partial:head-boot -->
   <meta name="theme-color" content="#020617" />
-  <meta name="description" content="TimescaleDB-backed historian for Ignition 8.3: database-side aggregation, native tag history experience, and benchmarks that stay in milliseconds over hundreds of millions of rows." />
+  <meta name="description" content="A TimescaleDB historian for Ignition 8.3: aggregation runs in the database, tag history works as usual, and queries stay in milliseconds over a year." />
   <meta name="author" content="Sam Donche" />
-  <title>Tag history that stays fast when retention gets long — Sam Donche</title>
+  <title>Ignition tag history that stays fast for years — Sam Donche</title>
 
   <link rel="canonical" href="https://samdonche.com/notes/ignition-historian/" />
   <link rel="alternate" type="application/atom+xml" title="Sam Donche — Notes" href="../feed.xml" />
@@ -53,32 +53,59 @@
   <meta name="twitter:image" content="https://samdonche.com/assets/img/og/ignition-historian.jpg" />
 
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Article",
-        "headline": "Tag history that stays fast when retention gets long",
-        "description": "TimescaleDB-backed historian for Ignition 8.3: database-side aggregation, native tag history experience, and benchmarks that stay in milliseconds over hundreds of millions of rows.",
-        "image": "https://samdonche.com/assets/img/og/ignition-historian.jpg",
-        "datePublished": "2026-09-22",
-        "dateModified": "2026-09-22",
-        "inLanguage": "en",
-        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
-        "publisher": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
-        "mainEntityOfPage": "https://samdonche.com/notes/ignition-historian/",
-        "keywords": "Ignition, TimescaleDB, historian, tag history, PostgreSQL, Mustry"
-      },
-      {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Notes", "item": "https://samdonche.com/notes/" },
-          { "@type": "ListItem", "position": 3, "name": "Tag history that stays fast when retention gets long", "item": "https://samdonche.com/notes/ignition-historian/" }
-        ]
-      }
-    ]
-  }
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Article",
+          "headline": "Tag history that stays fast when retention gets long",
+          "description": "TimescaleDB-backed historian for Ignition 8.3: database-side aggregation, native tag history experience, and benchmarks that stay in milliseconds over hundreds of millions of rows.",
+          "image": "https://samdonche.com/assets/img/og/ignition-historian.jpg",
+          "datePublished": "2026-09-22",
+          "dateModified": "2026-09-22",
+          "inLanguage": "en",
+          "author": {
+            "@type": "Person",
+            "@id": "https://samdonche.com/#person",
+            "name": "Sam Donche",
+            "url": "https://samdonche.com/"
+          },
+          "publisher": {
+            "@type": "Person",
+            "@id": "https://samdonche.com/#person",
+            "name": "Sam Donche",
+            "url": "https://samdonche.com/"
+          },
+          "mainEntityOfPage": "https://samdonche.com/notes/ignition-historian/",
+          "keywords": "Ignition, TimescaleDB, historian, tag history, PostgreSQL, Mustry",
+          "wordCount": 318,
+          "articleSection": "Notes"
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://samdonche.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Notes",
+              "item": "https://samdonche.com/notes/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Tag history that stays fast when retention gets long",
+              "item": "https://samdonche.com/notes/ignition-historian/"
+            }
+          ]
+        }
+      ]
+    }
   </script>
 
   <!-- partial:favicon -->
@@ -141,7 +168,7 @@
         <p class="section-eyebrow">// Notes</p>
         <h1 class="section-title">Tag history that stays fast when retention gets long.</h1>
         <p class="mt-4 font-mono text-xs tracking-wider text-slate-400">
-          2026-09-22 <span class="text-slate-700">·</span> 6 min read <span class="text-slate-700">·</span> Ignition
+          <time datetime="2026-09-22" data-published>2026-09-22</time> <span class="text-slate-700">·</span> 6 min read <span class="text-slate-700">·</span> Ignition
         </p>
       </div>
 

@@ -11,7 +11,7 @@
 #
 # (Tailwind is still its own step — see README "Rebuilding the CSS".)
 
-.PHONY: all build sync stamp check icons favicon portraits og-cards thumbs smoke sitemap feed discover
+.PHONY: all build sync stamp check icons favicon portraits og-cards thumbs smoke seo sitemap feed discover
 
 # Default: expand shared chrome, refresh cache-busters, refresh discoverability
 # artifacts, then verify consistency.
@@ -28,18 +28,25 @@ stamp:
 	python3 scripts/stamp-assets.py
 build: sync stamp
 
+# Structured data (schema.org JSON-LD) and article dates: dateModified follows
+# each article's own text (hash kept in scripts/article-dates.json), plus the
+# notes / case-studies / publications collection blocks.
+seo:
+	python3 scripts/gen-structured-data.py
+
 # Sitemap lastmod + notes Atom feed (committed XML; no runtime build).
 sitemap:
 	python3 scripts/gen-sitemap.py
 feed:
 	python3 scripts/gen-notes-feed.py
-discover: sitemap feed
+discover: seo sitemap feed
 
 # Verify skills + that every page's partial markers are present and in sync.
 check:
 	python3 scripts/sync-partials.py --verify-markers
 	python3 scripts/sync-partials.py --check
 	python3 scripts/check-skills.py
+	python3 scripts/check-seo.py
 
 # Regenerate assets/js/skill-meta.js from scripts/skill-icons.jsonl.
 # Run after editing the tool list, then re-run `make` to re-stamp.

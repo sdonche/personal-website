@@ -30,7 +30,7 @@
   </script>
 <!-- /partial:head-boot -->
   <meta name="theme-color" content="#020617" />
-  <meta name="description" content="Named AMQP broker connections as gateway config, Event Stream source and handler, and system.amqp scripting for Ignition 8.3. Replaces the client-in-getGlobals pattern." />
+  <meta name="description" content="Named RabbitMQ (AMQP) connections as Ignition 8.3 gateway config, with Event Streams and system.amqp scripting. No more client parked in getGlobals()." />
   <meta name="author" content="Sam Donche" />
   <title>Stop scripting RabbitMQ inside Ignition — Sam Donche</title>
 
@@ -53,32 +53,59 @@
   <meta name="twitter:image" content="https://samdonche.com/assets/img/og/ignition-amqp.jpg" />
 
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Article",
-        "headline": "Stop scripting RabbitMQ inside Ignition",
-        "description": "Named AMQP broker connections as gateway config, Event Stream source and handler, and system.amqp scripting for Ignition 8.3. Replaces the client-in-getGlobals pattern.",
-        "image": "https://samdonche.com/assets/img/og/ignition-amqp.jpg",
-        "datePublished": "2026-09-22",
-        "dateModified": "2026-09-22",
-        "inLanguage": "en",
-        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
-        "publisher": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
-        "mainEntityOfPage": "https://samdonche.com/notes/ignition-amqp/",
-        "keywords": "Ignition, AMQP, RabbitMQ, Event Streams, MassTransit, Mustry"
-      },
-      {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Notes", "item": "https://samdonche.com/notes/" },
-          { "@type": "ListItem", "position": 3, "name": "Stop scripting RabbitMQ inside Ignition", "item": "https://samdonche.com/notes/ignition-amqp/" }
-        ]
-      }
-    ]
-  }
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Article",
+          "headline": "Stop scripting RabbitMQ inside Ignition",
+          "description": "Named AMQP broker connections as gateway config, Event Stream source and handler, and system.amqp scripting for Ignition 8.3. Replaces the client-in-getGlobals pattern.",
+          "image": "https://samdonche.com/assets/img/og/ignition-amqp.jpg",
+          "datePublished": "2026-09-22",
+          "dateModified": "2026-09-22",
+          "inLanguage": "en",
+          "author": {
+            "@type": "Person",
+            "@id": "https://samdonche.com/#person",
+            "name": "Sam Donche",
+            "url": "https://samdonche.com/"
+          },
+          "publisher": {
+            "@type": "Person",
+            "@id": "https://samdonche.com/#person",
+            "name": "Sam Donche",
+            "url": "https://samdonche.com/"
+          },
+          "mainEntityOfPage": "https://samdonche.com/notes/ignition-amqp/",
+          "keywords": "Ignition, AMQP, RabbitMQ, Event Streams, MassTransit, Mustry",
+          "wordCount": 355,
+          "articleSection": "Notes"
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://samdonche.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Notes",
+              "item": "https://samdonche.com/notes/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Stop scripting RabbitMQ inside Ignition",
+              "item": "https://samdonche.com/notes/ignition-amqp/"
+            }
+          ]
+        }
+      ]
+    }
   </script>
 
   <!-- partial:favicon -->
@@ -141,7 +168,7 @@
         <p class="section-eyebrow">// Notes</p>
         <h1 class="section-title">Stop scripting RabbitMQ inside Ignition.</h1>
         <p class="mt-4 font-mono text-xs tracking-wider text-slate-400">
-          2026-09-22 <span class="text-slate-700">·</span> 6 min read <span class="text-slate-700">·</span> Ignition
+          <time datetime="2026-09-22" data-published>2026-09-22</time> <span class="text-slate-700">·</span> 6 min read <span class="text-slate-700">·</span> Ignition
         </p>
       </div>
 

@@ -13,6 +13,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "notes", "feed.xml")
 
 SITE = "https://samdonche.com"
+# Modified dates tracked by scripts/gen-structured-data.py (article text hash)
+DATES = os.path.join(ROOT, "scripts", "article-dates.json")
 AUTHOR = "Sam Donche"
 
 # Newest first
@@ -140,6 +142,15 @@ def atom_date(d: str) -> str:
 
 
 def main() -> int:
+    # A note's <updated> follows its text: take the tracked modified date when it's later
+    tracked = {}
+    if os.path.exists(DATES):
+        import json
+        with open(DATES, encoding="utf-8") as f:
+            tracked = json.load(f)
+    for n in NOTES:
+        mod = tracked.get(f"notes/{n['slug']}/index.html", {}).get("modified", "")
+        n["updated"] = max(n["updated"], mod)
     updated = max(n["updated"] for n in NOTES)
     entries = []
     for n in NOTES:
