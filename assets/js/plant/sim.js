@@ -403,13 +403,18 @@ Plant.computeLive = function computeLive() {
   Plant.recordTrends();
 }
 
+/* Historian: one sample per plant minute. A recompute within the same minute
+   (an operator action) overwrites that minute's sample, so the time axis holds. */
 Plant.recordTrends = function recordTrends() {
+  const sameMinute = Plant.trendTick === Plant.tick;
+  Plant.trendTick = Plant.tick;
   for (const def of Plant.ALL_TAGS) {
     if (def.type !== "number") continue;
     const lv = Plant.live[def.id];
     if (!lv || typeof lv.value !== "number" || !Number.isFinite(lv.value)) continue;
     const buf = Plant.trends[def.id] || (Plant.trends[def.id] = []);
-    buf.push(lv.value);
+    if (sameMinute && buf.length) buf[buf.length - 1] = lv.value;
+    else buf.push(lv.value);
     if (buf.length > Plant.TREND_LEN) buf.splice(0, buf.length - Plant.TREND_LEN);
   }
 }

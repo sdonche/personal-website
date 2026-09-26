@@ -63,6 +63,7 @@ Plant.recoverAll = function recoverAll() {
 Plant.resetLine = function resetLine() {
   Plant.state = Plant.defaultState();
   Plant.trends = {};
+  Plant.trendTick = null;
   Plant.pvState = {};
   Plant.noiseState = {};
   Plant.saveState();

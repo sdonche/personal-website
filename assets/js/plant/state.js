@@ -44,10 +44,14 @@ Plant.loadState = function loadState() {
           id: String(h.id || ""),
           path: String(h.path || ""),
           message: String(h.message || ""),
-          severity: h.severity === "critical" ? "critical" : "warning",
+          severity: ["critical", "warning", "low"].includes(h.severity) ? h.severity : "warning",
           acked: !!h.acked,
           ts: Number(h.ts) || Date.now(),
           clearedTs: Number(h.clearedTs) || Date.now(),
+          // Plant ticks: the trend draws alarm markers from these
+          tick: Number.isFinite(h.tick) ? h.tick : undefined,
+          rtnTick: Number.isFinite(h.rtnTick) ? h.rtnTick : undefined,
+          clearedTick: Number.isFinite(h.clearedTick) ? h.clearedTick : undefined,
         }))
       : [];
     const out = {

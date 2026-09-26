@@ -1493,6 +1493,7 @@
   min-width: 0;
   flex: 1 1 16rem;
   display: grid;
+  align-content: start;
   gap: 0.35rem;
 }
 
@@ -1550,11 +1551,107 @@
   color: rgb(100 116 139);
 }
 
-.plant-faceplate__trend {
-  flex: 0 0 8.5rem;
-  display: flex;
-  align-items: center;
+/* Trend: historian-style, last plant hour. PV cyan, SP dashed slate, alarm
+   limits in their priority colour, markers at alarm activation / RTN. */
+.plant-trend {
+  flex: 1 1 22rem;
+  min-width: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.2rem;
 }
+.plant-trend__plot {
+  height: 118px;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+.plant-trend__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.plant-trend__grid {
+  stroke: rgba(51, 65, 85, 0.6);
+  stroke-width: 1;
+}
+.plant-trend__grid--v {
+  stroke-dasharray: 2 3;
+}
+.plant-trend__axis {
+  fill: rgb(100 116 139);
+  font-size: 9px;
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.plant-trend__pv {
+  fill: none;
+  stroke: var(--color-brand-300, #67e8f9);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.plant-trend__sp {
+  fill: none;
+  stroke: rgb(148 163 184);
+  stroke-width: 1.1;
+  stroke-dasharray: 4 3;
+}
+.plant-trend__limit {
+  stroke-width: 1;
+  stroke-dasharray: 6 3;
+}
+.plant-trend__limit--critical { stroke: rgba(248, 113, 113, 0.75); }
+.plant-trend__limit--warning { stroke: rgba(251, 191, 36, 0.75); }
+.plant-trend__limit-label {
+  font-size: 9px;
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+}
+.plant-trend__limit-label--critical { fill: #fca5a5; }
+.plant-trend__limit-label--warning { fill: #fcd34d; }
+line.plant-trend__mark {
+  stroke-width: 1;
+  stroke-dasharray: 1 2;
+}
+path.plant-trend__mark { stroke: none; }
+.plant-trend__mark--on.plant-trend__mark--critical { stroke: #f87171; fill: #f87171; }
+.plant-trend__mark--on.plant-trend__mark--warning,
+.plant-trend__mark--on.plant-trend__mark--low { stroke: #fbbf24; fill: #fbbf24; }
+.plant-trend__mark--off { stroke: rgb(148 163 184); fill: rgb(148 163 184); }
+.plant-trend__cursor {
+  stroke: rgb(226 232 240);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+.plant-trend__dot {
+  fill: var(--color-brand-300, #67e8f9);
+  stroke: rgb(2 6 23);
+  stroke-width: 1;
+}
+.plant-trend__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.8rem;
+  padding-left: 40px;
+  font-size: 0.58rem;
+  color: rgb(100 116 139);
+}
+.plant-trend__key::before {
+  content: "";
+  display: inline-block;
+  width: 0.9rem;
+  margin-right: 0.3rem;
+  vertical-align: middle;
+  border-top: 1.5px solid var(--color-brand-300, #67e8f9);
+}
+.plant-trend__key--sp::before { border-top: 1.5px dashed rgb(148 163 184); }
+.plant-trend__key--limit::before { border-top: 1.5px dashed rgba(248, 113, 113, 0.8); }
+.plant-trend__readout {
+  margin-left: auto;
+  color: rgb(226 232 240);
+  font-variant-numeric: tabular-nums;
+}
+.plant-trend__span { margin-left: auto; }
 
 .plant-sparkline {
   width: 100%;
