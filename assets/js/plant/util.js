@@ -122,35 +122,20 @@ Plant.escapeHtml = function escapeHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
-/** Mixing local fault (overtemp or cocoa valve). */
-Plant.isMixFault = function isMixFault() {
-  return Plant.state.mixScenario === "overtemp" || Plant.state.mixScenario === "valve";
-}
-
-/**
- * Upstream mass-path hold that starves Packaging feed
- * (and mid-line areas further downstream).
- */
+/** Any process unit upstream of Line 3 not running: the mass path is interrupted. */
 Plant.isUpstreamHold = function isUpstreamHold() {
-  return Plant.isMixFault()
-    || Plant.state.temperScenario === "drive"
-    || Plant.state.temperScenario === "warm"
-    || Plant.state.refineScenario === "pressure"
-    || Plant.state.refineScenario === "particle"
-    || Plant.state.concheScenario === "overtemp"
-    || Plant.state.concheScenario === "agitator"
-    || Plant.state.mouldScenario === "jam"
-    || Plant.state.mouldScenario === "cool";
+  return Plant.UNITS.some((u) => u.area !== "Packaging" && !Plant.unitRunning(u.area));
 }
 
-/** Packaging feed starved — local scenario or upstream hold. */
+/** Packaging feed starved — its own infeed condition or a unit upstream not running. */
 Plant.isFeedStarved = function isFeedStarved() {
-  return Plant.state.packScenario === "starved" || Plant.isUpstreamHold();
+  return Plant.unitStarved("Packaging");
 }
 
 
 Plant.equipState = function equipState(id) {
   const jam = Plant.state.packScenario === "jam";
+  const down = !Plant.unitRunning("Packaging");
   const starved = Plant.isFeedStarved();
   if (id === "Cartoner" && jam) return "fault";
   if (id === "Infeed" && starved) return "warn";
@@ -159,6 +144,7 @@ Plant.equipState = function equipState(id) {
     // Downstream of the cartoner starves; nothing else is faulted
     return "idle";
   }
+  if (down) return "idle";
   if (starved) return "warn";
   return "run";
 }
@@ -170,6 +156,7 @@ Plant.getActiveFault = function getActiveFault(drawing) {
   return meta.values.includes(v) ? v : null;
 }
 
+/** Set or clear an area's fault condition; a new fault latches the unit's state. */
 Plant.setDrawingFault = function setDrawingFault(drawing, fault) {
   const meta = Plant.DRAWING_FAULTS[drawing];
   if (!meta) return false;
@@ -178,42 +165,31 @@ Plant.setDrawingFault = function setDrawingFault(drawing, fault) {
     return true;
   }
   if (!meta.values.includes(fault)) return false;
+  const was = Plant.state[meta.field];
   Plant.state[meta.field] = fault;
+  const unit = Plant.UNIT_BY_DRAWING[drawing];
+  if (unit && was !== fault) Plant.latchFault(unit.area, fault);
   return true;
 }
 
-/** Area health for overview sheet: run | fault | hold | starved */
+/** Area health for overview sheet and drawing tone: run | fault | hold | starved */
 Plant.areaHealth = function areaHealth(drawing) {
+  const unit = Plant.UNIT_BY_DRAWING[drawing];
+  if (!unit) return "run";
   const fault = Plant.getActiveFault(drawing);
   const critical = {
-    packaging: { jam: true, starved: false },
-    mixing: { overtemp: true, valve: false },
-    refining: { pressure: true, particle: false },
-    conching: { overtemp: true, agitator: false },
-    tempering: { warm: true, belt: false },
-    moulding: { jam: true, cool: false },
+    packaging: { jam: true },
+    mixing: { overtemp: true },
+    refining: { pressure: true },
+    conching: { overtemp: true },
+    tempering: { warm: true },
+    moulding: { jam: true },
   };
-  if (fault) {
-    if (critical[drawing]?.[fault]) return "fault";
-    if (drawing === "packaging" && fault === "starved") return "starved";
-    return "hold";
-  }
-  const mixFault = Plant.isMixFault();
-  const refinePressure = Plant.state.refineScenario === "pressure";
-  const refineParticle = Plant.state.refineScenario === "particle";
-  const concheOver = Plant.state.concheScenario === "overtemp";
-  const concheAgit = Plant.state.concheScenario === "agitator";
-  const temperDrive = Plant.state.temperScenario === "drive";
-  const temperWarm = Plant.state.temperScenario === "warm";
-  if (drawing === "packaging" && Plant.isUpstreamHold()) return "starved";
-  if (drawing === "refining" && mixFault) return "starved";
-  if (drawing === "conching" && (mixFault || refinePressure || refineParticle)) return "starved";
-  if (drawing === "tempering" && (mixFault || refinePressure || refineParticle || concheOver || concheAgit)) {
-    return "starved";
-  }
-  if (drawing === "moulding" && (
-    mixFault || temperDrive || temperWarm || refinePressure || refineParticle || concheOver || concheAgit
-  )) return "starved";
+  if (fault && critical[drawing]?.[fault]) return "fault";
+  const st = Plant.unitState(unit.area);
+  if (st === "ABORTED" || st === "ABORTING") return "fault";
+  if (!Plant.unitRunning(unit.area)) return "hold";
+  if (Plant.unitStarved(unit.area)) return "starved";
   return "run";
 }
 

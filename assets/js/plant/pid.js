@@ -901,23 +901,11 @@ Plant.paintPid = function paintPid() {
   const temperStarved = Plant.live["Tempering/State"]?.value === "PAUSED";
   const mouldStarved = Plant.live["Moulding/State"]?.value === "SUSPENDED";
 
+  // Sheet tone and flow animation follow the unit: faulted / held / starved / producing
+  const health = Plant.areaHealth(drawing);
   svg.classList.remove("is-running", "is-fault", "is-warn");
-  if (mixing) svg.classList.add(mixOver ? "is-fault" : mixValve ? "is-warn" : "is-running");
-  else if (tempering) svg.classList.add(temperWarm ? "is-fault" : temperDrive || temperStarved ? "is-warn" : "is-running");
-  else if (refining) svg.classList.add(refinePressure ? "is-fault" : refineParticle || refineStarved ? "is-warn" : "is-running");
-  else if (conching) svg.classList.add(concheOver ? "is-fault" : concheAgit || concheStarved ? "is-warn" : "is-running");
-  else if (moulding) svg.classList.add(mouldJam ? "is-fault" : mouldCool || mouldStarved ? "is-warn" : "is-running");
-  else svg.classList.add(jam ? "is-fault" : pkgStarved ? "is-warn" : "is-running");
-
-  const flowShow = (() => {
-    if (Plant.reducedMotion) return false;
-    if (mixing) return !mixOver && !mixValve;
-    if (tempering) return !temperWarm && !temperDrive && !temperStarved;
-    if (refining) return !refinePressure && !refineParticle && !refineStarved;
-    if (conching) return !concheOver && !concheAgit && !concheStarved;
-    if (moulding) return !mouldJam && !mouldCool && !mouldStarved;
-    return !jam && !pkgStarved;
-  })();
+  svg.classList.add(health === "fault" ? "is-fault" : health === "run" ? "is-running" : "is-warn");
+  const flowShow = !Plant.reducedMotion && health === "run";
   svg.querySelectorAll("[data-pid-flow]").forEach((flow) => {
     flow.style.display = flowShow ? "" : "none";
   });
@@ -971,7 +959,7 @@ Plant.paintPid = function paintPid() {
       z.classList.toggle("is-warm", temperWarm);
     });
     const screw = svg.querySelector(".pid-tunnel__screw");
-    if (screw) screw.classList.toggle("is-stopped", temperDrive);
+    if (screw) screw.classList.toggle("is-stopped", temperDrive || health !== "run");
     svg.querySelectorAll(".pid-mix-valve").forEach((g) => {
       const tagId = g.getAttribute("data-tag");
       const open = !!(Plant.live[tagId] || {}).value;

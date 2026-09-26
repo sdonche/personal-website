@@ -826,6 +826,56 @@
   color: rgb(167 243 208);
 }
 
+/* Unit control: ISA-88 / PackML state chip + commands. Neutral buttons: they
+   are operator commands, not scenario tones. */
+.plant-toolbar__group--control {
+  padding-right: 0.55rem;
+  margin-right: 0.15rem;
+  border-right: 1px solid rgb(51 65 85);
+}
+.plant-unit-state {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.08);
+  color: rgb(226 232 240);
+  min-width: 7.2em;
+  text-align: center;
+}
+.plant-unit-state[data-tone="run"] {
+  border-color: rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.1);
+  color: var(--plant-good);
+}
+.plant-unit-state[data-tone="warn"] {
+  border-color: rgba(251, 191, 36, 0.55);
+  background: rgba(251, 191, 36, 0.1);
+  color: #fde68a;
+}
+.plant-unit-state[data-tone="bad"] {
+  border-color: rgba(248, 113, 113, 0.6);
+  background: rgba(248, 113, 113, 0.12);
+  color: #fecaca;
+}
+.plant-btn--cmd {
+  padding-inline: 0.5rem;
+}
+.plant-toolbar [data-action="reset-line"] {
+  margin-left: auto;
+}
+.plant-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+.plant-btn:disabled:hover {
+  border-color: rgb(51 65 85);
+  color: rgb(203 213 225);
+}
+
 .plant-toolbar__sep {
   width: 1px;
   align-self: stretch;

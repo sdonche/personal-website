@@ -65,7 +65,7 @@ Plant.renderKpis = function renderKpis() {
     setKpi("kpi-a", val("Mixing/Mixer1/WeightKg"), mixValve ? "warn" : "good");
     setKpi("kpi-b", val("Mixing/Mixer1/JacketTempC"), mixOver ? "bad" : qTone("Mixing/Mixer1/JacketTempC"));
     setKpi("kpi-c", String(Plant.live["Mixing/Mixer1/Phase"]?.value ?? "—"), mixOver || mixValve ? "warn" : "good");
-    setKpi("kpi-d", String(Plant.live["Mixing/State"]?.value ?? "—"), mixOver ? "bad" : mixValve ? "warn" : "run");
+    setKpi("kpi-d", String(Plant.live["Mixing/State"]?.value ?? "—"), Plant.stateTone(Plant.live["Mixing/State"]?.value));
   } else if (refining) {
     const mode = Plant.live["Refining/State"]?.value ?? "—";
     const refinePressure = Plant.state.refineScenario === "pressure";
@@ -78,7 +78,7 @@ Plant.renderKpis = function renderKpis() {
     setKpi("kpi-a", val("Refining/Refiner1/LoadPct"), refinePressure || starvedRefine ? "warn" : "good");
     setKpi("kpi-b", val("Refining/Refiner1/ParticleUm"), refineParticle ? "bad" : starvedRefine ? "warn" : "good");
     setKpi("kpi-c", val("Refining/Outlet/FlowKgH"), refinePressure || starvedRefine ? "warn" : "good");
-    setKpi("kpi-d", String(mode), refinePressure ? "bad" : refineParticle || starvedRefine ? "warn" : "run");
+    setKpi("kpi-d", String(mode), Plant.stateTone(mode));
   } else if (conching) {
     const mode = Plant.live["Conching/State"]?.value ?? "—";
     const concheOver = Plant.state.concheScenario === "overtemp";
@@ -91,7 +91,7 @@ Plant.renderKpis = function renderKpis() {
     setKpi("kpi-a", val("Conching/Conche1/TempC"), concheOver ? "bad" : starvedConche ? "warn" : "good");
     setKpi("kpi-b", val("Conching/Conche1/AgitatorRpm"), concheAgit ? "bad" : starvedConche ? "warn" : "good");
     setKpi("kpi-c", `${Plant.live["Conching/Conche1/Phase"]?.value ?? "—"} · ${val("Conching/Conche1/BatchTimeH")}`, "good");
-    setKpi("kpi-d", String(mode), concheOver ? "bad" : concheAgit || starvedConche ? "warn" : "run");
+    setKpi("kpi-d", String(mode), Plant.stateTone(mode));
   } else if (tempering) {
     const temperStarve = (Plant.live["Tempering/State"]?.value ?? "") === "PAUSED";
     setLabel("kpi-a-label", "Temper index");
@@ -101,7 +101,7 @@ Plant.renderKpis = function renderKpis() {
     setKpi("kpi-a", val("Tempering/Temper1/TemperIndex"), temperWarm ? "bad" : qTone("Tempering/Temper1/TemperIndex"));
     setKpi("kpi-b", val("Tempering/Temper1/MassTempC"), temperWarm ? "bad" : "good");
     setKpi("kpi-c", val("Tempering/Temper1/ScrewRpm"), temperDrive ? "bad" : temperStarve ? "warn" : "good");
-    setKpi("kpi-d", String(Plant.live["Tempering/State"]?.value ?? "—"), temperWarm ? "bad" : temperDrive || temperStarve ? "warn" : "run");
+    setKpi("kpi-d", String(Plant.live["Tempering/State"]?.value ?? "—"), Plant.stateTone(Plant.live["Tempering/State"]?.value));
   } else if (moulding) {
     const mode = Plant.live["Moulding/State"]?.value ?? "—";
     const mouldJamSc = Plant.state.mouldScenario === "jam";
@@ -114,7 +114,7 @@ Plant.renderKpis = function renderKpis() {
     setKpi("kpi-a", val("Moulding/Moulder1/CyclesPerMin"), mouldJamSc ? "bad" : starvedMould ? "warn" : "good");
     setKpi("kpi-b", val("Moulding/Moulder1/MouldTempC"), starvedMould ? "warn" : "good");
     setKpi("kpi-c", val("Moulding/Cooling/AirTempC"), mouldCoolSc ? "bad" : starvedMould ? "warn" : "good");
-    setKpi("kpi-d", String(mode), mouldJamSc ? "bad" : mouldCoolSc || starvedMould ? "warn" : "run");
+    setKpi("kpi-d", String(mode), Plant.stateTone(mode));
   } else {
     const oee = Plant.live.OEE?.value ?? 0;
     setLabel("kpi-a-label", "OEE");
@@ -123,7 +123,7 @@ Plant.renderKpis = function renderKpis() {
     setLabel("kpi-d-label", "Rejects");
     setKpi("kpi-a", val("OEE"), jam ? "bad" : feedStarved ? "warn" : oee >= 80 ? "good" : "warn");
     setKpi("kpi-b", val("Throughput"), jam ? "bad" : feedStarved ? "warn" : "good");
-    setKpi("kpi-c", String(Plant.live.State?.value ?? "—"), jam ? "bad" : feedStarved ? "warn" : "run");
+    setKpi("kpi-c", String(Plant.live.State?.value ?? "—"), jam ? "bad" : Plant.stateTone(Plant.live.State?.value));
     setKpi("kpi-d", String(Math.round(Plant.live["Checkweigher/Reject/Count"]?.value ?? 0)), "warn");
   }
 
@@ -145,6 +145,8 @@ Plant.renderKpis = function renderKpis() {
     el.hidden = !packaging;
   });
 
+  Plant.renderUnitControl();
+
   const fleetPanel = document.getElementById("plant-fleet-panel");
   if (fleetPanel) fleetPanel.hidden = !overview;
   if (overview) Plant.ensureFleet();
@@ -162,7 +164,7 @@ Plant.renderKpis = function renderKpis() {
       paintRecover(btn, Plant.state.packScenario != null, { blocked: upstreamHold && Plant.state.packScenario === null });
       btn.title = upstreamHold && Plant.state.packScenario === null
         ? "Upstream hold — clear root cause first"
-        : "Return packaging line to healthy AUTO";
+        : "Clear the simulated condition — then restart the unit";
       return;
     }
     btn.classList.toggle("is-active", Plant.state.packScenario === sc);
@@ -264,6 +266,11 @@ Plant.renderKpis = function renderKpis() {
       else if (anyWarn) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Plant hold"; }
       else if (flap) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Sister flap"; }
       else scanLabel.textContent = "Plant healthy";
+    } else if (Plant.areaHealth(drawing) === "fault") {
+      // Latched after the condition cleared: waits for the operator's Reset
+      scanDot.classList.add("is-fault"); scanLabel.textContent = Plant.titleCase(Plant.unitState(Plant.UNIT_BY_DRAWING[drawing].area));
+    } else if (Plant.areaHealth(drawing) === "hold") {
+      scanDot.classList.add("is-warn"); scanLabel.textContent = Plant.titleCase(Plant.unitState(Plant.UNIT_BY_DRAWING[drawing].area));
     } else if (!packaging && Plant.areaHealth(drawing) === "starved") {
       // Held by an upstream area: this area waits for mass
       scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved";
@@ -518,6 +525,34 @@ Plant.renderBatchTrail = function renderBatchTrail() {
   });
 }
 
+/* ---------------- Unit control ---------------- */
+
+Plant.titleCase = function titleCase(s) {
+  const t = String(s || "").toLowerCase();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
+/** Control group: the unit's state and its command buttons (ISA-88 or PackML). */
+Plant.renderUnitControl = function renderUnitControl() {
+  const host = document.getElementById("plant-unit-control");
+  if (!host) return;
+  const unit = Plant.UNIT_BY_DRAWING[Plant.state.activeDrawing];
+  host.hidden = !unit;
+  if (!unit) return;
+  const st = Plant.unitState(unit.area);
+  const cmds = Plant.unitCommands(unit.area);
+  // Rebuild only when something changed, so a button never swaps under the pointer
+  const sig = `${unit.area}|${st}|${cmds.map((c) => `${c.cmd}${c.enabled ? 1 : 0}${c.reason}`).join(",")}`;
+  if (host.dataset.sig === sig) return;
+  host.dataset.sig = sig;
+  const esc = Plant.escapeHtml;
+  host.innerHTML = `
+    <span class="plant-toolbar__label" title="${esc(unit.model)} state model">${esc(unit.equip)}</span>
+    <span class="plant-unit-state" data-tone="${Plant.stateTone(st)}" title="${esc(unit.model)} state">${esc(st)}</span>
+    ${cmds.map((c) => `<button type="button" class="plant-btn plant-btn--cmd" data-unit-cmd="${c.cmd}"${c.enabled ? "" : " disabled"}
+      title="${esc(c.enabled ? `${c.label}: ${c.from.join(" / ")} → ${c.via ? `${c.via} → ` : ""}${c.to}` : c.reason)}">${esc(c.label)}</button>`).join("")}`;
+}
+
 /* ---------------- Wire ---------------- */
 
 Plant.wire = function wire() {
@@ -616,6 +651,12 @@ Plant.wire = function wire() {
   });
 
   document.querySelector(".plant-toolbar")?.addEventListener("click", (e) => {
+    const cmdBtn = e.target.closest("[data-unit-cmd]");
+    if (cmdBtn) {
+      const unit = Plant.UNIT_BY_DRAWING[Plant.state.activeDrawing];
+      if (unit) Plant.unitCommand(unit.area, cmdBtn.getAttribute("data-unit-cmd"));
+      return;
+    }
     const btn = e.target.closest("[data-action], [data-pack-scenario], [data-mix-scenario], [data-temper-scenario], [data-refine-scenario], [data-conche-scenario], [data-mould-scenario]");
     if (!btn) return;
     const sc = btn.getAttribute("data-pack-scenario");
@@ -745,6 +786,7 @@ Plant.wire = function wire() {
 Plant.tickOnce = function tickOnce() {
   Plant.tick += 1;
   Plant.state.tick = Plant.tick;
+  Plant.advanceUnits();
   Plant.computeLive();
   Plant.saveState();
   Plant.renderAll({ alarms: false });

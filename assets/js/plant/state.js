@@ -22,6 +22,7 @@ Plant.defaultState = function defaultState() {
     alarmPane: /** @type {"active"|"shelved"|"history"} */ ("active"),
     shelved: /** @type {Record<string, number>} alarm id → plant tick it unshelves */ ({}),
     tick: 0, // plant minutes since the shift started; persists so plant time carries on
+    units: Plant.defaultUnits(0), // ISA-88 / PackML state per area (units.js)
     openNodes: Plant.DEFAULT_OPEN.slice(),
   };
 }
@@ -49,7 +50,7 @@ Plant.loadState = function loadState() {
           clearedTs: Number(h.clearedTs) || Date.now(),
         }))
       : [];
-    return {
+    const out = {
       ...base,
       ...parsed,
       // Alarms saved before plant time existed have no tick: let them re-raise from live conditions
@@ -85,6 +86,8 @@ Plant.loadState = function loadState() {
         ? parsed.mouldScenario
         : null,
     };
+    out.units = Plant.loadUnits(parsed.units, out);
+    return out;
   } catch (e) {
     return Plant.defaultState();
   }

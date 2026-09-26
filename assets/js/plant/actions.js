@@ -3,13 +3,16 @@ import { Plant } from "./ns.js?v=c600f295ec";
 
 /* ---------------- Actions ---------------- */
 
-Plant.setScenario = function setScenario(name) {
-  if (name === "recover") {
-    Plant.state.packScenario = null;
-  } else if (name === "jam") {
-    Plant.state.packScenario = "jam";
-  } else if (name === "starved") {
-    Plant.state.packScenario = "starved";
+/* Simulate: inject or clear a fault condition on an area. Injecting latches the
+   unit (units.js); clearing only removes the condition, the operator then
+   brings the unit back with Restart / Unhold or Reset + Start. */
+Plant.simulate = function simulate(drawing, name) {
+  const before = Plant.getActiveFault(drawing);
+  if (!Plant.setDrawingFault(drawing, name === "recover" ? null : name)) return;
+  const after = Plant.getActiveFault(drawing);
+  if (after !== before) {
+    const unit = Plant.UNIT_BY_DRAWING[drawing];
+    Plant.logEvent?.({ kind: "sim", area: unit.area, text: after ? `SIM fault injected — ${unit.equip} ${after}` : `SIM fault cleared — ${unit.equip} ${before}` });
   }
   Plant.saveState();
   Plant.computeLive();
@@ -17,50 +20,12 @@ Plant.setScenario = function setScenario(name) {
   if (Plant.state.activeDrawing) Plant.syncHash(Plant.state.activeDrawing);
 }
 
-Plant.setMixScenario = function setMixScenario(name) {
-  if (name === "recover") Plant.state.mixScenario = null;
-  else if (name === "overtemp" || name === "valve") Plant.state.mixScenario = name;
-  Plant.saveState();
-  Plant.computeLive();
-  Plant.renderAll();
-  if (Plant.state.activeDrawing) Plant.syncHash(Plant.state.activeDrawing);
-}
-
-Plant.setTemperScenario = function setTemperScenario(name) {
-  if (name === "recover") Plant.state.temperScenario = null;
-  else if (name === "warm" || name === "drive") Plant.state.temperScenario = name;
-  Plant.saveState();
-  Plant.computeLive();
-  Plant.renderAll();
-  if (Plant.state.activeDrawing) Plant.syncHash(Plant.state.activeDrawing);
-}
-
-Plant.setRefineScenario = function setRefineScenario(name) {
-  if (name === "recover") Plant.state.refineScenario = null;
-  else if (name === "pressure" || name === "particle") Plant.state.refineScenario = name;
-  Plant.saveState();
-  Plant.computeLive();
-  Plant.renderAll();
-  if (Plant.state.activeDrawing) Plant.syncHash(Plant.state.activeDrawing);
-}
-
-Plant.setConcheScenario = function setConcheScenario(name) {
-  if (name === "recover") Plant.state.concheScenario = null;
-  else if (name === "overtemp" || name === "agitator") Plant.state.concheScenario = name;
-  Plant.saveState();
-  Plant.computeLive();
-  Plant.renderAll();
-  if (Plant.state.activeDrawing) Plant.syncHash(Plant.state.activeDrawing);
-}
-
-Plant.setMouldScenario = function setMouldScenario(name) {
-  if (name === "recover") Plant.state.mouldScenario = null;
-  else if (name === "jam" || name === "cool") Plant.state.mouldScenario = name;
-  Plant.saveState();
-  Plant.computeLive();
-  Plant.renderAll();
-  if (Plant.state.activeDrawing) Plant.syncHash(Plant.state.activeDrawing);
-}
+Plant.setScenario = (name) => Plant.simulate("packaging", name);
+Plant.setMixScenario = (name) => Plant.simulate("mixing", name);
+Plant.setTemperScenario = (name) => Plant.simulate("tempering", name);
+Plant.setRefineScenario = (name) => Plant.simulate("refining", name);
+Plant.setConcheScenario = (name) => Plant.simulate("conching", name);
+Plant.setMouldScenario = (name) => Plant.simulate("moulding", name);
 
 Plant.resetReject = function resetReject() {
   Plant.state.rejectCount = 0;
@@ -69,9 +34,11 @@ Plant.resetReject = function resetReject() {
   Plant.renderAll();
 }
 
+/* Operator clears the jam at the machine; Line 3 stays HELD until Unhold. */
 Plant.clearCartonerJam = function clearCartonerJam() {
   if (Plant.state.packScenario === "jam") {
     Plant.state.packScenario = null;
+    Plant.logEvent?.({ kind: "op", area: "Packaging", text: "CT-620 jam cleared at the machine" });
   }
   Plant.saveState();
   Plant.computeLive();
@@ -86,6 +53,7 @@ Plant.recoverAll = function recoverAll() {
   Plant.state.refineScenario = null;
   Plant.state.concheScenario = null;
   Plant.state.mouldScenario = null;
+  Plant.state.units = Plant.defaultUnits(Plant.tick);
   Plant.saveState();
   Plant.computeLive();
   Plant.renderAll();
