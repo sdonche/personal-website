@@ -119,7 +119,7 @@ Plant.computeLive = function computeLive() {
   });
 
   /* Mixing — weigh-dosed batch mixer on load cells. One batch every 30 min:
-     DOSE (10 min: 260 kg cocoa liquor + 180 kg sugar) → MIX (15) → DISCHARGE (5)
+     DOSE (10 min, recipe Dark 70 %: 308 kg cocoa liquor + 132 kg sugar) → MIX (15) → DISCHARGE (5)
      into the refiner feed buffer, i.e. 440 kg / 30 min ≈ 880 kg/h. The sequence
      runs on the unit's own clock, so it freezes while the unit is held; a stuck
      liquor valve holds the batch in DOSE. After a Reset the mixer is empty. */
@@ -130,8 +130,8 @@ Plant.computeLive = function computeLive() {
   const mt = Plant.unit("Mixing").clock % 30;
   const mixPhase = mixEmpty ? "IDLE" : mixValve ? "DOSE" : mt < 10 ? "DOSE" : mt < 25 ? "MIX" : "DISCHARGE";
   const doseFrac = mixEmpty ? 0 : mixPhase === "DOSE" ? (mixValve ? 1 : (mt + 1) / 10) : 1;
-  const liquorKg = mixValve ? 0 : 260 * doseFrac;
-  const sugarKg = 180 * doseFrac;
+  const liquorKg = mixValve ? 0 : Plant.RECIPE.dose.liquor * doseFrac;
+  const sugarKg = Plant.RECIPE.dose.sugar * doseFrac;
   const batchKg = liquorKg + sugarKg;
   const mixWeight = mixPhase === "DISCHARGE" ? batchKg * (1 - (mt - 24) / 5) : batchKg + Plant.drift(0, 1.5, 7);
   const dosing = mixPhase === "DOSE" && !mixValve && !mixDown;
@@ -144,8 +144,9 @@ Plant.computeLive = function computeLive() {
   const massT = mixOver ? Plant.clamp(Plant.drift(58, 1.2, 9), 54, 64) : Plant.clamp(Plant.drift(jacketSp - 2.3, 0.5, 9), jacketSp - 8.5, jacketSp + 3.5);
   const rpm = mixEmpty ? 0 : mixDown ? Plant.clamp(Plant.drift(8, 2, 10), 0, 15)
     : mixPhase === "MIX" ? Plant.clamp(Plant.drift(42, 2, 10), 30, 55) : Plant.clamp(Plant.drift(24, 2, 10), 15, 35);
-  const cocoaFlow = cocoaOpen ? Math.max(0, Plant.drift(1560, 40, 11)) : 0;
-  const sugarFlow = sugarOpen ? Math.max(0, Plant.drift(1080, 30, 12)) : 0;
+  // Dosing rates: the recipe quantity over the 10-minute DOSE step
+  const cocoaFlow = cocoaOpen ? Math.max(0, Plant.drift(Plant.RECIPE.dose.liquor * 6, 45, 11)) : 0;
+  const sugarFlow = sugarOpen ? Math.max(0, Plant.drift(Plant.RECIPE.dose.sugar * 6, 25, 12)) : 0;
   const mixOutFlow = outletOpen ? Math.max(0, Plant.drift(5280, 120, 13)) : 0;
   const mixState = mixSt;
   const mixQ = mixOver ? "Bad" : mixValve ? "Uncertain" : "Good";

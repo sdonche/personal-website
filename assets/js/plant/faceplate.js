@@ -58,7 +58,9 @@ Plant.buildFaceplate = function buildFaceplate(el, def) {
         </div>
         ${Plant.SETPOINT_FOR[def.id] ? `<p class="plant-faceplate__sp" data-fp-sp></p>` : ""}
         ${writeBlock}
+        ${Plant.isBatchTag(def.id) ? Plant.recipeHtml() : ""}
       </div>
+      ${Plant.isBatchTag(def.id) ? `<section class="plant-gen" data-fp-gen aria-label="Batch genealogy"></section>` : ""}
       ${numeric ? `<figure class="plant-trend" data-fp-trend aria-label="Trend, last hour of plant time">
         <div class="plant-trend__plot" data-fp-plot></div>
         <figcaption class="plant-trend__legend" data-fp-legend></figcaption>
@@ -108,7 +110,11 @@ Plant.patchFaceplate = function patchFaceplate(el, def, lv) {
     const spTag = Plant.SETPOINT_FOR[def.id];
     const d = Number(lv.value) - Number(Plant.live[spTag]?.value);
     const dev = Number.isFinite(d) ? `${d >= 0 ? "+" : ""}${d.toFixed(1)}${def.unit ? ` ${def.unit}` : ""}` : "—";
-    sp.innerHTML = `Setpoint <strong>${esc(Plant.liveReadout(spTag))}</strong> · deviation ${esc(dev)}`;
+    // MES view: say when the SP in force is an operator value rather than the recipe's
+    const w = Plant.SP_WRITE[spTag];
+    const override = w && Plant.state.sp[spTag] != null;
+    const recipe = override && w.def != null ? ` (recipe ${Plant.formatValue(Plant.TAG_BY_ID[spTag], w.def)})` : override ? " (recipe override)" : "";
+    sp.innerHTML = `Setpoint <strong>${esc(Plant.liveReadout(spTag))}</strong>${esc(recipe)} · deviation ${esc(dev)}`;
   }
   // Follow the SP in force unless the operator is editing or confirming a write
   const form = el.querySelector("[data-faceplate-write]");
@@ -118,6 +124,93 @@ Plant.patchFaceplate = function patchFaceplate(el, def, lv) {
     if (Number.isFinite(v) && Number(input.value) !== v) input.value = String(v);
   }
   if (def.type === "number") Plant.paintTrend(el, def);
+  const gen = el.querySelector("[data-fp-gen]");
+  if (gen) {
+    const html = Plant.genealogyHtml(String(lv.value));
+    if (gen.dataset.html !== html) {
+      gen.dataset.html = html;
+      gen.innerHTML = html;
+    }
+  }
+}
+
+/* ---------------- Recipe + batch genealogy (MES) ---------------- */
+
+Plant.isBatchTag = function isBatchTag(tagId) {
+  return /(^|\/)BatchId$/.test(tagId) && !Plant.isSisterSiteTag(tagId) && !Plant.isStubTag(tagId);
+}
+
+Plant.recipeHtml = function recipeHtml() {
+  const r = Plant.RECIPE;
+  const esc = Plant.escapeHtml;
+  return `<div class="plant-recipe">
+      <p class="plant-recipe__head">Recipe <strong>${esc(r.name)}</strong> · ${esc(r.id)} v${r.version}</p>
+      <dl class="plant-recipe__targets">${r.targets.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+    </div>`;
+}
+
+/** Mean of a trended tag over [start, end) plant ticks, from the historian buffer. */
+Plant.trendAvg = function trendAvg(tagId, start, end) {
+  const buf = Plant.trends[tagId];
+  if (!buf || Plant.trendTick == null) return null;
+  let sum = 0;
+  let n = 0;
+  for (let t = start; t < end; t++) {
+    const i = buf.length - 1 - (Plant.trendTick - t);
+    if (i >= 0 && i < buf.length) { sum += buf[i]; n += 1; }
+  }
+  return n ? sum / n : null;
+}
+
+/** Where batch B-n was, is and will be: each area holds a batch for 15 plant minutes. */
+Plant.batchRoute = function batchRoute(n) {
+  const base = (n - 1400) * 15;
+  return Plant.BATCH_STEPS.map((drawing, i) => {
+    const start = base + i * 15;
+    const end = start + 15;
+    const status = Plant.tick >= end ? "done" : Plant.tick >= start ? "here" : "planned";
+    return { drawing, unit: Plant.UNIT_BY_DRAWING[drawing], start, end, status };
+  });
+}
+
+Plant.genealogyHtml = function genealogyHtml(batchId) {
+  const esc = Plant.escapeHtml;
+  const n = Number(String(batchId).replace(/^B-/, ""));
+  if (!Number.isFinite(n)) return "";
+  const r = Plant.RECIPE;
+  // Raw-material lots: a liquor tanker lasts 8 batches, a sugar silo lot 12
+  const liquorLot = `CL-24-${100 + Math.floor(n / 8)}`;
+  const sugarLot = `SG-${String(900 + Math.floor(n / 12)).padStart(4, "0")}`;
+  const route = Plant.batchRoute(n);
+  const steps = route.map((st) => {
+    const qa = r.qa[st.drawing];
+    let check = "";
+    if (qa && st.status !== "planned") {
+      const avg = Plant.trendAvg(qa.tag, st.start, Math.min(st.end, Plant.tick + 1));
+      if (avg != null) {
+        const ok = qa.ok(avg);
+        check = `<span class="plant-gen__qa" data-ok="${ok}">${esc(qa.label)} ${esc(Plant.formatValue(Plant.TAG_BY_ID[qa.tag], avg))} ${ok ? "✓" : "✗"}</span>`;
+      }
+    }
+    return `<li data-status="${st.status}">
+        <span class="plant-gen__equip">${esc(st.unit.equip)}</span>
+        <span class="plant-gen__time">${Plant.plantTime(st.start)}–${Plant.plantTime(st.end)}</span>
+        ${st.status === "here" ? `<span class="plant-gen__here">here now</span>` : st.status === "planned" ? `<span class="plant-gen__here">planned</span>` : ""}
+        ${check}
+      </li>`;
+  }).join("");
+  // Line 3 closes a pallet every 20 plant minutes (60 cases at 3 cases/min)
+  const pack = route[route.length - 1];
+  const pallets = [];
+  for (let t = Math.ceil(pack.start / 20) * 20; t < pack.end && t <= Plant.tick; t += 20) pallets.push(`P-${String(400 + t / 20).padStart(5, "0")}`);
+  const packedMin = Math.max(0, Math.min(Plant.tick, pack.end) - pack.start);
+  const out = pack.status === "planned"
+    ? "not packed yet"
+    : `${packedMin * 3} cases${pallets.length ? ` · pallet${pallets.length > 1 ? "s" : ""} ${pallets.join(", ")}` : ""}${pack.status === "here" ? " · in progress" : ""}`;
+  return `<p class="plant-gen__head">Genealogy <strong>${esc(batchId)}</strong> · ${esc(r.name)} v${r.version}</p>
+    <p class="plant-gen__row"><span class="plant-gen__k">In</span>Cocoa liquor ${esc(liquorLot)} · ${r.dose.liquor} kg — Sugar ${esc(sugarLot)} · ${r.dose.sugar} kg</p>
+    <ol class="plant-gen__route">${steps}</ol>
+    <p class="plant-gen__row"><span class="plant-gen__k">Out</span>${esc(out)}</p>`;
 }
 
 /** The setpoint an operator can write from this tag's faceplate (the SP itself or its PV). */

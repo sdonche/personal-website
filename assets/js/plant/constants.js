@@ -279,6 +279,28 @@ Plant.SETPOINT_FOR = {
   "Moulding/Cooling/AirTempC": "Moulding/Cooling/AirTempSP",
 };
 
+/** Master recipe the plant runs (MES context). Mixer doses and the setpoint
+    defaults below come from it; QA limits drive the genealogy checks. */
+Plant.RECIPE = {
+  id: "DK70",
+  name: "Dark 70 %",
+  version: 3,
+  dose: { liquor: 308, sugar: 132 }, // kg per 440 kg mixer batch → 70 % cocoa solids
+  targets: [
+    ["Cocoa solids", "70 % · 308 kg liquor + 132 kg sugar per batch"],
+    ["Fineness", "22 µm (QA ≤ 25 µm)"],
+    ["Conche", "6.5 h · DRY 70 · PASTY 74 · LIQUEFY 65 °C"],
+    ["Temper", "45 / 28 / 31.5 °C · index 4–6"],
+    ["Pack", "100 g bar · 4 per carton · 12 cartons per case"],
+  ],
+  qa: {
+    refining: { tag: "Refining/Refiner1/ParticleUm", label: "fineness", ok: (v) => v <= 25 },
+    conching: { tag: "Conching/Conche1/TempC", label: "mass temp", ok: (v) => v <= 79 },
+    tempering: { tag: "Tempering/Temper1/TemperIndex", label: "temper index", ok: (v) => v >= 4 && v <= 6 },
+    moulding: { tag: "Moulding/Cooling/AirTempC", label: "cooling air", ok: (v) => v <= 15 },
+  },
+};
+
 /** Operator-writable setpoints: controller loop, default, write range. The
     conche SP follows the recipe phase; a write overrides it until the next phase. */
 Plant.SP_WRITE = {

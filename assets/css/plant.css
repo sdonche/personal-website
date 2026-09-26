@@ -1573,6 +1573,97 @@
 }
 .plant-faceplate__input:disabled { opacity: 0.6; }
 
+/* Recipe + batch genealogy (faceplate of a BatchId tag) */
+.plant-batch-trail__recipe {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  color: rgb(148 163 184);
+  padding: 0.1rem 0.4rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 2px;
+}
+.plant-recipe { display: grid; gap: 0.25rem; }
+.plant-recipe__head,
+.plant-gen__head {
+  margin: 0;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(100 116 139);
+}
+.plant-recipe__head strong,
+.plant-gen__head strong {
+  color: rgb(226 232 240);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.plant-recipe__targets {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.12rem 0.6rem;
+  margin: 0;
+  font-size: 0.62rem;
+}
+.plant-recipe__targets dt { color: rgb(100 116 139); }
+.plant-recipe__targets dd { margin: 0; color: rgb(203 213 225); }
+.plant-gen {
+  flex: 1 1 22rem;
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 0.3rem;
+  font-size: 0.62rem;
+}
+.plant-gen__row {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
+  color: rgb(203 213 225);
+}
+.plant-gen__k {
+  color: rgb(100 116 139);
+  text-transform: uppercase;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+}
+.plant-gen__route {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 2.2rem;
+  display: grid;
+  gap: 0.1rem;
+}
+.plant-gen__route li {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.6rem;
+  padding-left: 0.8rem;
+  color: rgb(203 213 225);
+}
+/* Route rail: filled for done steps, cyan at the current one, hollow when planned */
+.plant-gen__route li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.35em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: rgb(148 163 184);
+}
+.plant-gen__route li[data-status="here"]::before { background: var(--color-brand-400, #22d3ee); box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.25); }
+.plant-gen__route li[data-status="planned"] { color: rgb(100 116 139); }
+.plant-gen__route li[data-status="planned"]::before { background: transparent; border: 1px solid rgb(71 85 105); }
+.plant-gen__equip { min-width: 3.4rem; font-weight: 600; }
+.plant-gen__time { color: rgb(100 116 139); font-variant-numeric: tabular-nums; }
+.plant-gen__here { color: var(--color-brand-300, #67e8f9); font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.08em; }
+li[data-status="planned"] .plant-gen__here { color: rgb(100 116 139); }
+.plant-gen__qa { color: rgb(148 163 184); }
+.plant-gen__qa[data-ok="false"] { color: #fca5a5; }
+
 /* Event journal (alarm pane, Events view) */
 .plant-event {
   display: grid;
