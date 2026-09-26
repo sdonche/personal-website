@@ -30,9 +30,9 @@
   </script>
 <!-- /partial:head-boot -->
   <meta name="theme-color" content="#020617" />
-  <meta name="description" content="Ignition gateways still hold database passwords, OPC accounts and script secrets. Why that breaks rotation and audits, and how a native secret-provider module resolves them from Vault, Azure, AWS or Google instead." />
+  <meta name="description" content="Ignition gateways still store passwords and script secrets. A native secret-provider module resolves them from Vault, Azure, AWS or Google instead." />
   <meta name="author" content="Sam Donche" />
-  <title>Ignition credentials belong in your secrets manager — Sam Donche</title>
+  <title>Ignition credentials belong in your secrets manager</title>
 
   <link rel="canonical" href="https://samdonche.com/notes/ignition-secrets/" />
   <link rel="alternate" type="application/atom+xml" title="Sam Donche — Notes" href="../feed.xml" />
@@ -55,32 +55,59 @@
 
   <!-- Structured data: Article + breadcrumb -->
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Article",
-        "headline": "Ignition credentials belong in your secrets manager",
-        "description": "Ignition gateways still hold database passwords, OPC accounts and script secrets. Why that breaks rotation and audits, and how a native secret-provider module resolves them from Vault, Azure, AWS or Google instead.",
-        "image": "https://samdonche.com/assets/img/og/ignition-secrets.jpg",
-        "datePublished": "2026-09-22",
-        "dateModified": "2026-09-22",
-        "inLanguage": "en",
-        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
-        "publisher": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
-        "mainEntityOfPage": "https://samdonche.com/notes/ignition-secrets/",
-        "keywords": "Ignition, secrets, HashiCorp Vault, Azure Key Vault, AWS Secrets Manager, Google Secret Manager, credential rotation, NIS2, IEC 62443, Mustry"
-      },
-      {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Notes", "item": "https://samdonche.com/notes/" },
-          { "@type": "ListItem", "position": 3, "name": "Ignition secrets", "item": "https://samdonche.com/notes/ignition-secrets/" }
-        ]
-      }
-    ]
-  }
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Article",
+          "headline": "Ignition credentials belong in your secrets manager",
+          "description": "Ignition gateways still hold database passwords, OPC accounts and script secrets. Why that breaks rotation and audits, and how a native secret-provider module resolves them from Vault, Azure, AWS or Google instead.",
+          "image": "https://samdonche.com/assets/img/og/ignition-secrets.jpg",
+          "datePublished": "2026-09-22",
+          "dateModified": "2026-09-22",
+          "inLanguage": "en",
+          "author": {
+            "@type": "Person",
+            "@id": "https://samdonche.com/#person",
+            "name": "Sam Donche",
+            "url": "https://samdonche.com/"
+          },
+          "publisher": {
+            "@type": "Person",
+            "@id": "https://samdonche.com/#person",
+            "name": "Sam Donche",
+            "url": "https://samdonche.com/"
+          },
+          "mainEntityOfPage": "https://samdonche.com/notes/ignition-secrets/",
+          "keywords": "Ignition, secrets, HashiCorp Vault, Azure Key Vault, AWS Secrets Manager, Google Secret Manager, credential rotation, NIS2, IEC 62443, Mustry",
+          "wordCount": 945,
+          "articleSection": "Notes"
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://samdonche.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Notes",
+              "item": "https://samdonche.com/notes/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Ignition secrets",
+              "item": "https://samdonche.com/notes/ignition-secrets/"
+            }
+          ]
+        }
+      ]
+    }
   </script>
 
   <!-- partial:favicon -->
@@ -143,7 +170,7 @@
         <p class="section-eyebrow">// Notes</p>
         <h1 class="section-title">Ignition credentials belong in your secrets manager.</h1>
         <p class="mt-4 font-mono text-xs tracking-wider text-slate-400">
-          2026-09-22 <span class="text-slate-700">·</span> 8 min read <span class="text-slate-700">·</span> Ignition
+          <time datetime="2026-09-22" data-published>2026-09-22</time> <span class="text-slate-700">·</span> 8 min read <span class="text-slate-700">·</span> Ignition
         </p>
       </div>
 

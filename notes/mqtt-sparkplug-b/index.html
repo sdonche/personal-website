@@ -30,9 +30,9 @@
   </script>
 <!-- /partial:head-boot -->
   <meta name="theme-color" content="#020617" />
-  <meta name="description" content="Polling sets a ceiling on every factory data project. MQTT flips the direction and Sparkplug B adds the missing contract: structured topics, birth and death certificates, typed payloads. What it does, and where it stops." />
+  <meta name="description" content="Polling caps every factory data project. MQTT flips the direction; Sparkplug B adds the contract: structured topics, birth and death certificates." />
   <meta name="author" content="Sam Donche" />
-  <title>MQTT and Sparkplug B: why factories stopped polling — Sam Donche</title>
+  <title>MQTT and Sparkplug B: why factories stopped polling</title>
 
   <link rel="canonical" href="https://samdonche.com/notes/mqtt-sparkplug-b/" />
   <link rel="alternate" type="application/atom+xml" title="Sam Donche — Notes" href="../feed.xml" />
@@ -55,32 +55,59 @@
 
   <!-- Structured data: Article + breadcrumb -->
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Article",
-        "headline": "MQTT and Sparkplug B: why factories stopped polling",
-        "description": "Polling sets a ceiling on every factory data project. MQTT flips the direction and Sparkplug B adds the missing contract: structured topics, birth and death certificates, typed payloads. What it does, and where it stops.",
-        "image": "https://samdonche.com/assets/img/og/mqtt-sparkplug-b.jpg",
-        "datePublished": "2026-07-25",
-        "dateModified": "2026-07-25",
-        "inLanguage": "en",
-        "author": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
-        "publisher": { "@type": "Person", "name": "Sam Donche", "url": "https://samdonche.com/" },
-        "mainEntityOfPage": "https://samdonche.com/notes/mqtt-sparkplug-b/",
-        "keywords": "MQTT, Sparkplug B, Eclipse Sparkplug, report by exception, polling, unified namespace, UNS, Ignition, IIoT, industrial architecture, OPC UA, factory data"
-      },
-      {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samdonche.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Notes", "item": "https://samdonche.com/notes/" },
-          { "@type": "ListItem", "position": 3, "name": "MQTT and Sparkplug B", "item": "https://samdonche.com/notes/mqtt-sparkplug-b/" }
-        ]
-      }
-    ]
-  }
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Article",
+          "headline": "MQTT and Sparkplug B: why factories stopped polling",
+          "description": "Polling sets a ceiling on every factory data project. MQTT flips the direction and Sparkplug B adds the missing contract: structured topics, birth and death certificates, typed payloads. What it does, and where it stops.",
+          "image": "https://samdonche.com/assets/img/og/mqtt-sparkplug-b.jpg",
+          "datePublished": "2026-07-25",
+          "dateModified": "2026-07-25",
+          "inLanguage": "en",
+          "author": {
+            "@type": "Person",
+            "@id": "https://samdonche.com/#person",
+            "name": "Sam Donche",
+            "url": "https://samdonche.com/"
+          },
+          "publisher": {
+            "@type": "Person",
+            "@id": "https://samdonche.com/#person",
+            "name": "Sam Donche",
+            "url": "https://samdonche.com/"
+          },
+          "mainEntityOfPage": "https://samdonche.com/notes/mqtt-sparkplug-b/",
+          "keywords": "MQTT, Sparkplug B, Eclipse Sparkplug, report by exception, polling, unified namespace, UNS, Ignition, IIoT, industrial architecture, OPC UA, factory data",
+          "wordCount": 1579,
+          "articleSection": "Notes"
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://samdonche.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Notes",
+              "item": "https://samdonche.com/notes/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "MQTT and Sparkplug B",
+              "item": "https://samdonche.com/notes/mqtt-sparkplug-b/"
+            }
+          ]
+        }
+      ]
+    }
   </script>
 
   <!-- partial:favicon -->
@@ -143,7 +170,7 @@
         <p class="section-eyebrow">// Notes</p>
         <h1 class="section-title">MQTT and Sparkplug B: why factories stopped polling.</h1>
         <p class="mt-4 font-mono text-xs tracking-wider text-slate-400">
-          2026-07-25 <span class="text-slate-700">·</span> 6 min read <span class="text-slate-700">·</span> Industrial architecture
+          <time datetime="2026-07-25" data-published>2026-07-25</time> <span class="text-slate-700">·</span> 6 min read <span class="text-slate-700">·</span> Industrial architecture
         </p>
       </div>
 
