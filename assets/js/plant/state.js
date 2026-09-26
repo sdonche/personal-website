@@ -13,7 +13,7 @@ Plant.defaultState = function defaultState() {
     underCount: 3,
     overCount: 1,
     palletsDone: 47,
-    speedSp: 120,
+    speedSp: 38,
     selectedTag: "OEE",
     activeDrawing: /** @type {"overview"|"packaging"|"mixing"|"refining"|"conching"|"tempering"|"moulding"} */ ("packaging"),
     alarms: /** @type {Alarm[]} */ ([]),
@@ -53,7 +53,7 @@ Plant.loadState = function loadState() {
       alarmHistory,
       alarmFilter,
       alarmPane,
-      speedSp: Number.isFinite(speedSp) && speedSp > 0 ? speedSp : 120,
+      speedSp: Number.isFinite(speedSp) && speedSp >= 20 && speedSp <= 60 ? speedSp : 38,
       openNodes: Array.isArray(parsed.openNodes) ? parsed.openNodes : base.openNodes,
       selectedTag: Plant.TAG_BY_ID[parsed.selectedTag] ? parsed.selectedTag : base.selectedTag,
       activeDrawing: Plant.ALL_DRAWING_IDS.includes(parsed.activeDrawing)

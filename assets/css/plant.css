@@ -1353,6 +1353,16 @@
 .pid-q--uncertain .pid-balloon__val { fill: #fcd34d; }
 .pid-q--bad .pid-balloon__val { fill: #fca5a5; }
 .pid-q--stale .pid-balloon__val { fill: #94a3b8; }
+.pid-balloon__sp { fill: #94a3b8; font-size: 7px; letter-spacing: 0.04em; pointer-events: none; }
+.pid-phase {
+  fill: rgb(203 213 225);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  paint-order: stroke;
+  stroke: #020617;
+  stroke-width: 3px;
+  pointer-events: none;
+}
 
 .pid-equip.is-hover .pid-equip__body,
 .pid-valve.is-hover .pid-valve__body,
@@ -2210,3 +2220,11 @@
   stroke-width: 3px;
   stroke-linejoin: round;
 }
+
+.plant-faceplate__sp {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.68rem;
+  color: rgb(148 163 184);
+}
+.plant-faceplate__sp strong { color: rgb(226 232 240); font-weight: 500; }

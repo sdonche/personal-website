@@ -1,15 +1,15 @@
 /* plant.js — Heuvelland plant HMI entry (ES modules). */
-import "./plant/constants.js?v=54ad5f772f";
+import "./plant/constants.js?v=b2b6ec2b96";
 import "./plant/util.js?v=f70fb8ddd5";
-import "./plant/state.js?v=5df036f1a2";
-import "./plant/sim.js?v=be810314fc";
+import "./plant/state.js?v=4ec90e6ad5";
+import "./plant/sim.js?v=23b58328a5";
 import "./plant/tree.js?v=39ebd03c55";
-import "./plant/pid.js?v=c091a10728";
-import "./plant/faceplate.js?v=1560e4dcde";
+import "./plant/pid.js?v=8bc592ad2b";
+import "./plant/faceplate.js?v=7601dbd7d9";
 import "./plant/alarms.js?v=e0091dd5f6";
 import "./plant/routing.js?v=cd4b65525c";
 import "./plant/actions.js?v=8580192a04";
-import "./plant/ui.js?v=6995c4c3ed";
+import "./plant/ui.js?v=94de0ee2f5";
 import { boot } from "./plant/main.js?v=2e27b8af88";
 
 boot();

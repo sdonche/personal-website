@@ -58,14 +58,13 @@ Plant.renderKpis = function renderKpis() {
     setKpi("kpi-c", String(almN), almN ? "bad" : "good");
     setKpi("kpi-d", fleet, flap ? "warn" : "good");
   } else if (mixing) {
-    const level = Plant.live["Mixing/Mixer1/LevelPct"]?.value ?? 0;
-    setLabel("kpi-a-label", "Level");
+    setLabel("kpi-a-label", "Weight");
     setLabel("kpi-b-label", "Jacket");
-    setLabel("kpi-c-label", "Agitator");
+    setLabel("kpi-c-label", "Phase");
     setLabel("kpi-d-label", "Mode");
-    setKpi("kpi-a", val("Mixing/Mixer1/LevelPct"), mixValve || level > 88 ? "warn" : "good");
+    setKpi("kpi-a", val("Mixing/Mixer1/WeightKg"), mixValve ? "warn" : "good");
     setKpi("kpi-b", val("Mixing/Mixer1/JacketTempC"), mixOver ? "bad" : qTone("Mixing/Mixer1/JacketTempC"));
-    setKpi("kpi-c", val("Mixing/Mixer1/AgitatorRpm"), mixOver || mixValve ? "warn" : "good");
+    setKpi("kpi-c", String(Plant.live["Mixing/Mixer1/Phase"]?.value ?? "—"), mixOver || mixValve ? "warn" : "good");
     setKpi("kpi-d", String(Plant.live["Mixing/Mode"]?.value ?? "—"), mixOver ? "bad" : mixValve ? "warn" : "good");
   } else if (refining) {
     const mode = Plant.live["Refining/Mode"]?.value ?? "—";
@@ -87,20 +86,20 @@ Plant.renderKpis = function renderKpis() {
     const starvedConche = mode === "STARVED";
     setLabel("kpi-a-label", "Temp");
     setLabel("kpi-b-label", "Agitator");
-    setLabel("kpi-c-label", "Time");
+    setLabel("kpi-c-label", "Phase");
     setLabel("kpi-d-label", "Mode");
     setKpi("kpi-a", val("Conching/Conche1/TempC"), concheOver ? "bad" : starvedConche ? "warn" : "good");
     setKpi("kpi-b", val("Conching/Conche1/AgitatorRpm"), concheAgit ? "bad" : starvedConche ? "warn" : "good");
-    setKpi("kpi-c", val("Conching/Conche1/TimeMin"), "good");
+    setKpi("kpi-c", `${Plant.live["Conching/Conche1/Phase"]?.value ?? "—"} · ${val("Conching/Conche1/BatchTimeH")}`, "good");
     setKpi("kpi-d", String(mode), concheOver ? "bad" : concheAgit || starvedConche ? "warn" : "good");
   } else if (tempering) {
     const temperStarve = (Plant.live["Tempering/Mode"]?.value ?? "") === "STARVED";
-    setLabel("kpi-a-label", "Zone1");
-    setLabel("kpi-b-label", "Zone3");
+    setLabel("kpi-a-label", "Temper index");
+    setLabel("kpi-b-label", "Mass out");
     setLabel("kpi-c-label", "Screw");
     setLabel("kpi-d-label", "Mode");
-    setKpi("kpi-a", val("Tempering/Temper1/Zone1TempC"), temperWarm ? "bad" : "good");
-    setKpi("kpi-b", val("Tempering/Temper1/Zone3TempC"), temperWarm ? "bad" : "good");
+    setKpi("kpi-a", val("Tempering/Temper1/TemperIndex"), temperWarm ? "bad" : qTone("Tempering/Temper1/TemperIndex"));
+    setKpi("kpi-b", val("Tempering/Temper1/MassTempC"), temperWarm ? "bad" : "good");
     setKpi("kpi-c", val("Tempering/Temper1/ScrewRpm"), temperDrive ? "bad" : temperStarve ? "warn" : "good");
     setKpi("kpi-d", String(Plant.live["Tempering/Mode"]?.value ?? "—"), temperWarm ? "bad" : temperDrive || temperStarve ? "warn" : "good");
   } else if (moulding) {
