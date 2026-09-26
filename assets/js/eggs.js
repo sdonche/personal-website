@@ -17,7 +17,7 @@ window.EGGS = (function () {
     { id: "konami",    name: "Night shift",      how: "↑ ↑ ↓ ↓ ← → ← → B A on a keyboard — or type `night shift` in the palette.",           hint: "an old code from an older console" },
     { id: "boot",      name: "Cold start",       how: "Visit ?boot, run samdonche.boot(), or ⌘K → boot.",                   hint: "every gateway begins somewhere" },
     { id: "estop",     name: "Emergency stop",   how: "Find and press the big red button (bottom-right corner).",           hint: "when in doubt, hit the big red one" },
-    { id: "mqtt",      name: "Publisher",        how: "Tap the MQTT broker at the heart of the architecture diagram (swipe the diagram on a phone).",    hint: "the broker is listening — give it a nudge" },
+    { id: "mqtt",      name: "Publisher",        how: "Tap the MQTT broker on the Unified Namespace layer of the Toolbelt.",    hint: "the broker is listening — give it a nudge" },
     { id: "telemetry", name: "Telemetry",        how: "Tap 'Online' / 'SYSTEM: ONLINE' in the top bar for a live readout.",          hint: "the status line has more to say" },
     { id: "tour",      name: "Full plant tour",  how: "Visit every tag in the browser (top-level sections + each role).",   hint: "leave no tag unseen" },
     { id: "log",       name: "Operator log",     how: "You're reading it — /log/, samdonche.secrets(), or ⌘K → log.",       hint: "somewhere, the operator keeps a log" },

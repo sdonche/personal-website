@@ -47,7 +47,7 @@ A few small stdlib-Python helpers in `scripts/` prepare files before you commit.
 | `make smoke` | headless smoke test of the plant HMI: every drawing, a fault → recovery cycle, a setpoint write, the guided tour and the plant deep links in the notes and case study (needs Node + Playwright, see [`tools/smoke-plant.mjs`](tools/smoke-plant.mjs)); CI runs it on every push |
 | `make seo` | refresh structured data (schema.org JSON-LD): article `dateModified` follows each article's own text (hash in [`scripts/article-dates.json`](scripts/article-dates.json); edit an article, run `make`, and it shows "updated <today>"), `wordCount`, author linked to the homepage Person, plus the notes / case-studies / publications collection blocks |
 | `make sitemap` / `make feed` | regenerate [`sitemap.xml`](sitemap.xml) and [`notes/feed.xml`](notes/feed.xml) |
-| `make check` | assert partial markers are present + in sync, every skill chip has an icon/description mapped to a diagram node, and every sitemap page has a title ≤ 60 characters, a description of 70–160, a matching canonical and valid JSON-LD (`scripts/check-seo.py`) |
+| `make check` | assert partial markers are present + in sync, every skill chip has an icon/description and appears in exactly one Toolbelt layer, and every sitemap page has a title ≤ 60 characters, a description of 70–160, a matching canonical and valid JSON-LD (`scripts/check-seo.py`) |
 
 `scripts/stamp-assets.py` stamps a **content hash** onto each `?v=` asset URL in the HTML, so returning visitors always fetch the current file — no more hand-bumping version strings.
 
@@ -79,7 +79,7 @@ Then run `make` to re-stamp the cache-busters. (Requires Node; if the npx one-li
 │   ├── css/fonts.css         # @font-face rules for the self-hosted fonts
 │   ├── fonts/                # Inter + JetBrains Mono variable woff2 (latin, latin-ext)
 │   ├── js/script.js          # Modes, tag browser, palette, hero namespace strip, contact form
-│   ├── js/diagram.js         # Toolbelt reference-architecture diagram
+│   ├── js/diagram.js         # Toolbelt layers: chip icons + click popovers
 │   ├── js/plant/, plant.js   # Heuvelland plant HMI demo (/plant/)
 │   └── img/                  # portrait (+ AVIF/WebP), og-card.jpg, og/<slug>.jpg share cards,
 │                             # work/ "Selected work" thumbnails (`make thumbs`)
@@ -106,7 +106,7 @@ All content lives inline in [index.html](index.html) (the shipped HTML intention
 | Hero          | `<section id="hero">` — headline, tagline, profile card, namespace strip (below)    |
 | About         | `<section id="about">` — three paragraphs + sidebar facts                           |
 | Experience    | `<section id="experience">` — one `<li id="role-...">` per role, `edu-ugent` for education; the trend chart is built by `buildCareerTrend()` |
-| Skills        | `<section id="skills">` — `skill-chip` buttons + the diagram in `assets/js/diagram.js`; run `make icons` after changing the tool list |
+| Skills        | `<section id="skills">` — layered bands (`stack-band`), each holding its `skill-chip` buttons; icons + popovers in `assets/js/diagram.js`; run `make icons` after changing the tool list |
 | Selected work | `<section id="work">` — one `work-card` per item (image or inline diagram + text)   |
 | Contact form  | `<form id="contact-form" action="...">` — Formspree ID (see below)                  |
 | Footer / brand| Top bar handle, footer line, social links                                           |
@@ -283,7 +283,7 @@ The hero profile card and the tag strip use the shared `.glass-card` surface (tr
 - **Progressive enhancement:** scroll-reveal is hidden only when JS is available (an inline script sets `html.js`; the CSS hides `.reveal` exclusively under `.js`). With JS off, all content renders fully — nothing depends on the observer firing.
 - **Cache-busting:** each CSS/JS include carries a `?v=<content-hash>` query, stamped automatically by `make` (`scripts/stamp-assets.py`). Editing an asset changes its hash, so returning visitors always get the new version despite the long asset cache in `.htaccess` — no manual version bumps.
 - **Contrast:** small text is `slate-400` (`#94a3b8`) or lighter on the dark background; `slate-500` fails WCAG AA for text at these sizes (4.2:1) and is only used for decoration. Links inside running text carry a quiet persistent underline, not colour alone.
-- **Diagrams with clickable parts** (Toolbelt, plant P&IDs) use `role="group"` + `aria-label`, not `role="img"`, which would hide their controls from screen readers.
+- **Diagrams with clickable parts** (plant P&IDs) use `role="group"` + `aria-label`, not `role="img"`, which would hide their controls from screen readers.
 - **Audit (September 2026):** axe-core reports no WCAG A/AA or best-practice violations on any page, in Desk or Floor. Lighthouse on the homepage: 100 accessibility, best practices and SEO on mobile and desktop; performance 100 (desktop) / 90 (mobile, simulated slow 4G).
 - No JS frameworks and no runtime CSS compilation — one small JS file + three static stylesheets (Tailwind is precompiled to ~25 KB minified). Lighthouse should score near-100 out of the box.
 - **About photo** ships as AVIF/WebP with a JPEG fallback (`<picture>` + `srcset` in `index.html`). Full-size JPEG is ~70 KB; AVIF is ~15 KB. Regenerate after replacing `assets/img/portrait.jpg` with `make portraits` (needs `ffmpeg` with libaom).

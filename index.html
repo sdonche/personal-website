@@ -106,7 +106,7 @@
   <link rel="preload" href="assets/fonts/jetbrains-mono-var-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/css/fonts.css?v=0f6b5ce264" />
   <link rel="stylesheet" href="assets/css/tailwind.css?v=9f7594763d" />
-  <link rel="stylesheet" href="assets/css/styles.css?v=72d8684485" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=3e1763aed9" />
 <!-- /partial:head-assets -->
 </head>
 
@@ -676,95 +676,115 @@
         </div>
 
         <!--
-          Reference architecture diagram — primary visual for this section.
-          Interactive: skill chips highlight matching blocks; the MQTT broker
-          node publishes an easter-egg burst. Built by buildStackDiagram()
-          in assets/js/diagram.js. Skill chips below are a quieter index.
+          Layered reference architecture — the section's only visual. Each band
+          is one layer of the factory data backbone and holds its own skill
+          chips, so the diagram *is* the tool index. Data flows up the rail from
+          the field; the Unified Namespace band is the bus every layer talks to.
+          Chip icons + click popovers come from assets/js/diagram.js
+          (data: assets/js/skill-meta.js). The broker button is the MQTT egg.
         -->
-        <div class="skills-body">
-        <figure class="stack-diagram reveal mt-10">
-          <div class="stack-diagram__header">
-            <span class="stack-diagram__caption">[ REFERENCE ARCHITECTURE ]</span>
-            <span class="stack-diagram__live">
-              <span class="stack-diagram__pulse" aria-hidden="true"></span> data flowing
+        <figure class="stack-layers reveal" aria-label="Reference architecture for a factory data backbone, layer by layer. Click any tool for a one-line description.">
+          <div class="stack-layers__header">
+            <span class="stack-layers__caption">[ REFERENCE ARCHITECTURE ]</span>
+            <span class="stack-layers__live">
+              <span class="stack-layers__pulse" aria-hidden="true"></span> data flowing
             </span>
           </div>
-          <!-- On narrow screens the diagram keeps a legible minimum width and scrolls horizontally -->
-          <div class="stack-diagram__scroll">
-            <span class="stack-diagram__swipe" aria-hidden="true">swipe to explore &rarr;</span>
-            <svg
-              id="stack-svg"
-              viewBox="0 0 860 400"
-              role="group"
-              aria-label="Reference architecture for a factory data backbone. Field devices and OT protocols reach MQTT via Ignition Edge. Ignition and services sit on the gateway side of the bus, persist to data stores, and feed MES, HMI/SCADA and Grafana. The stack runs on Linux, Docker, Kubernetes and cloud, shipped via GitOps. Hover a skill below to see where it sits."
-            >
-              <g class="stack-svg__stages"></g>
-              <g class="stack-svg__edges"></g>
-              <g class="stack-svg__particles"></g>
-              <g class="stack-svg__nodes"></g>
-            </svg>
+
+          <div class="stack-layers__flow">
+            <span class="stack-layers__rail" aria-hidden="true"><i></i><i></i><i></i></span>
+            <ol class="stack-layers__bands">
+              <li class="stack-band">
+                <div class="stack-band__head">
+                  <span class="stack-band__id">L5</span>
+                  <h3 class="stack-band__name">Apps &amp; insight</h3>
+                  <p class="stack-band__role">Where people see the data and act on it</p>
+                </div>
+                <div class="skill-chips">
+                  <button type="button" class="skill-chip" data-skill="mes">MES</button>
+                  <button type="button" class="skill-chip" data-skill="hmi-scada">HMI / SCADA</button>
+                  <button type="button" class="skill-chip" data-skill="grafana">Grafana</button>
+                  <button type="button" class="skill-chip" data-skill="prometheus">Prometheus</button>
+                </div>
+              </li>
+              <li class="stack-band">
+                <div class="stack-band__head">
+                  <span class="stack-band__id">L4</span>
+                  <h3 class="stack-band__name">Data &amp; services</h3>
+                  <p class="stack-band__role">Store, model and compute on it</p>
+                </div>
+                <div class="skill-chips">
+                  <button type="button" class="skill-chip" data-skill="python">Python</button>
+                  <button type="button" class="skill-chip" data-skill="postgresql">PostgreSQL</button>
+                  <button type="button" class="skill-chip" data-skill="sql-server">MS SQL Server</button>
+                  <button type="button" class="skill-chip" data-skill="timescaledb">TimescaleDB</button>
+                  <button type="button" class="skill-chip" data-skill="factry">Factry</button>
+                </div>
+              </li>
+              <li class="stack-band stack-band--bus">
+                <div class="stack-band__head">
+                  <span class="stack-band__id">L3</span>
+                  <h3 class="stack-band__name">Unified Namespace</h3>
+                  <p class="stack-band__role">One real-time hub every layer publishes to and subscribes from</p>
+                </div>
+                <div class="skill-chips">
+                  <button type="button" class="skill-chip" data-skill="mqtt">MQTT</button>
+                  <button type="button" class="skill-chip" data-skill="sparkplug-b">Sparkplug B</button>
+                  <button type="button" class="skill-chip" data-skill="unified-namespace">Unified Namespace</button>
+                  <button type="button" class="stack-broker" aria-label="MQTT broker, tap to publish">
+                    <span class="stack-broker__dot" aria-hidden="true"></span> broker
+                  </button>
+                </div>
+                <span class="stack-band__bus" aria-hidden="true"></span>
+              </li>
+              <li class="stack-band">
+                <div class="stack-band__head">
+                  <span class="stack-band__id">L2</span>
+                  <h3 class="stack-band__name">Edge &amp; gateway</h3>
+                  <p class="stack-band__role">Bridge OT to IT, close to the machines</p>
+                </div>
+                <div class="skill-chips">
+                  <button type="button" class="skill-chip" data-skill="ignition">Ignition</button>
+                  <button type="button" class="skill-chip" data-skill="opc-ua">OPC UA</button>
+                </div>
+              </li>
+              <li class="stack-band stack-band--field">
+                <div class="stack-band__head">
+                  <span class="stack-band__id">L1</span>
+                  <h3 class="stack-band__name">Field</h3>
+                  <p class="stack-band__role">Where the data is born</p>
+                </div>
+                <p class="stack-band__things">PLCs · sensors · drives · production lines</p>
+              </li>
+            </ol>
           </div>
-          <figcaption class="stack-diagram__cap">
+
+          <div class="stack-base">
+            <div class="stack-base__row">
+              <span class="stack-base__label">runs on</span>
+              <div class="skill-chips">
+                <button type="button" class="skill-chip" data-skill="linux">Linux</button>
+                <button type="button" class="skill-chip" data-skill="docker">Docker</button>
+                <button type="button" class="skill-chip" data-skill="kubernetes">Kubernetes</button>
+                <button type="button" class="skill-chip" data-skill="cloud">Azure / GCP</button>
+              </div>
+            </div>
+            <div class="stack-base__row">
+              <span class="stack-base__label">shipped via</span>
+              <div class="skill-chips">
+                <button type="button" class="skill-chip" data-skill="gitops">GitOps</button>
+                <button type="button" class="skill-chip" data-skill="argo-cd">Argo CD</button>
+                <button type="button" class="skill-chip" data-skill="terraform">Terraform</button>
+                <button type="button" class="skill-chip" data-skill="ci-cd">CI/CD</button>
+              </div>
+            </div>
+          </div>
+
+          <figcaption class="stack-layers__cap">
             The backbone I build, from factory floor to dashboards.
-            <span class="stack-diagram__hint">Hover a node or skill to connect them. Click either for what it is.</span>
+            <span class="stack-layers__hint">Click any tool for what it is.</span>
           </figcaption>
         </figure>
-
-        <div class="skill-index mt-8 reveal">
-          <p class="skill-index__lead">Tools on the diagram — hover to locate, click for a one-liner.</p>
-          <div class="skill-index__grid">
-
-          <div class="skill-group">
-            <h3 class="skill-group__title">
-              <svg class="skill-group__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path stroke-linecap="round" d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2"/></svg>
-              Industry 4.0 / IIoT
-            </h3>
-            <div class="skill-chips">
-              <button type="button" class="skill-chip" data-skill="ignition">Ignition</button>
-              <button type="button" class="skill-chip" data-skill="hmi-scada">HMI / SCADA</button>
-              <button type="button" class="skill-chip" data-skill="mqtt">MQTT</button>
-              <button type="button" class="skill-chip" data-skill="sparkplug-b">Sparkplug B</button>
-              <button type="button" class="skill-chip" data-skill="unified-namespace">Unified Namespace</button>
-              <button type="button" class="skill-chip" data-skill="opc-ua">OPC UA</button>
-              <button type="button" class="skill-chip" data-skill="mes">MES</button>
-            </div>
-          </div>
-
-          <div class="skill-group">
-            <h3 class="skill-group__title">
-              <svg class="skill-group__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7" ry="2.5"/><path stroke-linecap="round" d="M5 5.5v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6M5 11.5v6c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-6"/></svg>
-              Data &amp; Backend
-            </h3>
-            <div class="skill-chips">
-              <button type="button" class="skill-chip" data-skill="python">Python</button>
-              <button type="button" class="skill-chip" data-skill="postgresql">PostgreSQL</button>
-              <button type="button" class="skill-chip" data-skill="sql-server">MS SQL Server</button>
-              <button type="button" class="skill-chip" data-skill="timescaledb">TimescaleDB</button>
-              <button type="button" class="skill-chip" data-skill="factry">Factry</button>
-              <button type="button" class="skill-chip" data-skill="grafana">Grafana</button>
-              <button type="button" class="skill-chip" data-skill="prometheus">Prometheus</button>
-            </div>
-          </div>
-
-          <div class="skill-group">
-            <h3 class="skill-group__title">
-              <svg class="skill-group__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linejoin="round" d="M7 18a4 4 0 0 1-.5-8 5 5 0 0 1 9.6-1.2A3.5 3.5 0 0 1 16.5 18H7z"/></svg>
-              Cloud &amp; Infrastructure
-            </h3>
-            <div class="skill-chips">
-              <button type="button" class="skill-chip" data-skill="docker">Docker</button>
-              <button type="button" class="skill-chip" data-skill="kubernetes">Kubernetes</button>
-              <button type="button" class="skill-chip" data-skill="cloud">Azure / GCP</button>
-              <button type="button" class="skill-chip" data-skill="terraform">Terraform</button>
-              <button type="button" class="skill-chip" data-skill="argo-cd">Argo CD</button>
-              <button type="button" class="skill-chip" data-skill="gitops">GitOps</button>
-              <button type="button" class="skill-chip" data-skill="ci-cd">CI/CD</button>
-            </div>
-          </div>
-
-          </div>
-        </div>
-        </div>
       </div>
     </section>
 
@@ -986,9 +1006,9 @@
 
 <!-- partial:home-scripts -->
   <script src="assets/js/skill-meta.js?v=81d28cd35a" defer></script>
-  <script src="assets/js/eggs.js?v=e05e8c5e22" defer></script>
-  <script src="assets/js/diagram.js?v=40e3065ccd" defer></script>
-  <script src="assets/js/script.js?v=e57734c050" defer></script>
+  <script src="assets/js/eggs.js?v=7b267d64c0" defer></script>
+  <script src="assets/js/diagram.js?v=7766a16ba3" defer></script>
+  <script src="assets/js/script.js?v=4d1acd11a2" defer></script>
 
   <!-- GoatCounter analytics — cookie-free, self-hosted script (see README).
        Skips localhost automatically, so local dev doesn't pollute the stats. -->
