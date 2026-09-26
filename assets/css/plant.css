@@ -2621,3 +2621,8 @@ path.plant-trend__mark { stroke: none; }
   color: rgb(148 163 184);
 }
 .plant-alarm__ack { display: flex; gap: 0.35rem; }
+
+/* Site bar: the case-study link yields to the SIM badge on phones */
+@media (max-width: 639px) {
+  .plant-site-bar__how { display: none; }
+}

@@ -44,6 +44,7 @@ A few small stdlib-Python helpers in `scripts/` prepare files before you commit.
 | `make portraits` | rebuild AVIF/WebP about-photo variants from `portrait.jpg` (needs `ffmpeg`); then update hashes in `index.html` |
 | `make og-cards` | regenerate homepage + per-page Open Graph JPEGs (needs Pillow); commit the images under `assets/img/og/` |
 | `make thumbs` | re-capture the "Selected work" screenshots in `assets/img/work/` from the live pages (needs Node + Playwright, see [`tools/capture-work-thumbs.mjs`](tools/capture-work-thumbs.mjs)); run after the plant HMI's look changes, then commit the images |
+| `make smoke` | headless smoke test of the plant HMI: every drawing, a fault → recovery cycle, a setpoint write and the plant deep links in the notes and case study (needs Node + Playwright, see [`tools/smoke-plant.mjs`](tools/smoke-plant.mjs)); CI runs it on every push |
 | `make sitemap` / `make feed` | regenerate [`sitemap.xml`](sitemap.xml) and [`notes/feed.xml`](notes/feed.xml) |
 | `make check` | assert partial markers are present + in sync, and every skill chip has an icon/description mapped to a diagram node |
 

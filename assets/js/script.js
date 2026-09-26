@@ -58,6 +58,7 @@
     // "work" is a home section AND the case-studies index AND their folder
     { id: "work",                 label: "work", parent: "work", page: true, href: "case-studies/" },
     { id: "cs-factory",           label: "factory-data-backbone", group: "work", page: true, href: "case-studies/factory-data-backbone/", desc: "Case study" },
+    { id: "cs-plant-hmi",         label: "plant-hmi", group: "work", page: true, href: "case-studies/plant-hmi/", desc: "Case study" },
     // "notes" is a page (a writing index) that also folders the articles
     { id: "notes",                label: "notes", parent: "notes", page: true, href: "notes/" },
     { id: "note-ignition-secrets", label: "ignition-secrets", group: "notes", page: true, href: "notes/ignition-secrets/", desc: "Article" },

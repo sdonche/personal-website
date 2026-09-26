@@ -33,3 +33,25 @@ jobs:
             exit 1
           fi
           echo "OK: committed HTML matches partials + asset hashes."
+
+  smoke:
+    name: plant smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # No package.json on purpose (the site has no build step): install the
+      # test runner for this job only.
+      - name: Install Playwright + Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      # Every drawing, a fault → recovery cycle, a setpoint write, and the
+      # plant deep links used by the notes and the case study.
+      - name: Run plant smoke test
+        run: make smoke

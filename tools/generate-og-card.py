@@ -100,6 +100,11 @@ CARDS = [
         "title": "From data islands to a factory-wide backbone",
     },
     {
+        "slug": "plant-hmi",
+        "eyebrow": "CASE STUDY",
+        "title": "A chocolate plant in a browser tab",
+    },
+    {
         "slug": "plant",
         "eyebrow": "PLANT LIVE VIEW",
         "title": "Line 3 — simulated packaging line at the edge",

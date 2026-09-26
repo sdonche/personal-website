@@ -2162,6 +2162,36 @@ html.line-stopped *::after {
   text-underline-offset: 3px;
 }
 .note-prose a:hover { color: var(--color-brand-200); }
+
+/* "Try it" callout: a note hands the reader to the matching spot in the plant demo */
+.note-prose a.note-try {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  border-radius: 0.375rem;
+  background: rgba(34, 211, 238, 0.05);
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.note-prose a.note-try:hover {
+  border-color: rgba(34, 211, 238, 0.55);
+  background: rgba(34, 211, 238, 0.09);
+  color: #e2e8f0;
+}
+.note-try__label {
+  flex: none;
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-brand-300);
+}
+.note-try__text { flex: 1; font-size: 0.9rem; line-height: 1.55; }
+.note-try__arrow { flex: none; color: var(--color-brand-300); }
 /* Abbreviations: instant custom tooltip (no native ~1s delay, no dotted line).
    Cue is a subtle solid underline in a slate tone so it never reads as a link. */
 .note-prose abbr {

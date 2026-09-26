@@ -11,7 +11,7 @@
 #
 # (Tailwind is still its own step — see README "Rebuilding the CSS".)
 
-.PHONY: all build sync stamp check icons favicon portraits og-cards thumbs sitemap feed discover
+.PHONY: all build sync stamp check icons favicon portraits og-cards thumbs smoke sitemap feed discover
 
 # Default: expand shared chrome, refresh cache-busters, refresh discoverability
 # artifacts, then verify consistency.
@@ -61,6 +61,12 @@ portraits:
 # (see tools/capture-work-thumbs.mjs). Commit the new images.
 thumbs:
 	node tools/capture-work-thumbs.mjs
+
+# Headless smoke test of the plant HMI: every drawing, a fault → recovery cycle,
+# a setpoint write and the deep links from the notes. Also runs in CI.
+# Needs Node + Playwright (see tools/smoke-plant.mjs).
+smoke:
+	node tools/smoke-plant.mjs
 
 # Regenerate homepage + per-page Open Graph JPEGs (needs Pillow + tools/fonts).
 # Then update og:image / twitter:image paths in the HTML if you added a new slug.
