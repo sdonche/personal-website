@@ -105,7 +105,7 @@ Plant.isMixFault = function isMixFault() {
  */
 Plant.isUpstreamHold = function isUpstreamHold() {
   return Plant.isMixFault()
-    || Plant.state.temperScenario === "belt"
+    || Plant.state.temperScenario === "drive"
     || Plant.state.temperScenario === "warm"
     || Plant.state.refineScenario === "pressure"
     || Plant.state.refineScenario === "particle"
@@ -117,23 +117,19 @@ Plant.isUpstreamHold = function isUpstreamHold() {
 
 /** Packaging feed starved — local scenario or upstream hold. */
 Plant.isFeedStarved = function isFeedStarved() {
-  return Plant.state.scenario === "starved" || Plant.isUpstreamHold();
+  return Plant.state.packScenario === "starved" || Plant.isUpstreamHold();
 }
 
-/** Packaging P&ID svg / flow: local starve or upstream hold. */
-Plant.packagingSvgStarved = function packagingSvgStarved() {
-  return Plant.state.scenario === "starved" || Plant.isUpstreamHold();
-}
 
 Plant.equipState = function equipState(id) {
-  const jam = Plant.state.scenario === "jam" && !Plant.state.cartonerJamCleared;
+  const jam = Plant.state.packScenario === "jam";
   const starved = Plant.isFeedStarved();
   if (id === "Cartoner" && jam) return "fault";
   if (id === "Infeed" && starved) return "warn";
   if (jam) {
     if (id === "Infeed") return "warn";
-    if (id === "Checkweigher" || id === "Outfeed" || id === "Palletizer") return "idle";
-    return "fault";
+    // Downstream of the cartoner starves; nothing else is faulted
+    return "idle";
   }
   if (starved) return "warn";
   return "run";
@@ -151,12 +147,10 @@ Plant.setDrawingFault = function setDrawingFault(drawing, fault) {
   if (!meta) return false;
   if (fault == null || fault === "recover") {
     Plant.state[meta.field] = null;
-    if (drawing === "packaging") Plant.state.cartonerJamCleared = false;
     return true;
   }
   if (!meta.values.includes(fault)) return false;
   Plant.state[meta.field] = fault;
-  if (drawing === "packaging") Plant.state.cartonerJamCleared = false;
   return true;
 }
 
@@ -181,7 +175,7 @@ Plant.areaHealth = function areaHealth(drawing) {
   const refineParticle = Plant.state.refineScenario === "particle";
   const concheOver = Plant.state.concheScenario === "overtemp";
   const concheAgit = Plant.state.concheScenario === "agitator";
-  const temperBelt = Plant.state.temperScenario === "belt";
+  const temperDrive = Plant.state.temperScenario === "drive";
   const temperWarm = Plant.state.temperScenario === "warm";
   if (drawing === "packaging" && Plant.isUpstreamHold()) return "starved";
   if (drawing === "refining" && mixFault) return "starved";
@@ -190,20 +184,9 @@ Plant.areaHealth = function areaHealth(drawing) {
     return "starved";
   }
   if (drawing === "moulding" && (
-    mixFault || temperBelt || temperWarm || refinePressure || refineParticle || concheOver || concheAgit
+    mixFault || temperDrive || temperWarm || refinePressure || refineParticle || concheOver || concheAgit
   )) return "starved";
   return "run";
-}
-
-Plant.plantModeSummary = function plantModeSummary() {
-  const modes = [];
-  for (const a of Plant.PLANT_AREAS) {
-    const h = Plant.areaHealth(a.drawing);
-    if (h === "fault") modes.push(`${a.id}:FAULT`);
-    else if (h === "starved") modes.push(`${a.id}:STARVED`);
-    else if (h === "hold") modes.push(`${a.id}:HOLD`);
-  }
-  return modes.length ? modes.slice(0, 2).join(" · ") : "AUTO";
 }
 
 /* ---------------- P&ID ---------------- */

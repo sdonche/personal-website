@@ -102,29 +102,13 @@ Plant.renderStubLineFolder = function renderStubLineFolder(line) {
   return Plant.renderFolder(nodeKey, line.id, lineTags + equips, "plant-tree__line plant-tree__line--live");
 }
 
-Plant.mixingTagsUnder = function mixingTagsUnder(prefix) {
-  const base = "Mixing/";
-  if (!prefix) {
-    return Plant.MIXING_TAGS.filter((t) => {
-      const rest = t.id.slice(base.length);
-      return !rest.includes("/");
-    });
-  }
-  const p = base + (prefix.endsWith("/") ? prefix : prefix + "/");
-  return Plant.MIXING_TAGS.filter((t) => {
-    if (!t.id.startsWith(p)) return false;
-    const rest = t.id.slice(p.length);
-    return !rest.includes("/");
-  });
-}
-
 Plant.renderMixingFolder = function renderMixingFolder() {
-  const areaTags = Plant.mixingTagsUnder("").map((t) => Plant.renderTagButton(t.id, t)).join("");
-  const mixer = Plant.mixingTagsUnder("Mixer1").map((t) => Plant.renderTagButton(t.id, t)).join("");
-  const cocoa = Plant.mixingTagsUnder("CocoaLiquor").map((t) => Plant.renderTagButton(t.id, t)).join("");
-  const sugar = Plant.mixingTagsUnder("Sugar").map((t) => Plant.renderTagButton(t.id, t)).join("");
-  const outlet = Plant.mixingTagsUnder("Outlet").map((t) => Plant.renderTagButton(t.id, t)).join("");
-  const drain = Plant.mixingTagsUnder("Drain").map((t) => Plant.renderTagButton(t.id, t)).join("");
+  const areaTags = Plant.areaTagsUnder(Plant.MIXING_TAGS, "Mixing/", "").map((t) => Plant.renderTagButton(t.id, t)).join("");
+  const mixer = Plant.areaTagsUnder(Plant.MIXING_TAGS, "Mixing/", "Mixer1").map((t) => Plant.renderTagButton(t.id, t)).join("");
+  const cocoa = Plant.areaTagsUnder(Plant.MIXING_TAGS, "Mixing/", "CocoaLiquor").map((t) => Plant.renderTagButton(t.id, t)).join("");
+  const sugar = Plant.areaTagsUnder(Plant.MIXING_TAGS, "Mixing/", "Sugar").map((t) => Plant.renderTagButton(t.id, t)).join("");
+  const outlet = Plant.areaTagsUnder(Plant.MIXING_TAGS, "Mixing/", "Outlet").map((t) => Plant.renderTagButton(t.id, t)).join("");
+  const drain = Plant.areaTagsUnder(Plant.MIXING_TAGS, "Mixing/", "Drain").map((t) => Plant.renderTagButton(t.id, t)).join("");
   const body =
     areaTags +
     Plant.renderFolder(`${Plant.MIXING_ROOT}/Mixer1`, "Mixer1", mixer) +
@@ -135,27 +119,12 @@ Plant.renderMixingFolder = function renderMixingFolder() {
   return Plant.renderFolder(Plant.MIXING_ROOT, Plant.MIXING_AREA, body, "plant-tree__area plant-tree__area--live", { drawing: "mixing" });
 }
 
-Plant.temperingTagsUnder = function temperingTagsUnder(prefix) {
-  const base = "Tempering/";
-  if (!prefix) {
-    return Plant.TEMPERING_TAGS.filter((t) => {
-      const rest = t.id.slice(base.length);
-      return !rest.includes("/");
-    });
-  }
-  const p = base + (prefix.endsWith("/") ? prefix : prefix + "/");
-  return Plant.TEMPERING_TAGS.filter((t) => {
-    if (!t.id.startsWith(p)) return false;
-    return !t.id.slice(p.length).includes("/");
-  });
-}
-
 Plant.renderTemperingFolder = function renderTemperingFolder() {
-  const areaTags = Plant.temperingTagsUnder("").map((t) => Plant.renderTagButton(t.id, t)).join("");
-  const temper = Plant.temperingTagsUnder("Temper1").map((t) => Plant.renderTagButton(t.id, t)).join("");
-  const inlet = Plant.temperingTagsUnder("Inlet").map((t) => Plant.renderTagButton(t.id, t)).join("");
-  const outlet = Plant.temperingTagsUnder("Outlet").map((t) => Plant.renderTagButton(t.id, t)).join("");
-  const chilled = Plant.temperingTagsUnder("ChilledWater").map((t) => Plant.renderTagButton(t.id, t)).join("");
+  const areaTags = Plant.areaTagsUnder(Plant.TEMPERING_TAGS, "Tempering/", "").map((t) => Plant.renderTagButton(t.id, t)).join("");
+  const temper = Plant.areaTagsUnder(Plant.TEMPERING_TAGS, "Tempering/", "Temper1").map((t) => Plant.renderTagButton(t.id, t)).join("");
+  const inlet = Plant.areaTagsUnder(Plant.TEMPERING_TAGS, "Tempering/", "Inlet").map((t) => Plant.renderTagButton(t.id, t)).join("");
+  const outlet = Plant.areaTagsUnder(Plant.TEMPERING_TAGS, "Tempering/", "Outlet").map((t) => Plant.renderTagButton(t.id, t)).join("");
+  const chilled = Plant.areaTagsUnder(Plant.TEMPERING_TAGS, "Tempering/", "ChilledWater").map((t) => Plant.renderTagButton(t.id, t)).join("");
   const body =
     areaTags +
     Plant.renderFolder(`${Plant.TEMPERING_ROOT}/Temper1`, "Temper1", temper) +
@@ -319,13 +288,13 @@ Plant.paintSisterSpark = function paintSisterSpark() {
     li.classList.toggle("plant-tree__site--spark", isSister && snap.link === "flap");
     const meta = li.querySelector(`[data-site-meta="${CSS.escape(site)}"]`);
     if (meta) {
-      const oeeTxt = snap.oee == null ? "—" : `${snap.oee.toFixed(0)}%`;
+      const oeeTxt = snap.oee == null ? "—" : `${snap.oee.toFixed(1)} %`;
       if (snap.isHome) {
         meta.textContent = `${snap.mode} · ${oeeTxt}`;
       } else if (snap.link === "flap") {
         meta.textContent = `${snap.mode} · ${oeeTxt}`;
       } else {
-        meta.textContent = `link down · ${oeeTxt}`;
+        meta.textContent = `offline · last ${oeeTxt}`;
       }
     }
   });

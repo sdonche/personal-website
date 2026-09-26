@@ -541,6 +541,11 @@
   color: var(--plant-uncertain);
   border-color: rgba(251, 191, 36, 0.45);
 }
+.plant-tree__site--spark .plant-tree__area--stub > details > summary .plant-tree__label::after {
+  content: "FLAP";
+  color: var(--plant-uncertain);
+  border-color: rgba(251, 191, 36, 0.45);
+}
 .plant-tree__site--offline.plant-tree__site--spark > details > summary {
   color: rgb(226 232 240);
   font-weight: 600;
@@ -592,18 +597,6 @@
   border-radius: 2px;
   vertical-align: middle;
 }
-.plant-tree__line--offline > details > summary .plant-tree__label::after {
-  content: "OFF";
-  margin-left: 0.45rem;
-  font-size: 0.5rem;
-  letter-spacing: 0.1em;
-  color: rgb(100 116 139);
-  border: 1px solid rgba(100, 116, 139, 0.35);
-  padding: 0.05rem 0.28rem;
-  border-radius: 2px;
-  vertical-align: middle;
-}
-
 /* Nested folders: tighten deeper levels */
 .plant-tree details details > ul {
   margin-left: 0.25rem;
@@ -913,7 +906,7 @@
   letter-spacing: 0.14em;
 }
 .pid-sheet__sub {
-  fill: rgb(100 116 139);
+  fill: rgb(148 163 184);
   font-size: 9px;
   letter-spacing: 0.04em;
 }
@@ -1014,6 +1007,10 @@
 .pid-mix-valve.is-fault .pid-mix-valve__body {
   fill: rgba(248, 113, 113, 0.2);
   stroke: #f87171;
+}
+.pid-mix-valve.is-warn .pid-mix-valve__body {
+  fill: rgba(251, 191, 36, 0.18);
+  stroke: #fbbf24;
 }
 
 .pid-tank.is-fault .pid-tank__shell {
@@ -1146,6 +1143,16 @@
 }
 .pid-cooling.is-alarm .pid-pipe {
   stroke: #f87171;
+}
+/* A warning-severity alarm (is-alarm + is-warn) stays amber on every
+   equipment type — the red is-alarm rules above must not win. */
+.pid-tank.is-alarm.is-warn .pid-tank__shell,
+.pid-refiner.is-alarm.is-warn .pid-refiner__shell,
+.pid-moulder.is-alarm.is-warn .pid-moulder__shell,
+.pid-tunnel.is-alarm.is-warn .pid-tunnel__shell,
+.pid-equip.is-alarm.is-warn .pid-equip__body,
+.pid-cooling.is-alarm.is-warn .pid-pipe {
+  stroke: #fbbf24;
 }
 
 .pid-bars-out {
@@ -1345,6 +1352,7 @@
 .pid-q--good .pid-balloon__val { fill: #6ee7b7; }
 .pid-q--uncertain .pid-balloon__val { fill: #fcd34d; }
 .pid-q--bad .pid-balloon__val { fill: #fca5a5; }
+.pid-q--stale .pid-balloon__val { fill: #94a3b8; }
 
 .pid-equip.is-hover .pid-equip__body,
 .pid-valve.is-hover .pid-valve__body,
@@ -1371,7 +1379,8 @@
   stroke: #f87171;
   fill: rgba(248, 113, 113, 0.12);
 }
-.pid-valve__pid {
+.pid-valve__pid,
+.pid-mix-valve__pid {
   fill: #94a3b8;
   font-size: 8px;
   letter-spacing: 0.04em;
@@ -1574,6 +1583,10 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+}
+.plant-site-map__rule {
+  stroke: rgba(148, 163, 184, 0.22);
+  stroke-width: 1;
 }
 .plant-site-map__caption {
   fill: rgb(100 116 139);
@@ -2040,6 +2053,9 @@
   padding: 0.05rem 0.28rem;
   border-radius: 2px;
 }
+.plant-alarm[data-sev="warning"] .plant-alarm__firstout {
+  background: var(--plant-uncertain);
+}
 
 .plant-alarm__badge {
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
@@ -2089,4 +2105,108 @@
   .pid-pipe-flow {
     animation: none !important;
   }
+}
+
+
+/* ---------------------------------------------------------------
+   Responsive layout
+   ≥1280  tree | drawing | alarms (three columns)
+   1024–1279  tree | drawing, alarms under the drawing (more width
+              for the P&ID, which is the point of the page)
+   <1024  one column: drawing first, then alarms, then the tag
+          browser (collapsed behind "Show tags"); the P&ID keeps a
+          readable 860px and scrolls sideways
+   --------------------------------------------------------------- */
+.plant-tree-toggle,
+.plant-pid-hint { display: none; }
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  /* The page scrolls here instead of squeezing the P&ID into a short
+     row: the drawing takes its full width, alarms follow it, and the
+     tree stays pinned beside them. */
+  .plant-page { height: auto; overflow: visible; }
+  .plant-shell { height: auto; min-height: 100dvh; }
+  .plant-body {
+    --plant-rail: 14.5rem;
+    grid-template-columns: var(--plant-rail) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
+  .plant-pane--tree {
+    grid-row: 1 / span 2;
+    align-self: start;
+    position: sticky;
+    top: 3rem;
+    max-height: calc(100dvh - 3rem);
+  }
+  .plant-mimic { grid-column: 2; grid-row: 1; }
+  .plant-pane--alarms {
+    grid-column: 2;
+    grid-row: 2;
+    border-left: 0;
+    border-top: 1px solid var(--plant-stroke);
+  }
+  .plant-pid { display: block; }
+  .plant-pid .pid-svg { height: auto; max-height: none; }
+}
+
+@media (max-width: 1023px) {
+  /* minmax(0, …): the 860px drawing scrolls inside its box instead of
+     widening the whole column (and the page) */
+  .plant-body { grid-template-columns: minmax(0, 1fr); }
+  .plant-pane, .plant-mimic__canvas { min-width: 0; }
+  .plant-mimic { order: 1; }
+  .plant-pane--alarms { order: 2; }
+  .plant-pane--tree { order: 3; }
+
+  .plant-tree-toggle {
+    display: inline-flex;
+    margin-left: auto;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    border: 1px solid rgb(51 65 85);
+    background: transparent;
+    color: var(--color-brand-300);
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+  }
+  .plant-tree-toggle:focus-visible { outline: 2px solid var(--color-brand-400); outline-offset: 2px; }
+  .plant-pane--tree .plant-pane__head-row { align-items: center; gap: 0.75rem; }
+  .plant-pane--tree:not(.is-open) .plant-pane__body,
+  .plant-pane--tree:not(.is-open) .plant-q-legend { display: none; }
+
+  .plant-pid {
+    display: block;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+  .plant-pid .pid-svg {
+    width: 860px;
+    min-width: 860px;
+    max-width: none;
+    height: auto;
+    max-height: none;
+  }
+}
+@media (max-width: 899px) {
+  .plant-pid-hint {
+    display: block;
+    margin: 0.35rem 0 0;
+    font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(148 163 184);
+  }
+}
+
+/* Names sit on a dark halo so a pipe or leader passing behind never cuts
+   through the text (e.g. the reject line under CHECKWEIGHER). */
+.pid-equip__name,
+.pid-flow-label {
+  paint-order: stroke;
+  stroke: #020617;
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }

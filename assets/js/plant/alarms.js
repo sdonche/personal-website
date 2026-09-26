@@ -68,7 +68,7 @@ Plant.renderAlarms = function renderAlarms() {
 
   const active = Plant.state.alarms.filter(filterSev);
   if (!active.length) {
-    list.innerHTML = `<li class="plant-alarms-empty">${Plant.state.alarms.length ? "No alarms match filter" : "No active alarms · line healthy"}</li>`;
+    list.innerHTML = `<li class="plant-alarms-empty">${Plant.state.alarms.length ? "No alarms match filter" : "No active alarms"}</li>`;
     return;
   }
 

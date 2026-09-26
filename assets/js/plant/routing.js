@@ -12,15 +12,12 @@ Plant.parseHash = function parseHash() {
   if (query) {
     try {
       fault = new URLSearchParams(query).get("fault");
+      if (fault === "belt") fault = "drive"; // legacy deep links
     } catch (e) {
       fault = null;
     }
   }
   return { drawing, fault };
-}
-
-Plant.drawingFromHash = function drawingFromHash() {
-  return Plant.parseHash().drawing;
 }
 
 Plant.syncHash = function syncHash(drawing) {
@@ -45,10 +42,6 @@ Plant.applyHashState = function applyHashState(opts) {
     if (meta && fault && meta.values.includes(fault)) {
       if (Plant.state[meta.field] !== fault) {
         Plant.setDrawingFault(drawing, fault);
-        faultChanged = true;
-      } else if (drawing === "packaging" && fault === "jam" && Plant.state.cartonerJamCleared) {
-        /* Deep-link re-arms a jam even if the operator had cleared it this session. */
-        Plant.state.cartonerJamCleared = false;
         faultChanged = true;
       }
     }

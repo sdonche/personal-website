@@ -2,7 +2,7 @@ import { Plant } from "./ns.js?v=c600f295ec";
 
 
 Plant.renderKpis = function renderKpis() {
-  const jam = Plant.state.scenario === "jam" && !Plant.state.cartonerJamCleared;
+  const jam = Plant.state.packScenario === "jam";
   const drawing = Plant.state.activeDrawing;
   const mixing = drawing === "mixing";
   const refining = drawing === "refining";
@@ -23,9 +23,17 @@ Plant.renderKpis = function renderKpis() {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
   };
+  // Tag values in the strip are formatted exactly like the tree and faceplate
+  // (Plant.formatValue: same units, decimals and spacing).
+  const val = (tagId) => Plant.liveReadout(tagId) || "—";
+  // Default tone follows the tag's OPC quality, so strip and tree never disagree.
+  const qTone = (tagId) => {
+    const q = Plant.live[tagId]?.quality;
+    return q === "Bad" ? "bad" : q === "Uncertain" || q === "Stale" ? "warn" : "good";
+  };
 
   const temperWarm = Plant.state.temperScenario === "warm";
-  const temperBelt = Plant.state.temperScenario === "belt";
+  const temperDrive = Plant.state.temperScenario === "drive";
   const feedStarved = Plant.isFeedStarved();
   const overview = drawing === "overview";
   const areaHeld = (d) => {
@@ -35,7 +43,7 @@ Plant.renderKpis = function renderKpis() {
 
   if (overview) {
     const oee = Plant.live.OEE?.value ?? 0;
-    const batchId = String(Plant.live.BatchId?.value ?? "—");
+    const batchId = String(Plant.live.__trackedBatch?.value ?? "—");
     const almN = Plant.state.alarms.length;
     const fleet = Plant.fleetSummaryLabel();
     const anyFault = Plant.PLANT_AREAS.some((a) => Plant.areaHealth(a.drawing) === "fault");
@@ -45,26 +53,21 @@ Plant.renderKpis = function renderKpis() {
     setLabel("kpi-b-label", "Batch");
     setLabel("kpi-c-label", "Alarms");
     setLabel("kpi-d-label", "Sisters");
-    setKpi("kpi-a", `${oee.toFixed(1)}%`, anyFault ? "bad" : anyWarn || oee < 80 ? "warn" : "good");
+    setKpi("kpi-a", val("OEE"), anyFault ? "bad" : anyWarn || oee < 80 ? "warn" : "good");
     setKpi("kpi-b", batchId, "good");
     setKpi("kpi-c", String(almN), almN ? "bad" : "good");
     setKpi("kpi-d", fleet, flap ? "warn" : "good");
   } else if (mixing) {
     const level = Plant.live["Mixing/Mixer1/LevelPct"]?.value ?? 0;
-    const jacket = Plant.live["Mixing/Mixer1/JacketTempC"]?.value ?? 0;
-    const rpm = Plant.live["Mixing/Mixer1/AgitatorRpm"]?.value ?? 0;
     setLabel("kpi-a-label", "Level");
     setLabel("kpi-b-label", "Jacket");
-    setLabel("kpi-c-label", "RPM");
+    setLabel("kpi-c-label", "Agitator");
     setLabel("kpi-d-label", "Mode");
-    setKpi("kpi-a", `${level.toFixed(1)}%`, mixValve ? "warn" : level > 88 ? "warn" : "good");
-    setKpi("kpi-b", `${jacket.toFixed(1)}°C`, mixOver || jacket > 52 ? "bad" : "good");
-    setKpi("kpi-c", String(Math.round(rpm)), mixOver || mixValve ? "warn" : "good");
+    setKpi("kpi-a", val("Mixing/Mixer1/LevelPct"), mixValve || level > 88 ? "warn" : "good");
+    setKpi("kpi-b", val("Mixing/Mixer1/JacketTempC"), mixOver ? "bad" : qTone("Mixing/Mixer1/JacketTempC"));
+    setKpi("kpi-c", val("Mixing/Mixer1/AgitatorRpm"), mixOver || mixValve ? "warn" : "good");
     setKpi("kpi-d", String(Plant.live["Mixing/Mode"]?.value ?? "—"), mixOver ? "bad" : mixValve ? "warn" : "good");
   } else if (refining) {
-    const load = Plant.live["Refining/Refiner1/LoadPct"]?.value ?? 0;
-    const particle = Plant.live["Refining/Refiner1/ParticleUm"]?.value ?? 0;
-    const outFlow = Plant.live["Refining/Outlet/FlowKgH"]?.value ?? 0;
     const mode = Plant.live["Refining/Mode"]?.value ?? "—";
     const refinePressure = Plant.state.refineScenario === "pressure";
     const refineParticle = Plant.state.refineScenario === "particle";
@@ -73,54 +76,45 @@ Plant.renderKpis = function renderKpis() {
     setLabel("kpi-b-label", "Particle");
     setLabel("kpi-c-label", "Outlet");
     setLabel("kpi-d-label", "Mode");
-    setKpi("kpi-a", `${load.toFixed(1)}%`, refinePressure || starvedRefine ? "warn" : "good");
-    setKpi("kpi-b", `${particle.toFixed(1)} µm`, refineParticle ? "bad" : starvedRefine ? "warn" : "good");
-    setKpi("kpi-c", String(Math.round(outFlow)), refinePressure || starvedRefine ? "warn" : "good");
+    setKpi("kpi-a", val("Refining/Refiner1/LoadPct"), refinePressure || starvedRefine ? "warn" : "good");
+    setKpi("kpi-b", val("Refining/Refiner1/ParticleUm"), refineParticle ? "bad" : starvedRefine ? "warn" : "good");
+    setKpi("kpi-c", val("Refining/Outlet/FlowKgH"), refinePressure || starvedRefine ? "warn" : "good");
     setKpi("kpi-d", String(mode), refinePressure ? "bad" : refineParticle || starvedRefine ? "warn" : "good");
   } else if (conching) {
-    const temp = Plant.live["Conching/Conche1/TempC"]?.value ?? 0;
-    const rpm = Plant.live["Conching/Conche1/AgitatorRpm"]?.value ?? 0;
-    const timeMin = Plant.live["Conching/Conche1/TimeMin"]?.value ?? 0;
     const mode = Plant.live["Conching/Mode"]?.value ?? "—";
     const concheOver = Plant.state.concheScenario === "overtemp";
     const concheAgit = Plant.state.concheScenario === "agitator";
     const starvedConche = mode === "STARVED";
     setLabel("kpi-a-label", "Temp");
-    setLabel("kpi-b-label", "RPM");
+    setLabel("kpi-b-label", "Agitator");
     setLabel("kpi-c-label", "Time");
     setLabel("kpi-d-label", "Mode");
-    setKpi("kpi-a", `${temp.toFixed(1)}°C`, concheOver ? "bad" : starvedConche ? "warn" : "good");
-    setKpi("kpi-b", String(Math.round(rpm)), concheAgit ? "bad" : starvedConche ? "warn" : "good");
-    setKpi("kpi-c", `${Math.round(timeMin)} min`, "good");
+    setKpi("kpi-a", val("Conching/Conche1/TempC"), concheOver ? "bad" : starvedConche ? "warn" : "good");
+    setKpi("kpi-b", val("Conching/Conche1/AgitatorRpm"), concheAgit ? "bad" : starvedConche ? "warn" : "good");
+    setKpi("kpi-c", val("Conching/Conche1/TimeMin"), "good");
     setKpi("kpi-d", String(mode), concheOver ? "bad" : concheAgit || starvedConche ? "warn" : "good");
   } else if (tempering) {
-    const z1 = Plant.live["Tempering/Temper1/Zone1TempC"]?.value ?? 0;
-    const z3 = Plant.live["Tempering/Temper1/Zone3TempC"]?.value ?? 0;
-    const screw = Plant.live["Tempering/Temper1/ScrewRpm"]?.value ?? 0;
     const temperStarve = (Plant.live["Tempering/Mode"]?.value ?? "") === "STARVED";
     setLabel("kpi-a-label", "Zone1");
     setLabel("kpi-b-label", "Zone3");
     setLabel("kpi-c-label", "Screw");
     setLabel("kpi-d-label", "Mode");
-    setKpi("kpi-a", `${z1.toFixed(1)}°C`, temperWarm ? "bad" : "good");
-    setKpi("kpi-b", `${z3.toFixed(1)}°C`, temperWarm ? "bad" : "good");
-    setKpi("kpi-c", `${screw.toFixed(1)} rpm`, temperBelt ? "bad" : temperStarve ? "warn" : "good");
-    setKpi("kpi-d", String(Plant.live["Tempering/Mode"]?.value ?? "—"), temperWarm ? "bad" : temperBelt || temperStarve ? "warn" : "good");
+    setKpi("kpi-a", val("Tempering/Temper1/Zone1TempC"), temperWarm ? "bad" : "good");
+    setKpi("kpi-b", val("Tempering/Temper1/Zone3TempC"), temperWarm ? "bad" : "good");
+    setKpi("kpi-c", val("Tempering/Temper1/ScrewRpm"), temperDrive ? "bad" : temperStarve ? "warn" : "good");
+    setKpi("kpi-d", String(Plant.live["Tempering/Mode"]?.value ?? "—"), temperWarm ? "bad" : temperDrive || temperStarve ? "warn" : "good");
   } else if (moulding) {
-    const cycles = Plant.live["Moulding/Moulder1/CyclesPerMin"]?.value ?? 0;
-    const mouldTemp = Plant.live["Moulding/Moulder1/MouldTempC"]?.value ?? 0;
-    const airTemp = Plant.live["Moulding/Cooling/AirTempC"]?.value ?? 0;
     const mode = Plant.live["Moulding/Mode"]?.value ?? "—";
     const mouldJamSc = Plant.state.mouldScenario === "jam";
     const mouldCoolSc = Plant.state.mouldScenario === "cool";
     const starvedMould = mode === "STARVED";
     setLabel("kpi-a-label", "Cycles");
-    setLabel("kpi-b-label", "Mould °C");
-    setLabel("kpi-c-label", "Air °C");
+    setLabel("kpi-b-label", "Mould");
+    setLabel("kpi-c-label", "Air");
     setLabel("kpi-d-label", "Mode");
-    setKpi("kpi-a", String(Math.round(cycles)), mouldJamSc ? "bad" : starvedMould ? "warn" : "good");
-    setKpi("kpi-b", `${mouldTemp.toFixed(1)}°C`, starvedMould ? "warn" : "good");
-    setKpi("kpi-c", `${airTemp.toFixed(1)}°C`, mouldCoolSc ? "bad" : starvedMould ? "warn" : "good");
+    setKpi("kpi-a", val("Moulding/Moulder1/CyclesPerMin"), mouldJamSc ? "bad" : starvedMould ? "warn" : "good");
+    setKpi("kpi-b", val("Moulding/Moulder1/MouldTempC"), starvedMould ? "warn" : "good");
+    setKpi("kpi-c", val("Moulding/Cooling/AirTempC"), mouldCoolSc ? "bad" : starvedMould ? "warn" : "good");
     setKpi("kpi-d", String(mode), mouldJamSc ? "bad" : mouldCoolSc || starvedMould ? "warn" : "good");
   } else {
     const oee = Plant.live.OEE?.value ?? 0;
@@ -128,8 +122,8 @@ Plant.renderKpis = function renderKpis() {
     setLabel("kpi-b-label", "Thru");
     setLabel("kpi-c-label", "Mode");
     setLabel("kpi-d-label", "Rejects");
-    setKpi("kpi-a", `${oee.toFixed(1)}%`, jam ? "bad" : feedStarved ? "warn" : oee >= 80 ? "good" : "warn");
-    setKpi("kpi-b", String(Math.round(Plant.live.Throughput?.value ?? 0)), jam ? "bad" : feedStarved ? "warn" : "good");
+    setKpi("kpi-a", val("OEE"), jam ? "bad" : feedStarved ? "warn" : oee >= 80 ? "good" : "warn");
+    setKpi("kpi-b", val("Throughput"), jam ? "bad" : feedStarved ? "warn" : "good");
     setKpi("kpi-c", String(Plant.live.Mode?.value ?? "—"), jam ? "bad" : feedStarved ? "warn" : "good");
     setKpi("kpi-d", String(Math.round(Plant.live["Checkweigher/Reject/Count"]?.value ?? 0)), "warn");
   }
@@ -163,16 +157,16 @@ Plant.renderKpis = function renderKpis() {
     btn.classList.toggle("plant-btn--ghost", !hasLocalFault || !!blocked);
   };
 
-  document.querySelectorAll("[data-scenario]").forEach((btn) => {
-    const sc = btn.getAttribute("data-scenario");
+  document.querySelectorAll("[data-pack-scenario]").forEach((btn) => {
+    const sc = btn.getAttribute("data-pack-scenario");
     if (sc === "recover") {
-      paintRecover(btn, Plant.state.scenario != null, { blocked: upstreamHold && Plant.state.scenario === null });
-      btn.title = upstreamHold && Plant.state.scenario === null
+      paintRecover(btn, Plant.state.packScenario != null, { blocked: upstreamHold && Plant.state.packScenario === null });
+      btn.title = upstreamHold && Plant.state.packScenario === null
         ? "Upstream hold — clear root cause first"
         : "Return packaging line to healthy AUTO";
       return;
     }
-    btn.classList.toggle("is-active", Plant.state.scenario === sc);
+    btn.classList.toggle("is-active", Plant.state.packScenario === sc);
   });
   document.querySelectorAll("[data-mix-scenario]").forEach((btn) => {
     const sc = btn.getAttribute("data-mix-scenario");
@@ -221,7 +215,7 @@ Plant.renderKpis = function renderKpis() {
 
   const recoverAllBtn = document.querySelector('[data-action="recover-all"]');
   if (recoverAllBtn) {
-    const anyLocal = Plant.state.scenario != null || Plant.state.mixScenario != null
+    const anyLocal = Plant.state.packScenario != null || Plant.state.mixScenario != null
       || Plant.state.temperScenario != null || Plant.state.refineScenario != null
       || Plant.state.concheScenario != null || Plant.state.mouldScenario != null;
     paintRecover(recoverAllBtn, anyLocal);
@@ -238,6 +232,7 @@ Plant.renderKpis = function renderKpis() {
   };
   const title = document.querySelector(".plant-hmi__title h1");
   if (title) title.textContent = titleMap[drawing] || titleMap.packaging;
+  document.title = `${titleMap[drawing] || titleMap.packaging} · Sam Donche`;
 
   document.querySelectorAll(".plant-area-nav__btn[data-drawing]").forEach((btn) => {
     const d = btn.getAttribute("data-drawing");
@@ -251,16 +246,16 @@ Plant.renderKpis = function renderKpis() {
   if (scanDot && scanLabel) {
     scanDot.classList.remove("is-fault", "is-warn");
     if (mixing && mixOver) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Overtemp"; }
-    else if (mixing && mixValve) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Valve fault"; }
+    else if (mixing && mixValve) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Valve stuck"; }
     else if (refining && Plant.state.refineScenario === "pressure") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Pressure"; }
     else if (refining && Plant.state.refineScenario === "particle") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Particle"; }
     else if (conching && Plant.state.concheScenario === "overtemp") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Overtemp"; }
     else if (conching && Plant.state.concheScenario === "agitator") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Agitator"; }
     else if (tempering && temperWarm) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Zone warm"; }
-    else if (tempering && temperBelt) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Drive stop"; }
+    else if (tempering && temperDrive) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Drive stop"; }
     else if (moulding && Plant.state.mouldScenario === "jam") { scanDot.classList.add("is-fault"); scanLabel.textContent = "Jam"; }
     else if (moulding && Plant.state.mouldScenario === "cool") { scanDot.classList.add("is-warn"); scanLabel.textContent = "Cool air"; }
-    else if (packaging && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Fault"; }
+    else if (packaging && jam) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Jam"; }
     else if (packaging && feedStarved) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved"; }
     else if (overview) {
       const anyFault = Plant.PLANT_AREAS.some((a) => Plant.areaHealth(a.drawing) === "fault");
@@ -269,9 +264,12 @@ Plant.renderKpis = function renderKpis() {
       if (anyFault) { scanDot.classList.add("is-fault"); scanLabel.textContent = "Plant fault"; }
       else if (anyWarn) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Plant hold"; }
       else if (flap) { scanDot.classList.add("is-warn"); scanLabel.textContent = "Sister flap"; }
-      else scanLabel.textContent = "Line healthy";
+      else scanLabel.textContent = "Plant healthy";
+    } else if (!packaging && Plant.areaHealth(drawing) === "starved") {
+      // Held by an upstream area: this area waits for mass
+      scanDot.classList.add("is-warn"); scanLabel.textContent = "Starved";
     } else {
-      scanLabel.textContent = "Line healthy";
+      scanLabel.textContent = packaging ? "Line healthy" : "Area healthy";
     }
   }
 
@@ -282,6 +280,8 @@ Plant.renderKpis = function renderKpis() {
   const almN = Plant.state.alarms.length;
   if (headerAlarms && headerAlarmCount) {
     headerAlarmCount.textContent = String(almN);
+    const noun = document.getElementById("plant-header-alarm-noun");
+    if (noun) noun.textContent = almN === 1 ? "alarm" : "alarms";
     headerAlarms.hidden = almN === 0;
   }
 }
@@ -359,22 +359,30 @@ Plant.buildSiteMapSvg = function buildSiteMapSvg() {
       </g>
     </g>`;
   }).join("");
-  return `<svg class="plant-site-map__svg" viewBox="0 0 340 220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Schematic West Flanders site map">
+  // Title band on top (y 8–34); the map itself is shifted down 22 and clipped
+  // below the band so coastline and labels never run through the title.
+  return `<svg class="plant-site-map__svg" viewBox="0 0 340 244" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Schematic West Flanders site map">
     <title>Schematic site map — relative layout, not to scale</title>
     <defs>
       <linearGradient id="plant-map-sea" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="rgba(14, 116, 144, 0.18)" />
         <stop offset="100%" stop-color="rgba(15, 23, 42, 0)" />
       </linearGradient>
+      <clipPath id="plant-map-clip"><rect x="8" y="12" width="324" height="214" /></clipPath>
     </defs>
-    <rect class="plant-site-map__sheet" x="8" y="8" width="324" height="204" rx="2" />
-    <text class="plant-site-map__title" x="18" y="26">SITES · WEST FLANDERS</text>
-    <text class="plant-site-map__caption" x="322" y="26" text-anchor="end">SCHEMATIC · NOT TO SCALE</text>
-    <polygon class="plant-site-map__sea" points="${Plant.SITE_MAP_SEA}" fill="url(#plant-map-sea)" />
-    <text class="plant-site-map__sea-label" x="70" y="48">NORTH SEA</text>
-    <polygon class="plant-site-map__land" points="${Plant.SITE_MAP_LAND}" />
-    <g class="plant-site-map__links">${links}</g>
-    <g class="plant-site-map__nodes">${nodes}</g>
+    <rect class="plant-site-map__sheet" x="8" y="8" width="324" height="228" rx="2" />
+    <text class="plant-site-map__title" x="18" y="25">SITES · WEST FLANDERS</text>
+    <text class="plant-site-map__caption" x="322" y="25" text-anchor="end">SCHEMATIC · NOT TO SCALE</text>
+    <line class="plant-site-map__rule" x1="8" y1="34" x2="332" y2="34" />
+    <g transform="translate(0, 22)">
+      <g clip-path="url(#plant-map-clip)">
+        <polygon class="plant-site-map__sea" points="${Plant.SITE_MAP_SEA}" fill="url(#plant-map-sea)" />
+        <text class="plant-site-map__sea-label" x="70" y="40">NORTH SEA</text>
+        <polygon class="plant-site-map__land" points="${Plant.SITE_MAP_LAND}" />
+      </g>
+      <g class="plant-site-map__links">${links}</g>
+      <g class="plant-site-map__nodes">${nodes}</g>
+    </g>
   </svg>`;
 }
 
@@ -401,7 +409,10 @@ Plant.paintFleet = function paintFleet() {
     const modeEl = cell.querySelector("[data-fleet-mode]");
     if (modeEl) modeEl.textContent = snap.mode;
     const oeeEl = cell.querySelector("[data-fleet-oee]");
-    if (oeeEl) oeeEl.textContent = snap.oee == null ? "OEE —" : `OEE ${snap.oee.toFixed(1)}%`;
+    if (oeeEl) {
+      const oeeTxt = snap.oee == null ? "—" : `${snap.oee.toFixed(1)} %`;
+      oeeEl.textContent = snap.link === "offline" ? `Last OEE ${oeeTxt}` : `OEE ${oeeTxt}`;
+    }
     const contactEl = cell.querySelector("[data-fleet-contact]");
     if (contactEl) {
       contactEl.textContent = snap.isHome || snap.link === "flap"
@@ -461,7 +472,7 @@ Plant.paintSiteChip = function paintSiteChip() {
   if (Plant.isSisterSiteTag(tag)) {
     const site = tag.split("/")[0];
     const snap = Plant.siteSnapshot(site);
-    const linkTxt = snap.link === "flap" ? "link flapping" : "offline stub";
+    const linkTxt = snap.link === "flap" ? "flapping link" : "offline, last known values";
     chip.hidden = false;
     chip.textContent = `Viewing ${site} tags · ${linkTxt} · Heuvelland P&ID still shown`;
     chip.classList.toggle("is-flap", snap.link === "flap");
@@ -489,7 +500,7 @@ Plant.renderBatchTrail = function renderBatchTrail() {
   const idBtn = document.getElementById("plant-batch-id");
   const steps = document.getElementById("plant-batch-steps");
   if (!idBtn || !steps) return;
-  const batchId = String(Plant.live.BatchId?.value ?? Plant.live["Mixing/BatchId"]?.value ?? "—");
+  const batchId = String(Plant.live.__trackedBatch?.value ?? "—");
   idBtn.textContent = `BATCH ${batchId}`;
   const here = Plant.batchStepIndex(Plant.live.__batchPhase?.value ?? (Plant.tick % 90));
   steps.querySelectorAll("[data-batch-step]").forEach((btn) => {
@@ -503,8 +514,9 @@ Plant.renderBatchTrail = function renderBatchTrail() {
     else li.classList.add("is-pending");
     btn.classList.toggle("is-active", step === Plant.state.activeDrawing || (Plant.state.activeDrawing === "overview" && idx === here));
     const pos = idx === here ? "batch position" : idx < here ? "completed" : "pending";
-    btn.setAttribute("aria-label", `${step} — ${pos} (open sheet)`);
-    btn.title = `${step}: batch position vs open sheet`;
+    const stepName = step.charAt(0).toUpperCase() + step.slice(1);
+    btn.setAttribute("aria-label", `${stepName} — ${pos} (open sheet)`);
+    btn.title = `${stepName}: batch position vs open sheet`;
   });
 }
 
@@ -606,9 +618,9 @@ Plant.wire = function wire() {
   });
 
   document.querySelector(".plant-toolbar")?.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-action], [data-scenario], [data-mix-scenario], [data-temper-scenario], [data-refine-scenario], [data-conche-scenario], [data-mould-scenario]");
+    const btn = e.target.closest("[data-action], [data-pack-scenario], [data-mix-scenario], [data-temper-scenario], [data-refine-scenario], [data-conche-scenario], [data-mould-scenario]");
     if (!btn) return;
-    const sc = btn.getAttribute("data-scenario");
+    const sc = btn.getAttribute("data-pack-scenario");
     const mixSc = btn.getAttribute("data-mix-scenario");
     const temperSc = btn.getAttribute("data-temper-scenario");
     const refineSc = btn.getAttribute("data-refine-scenario");
@@ -631,7 +643,8 @@ Plant.wire = function wire() {
   document.getElementById("plant-batch-trail")?.addEventListener("click", (e) => {
     const idBtn = e.target.closest("#plant-batch-id");
     if (idBtn) {
-      const tag = Plant.BATCH_HOME_TAG[Plant.state.activeDrawing] || Plant.BATCH_HOME_TAG[Plant.BATCH_STEPS[Plant.batchStepIndex(Plant.live.__batchPhase?.value ?? (Plant.tick % 90))]] || "BatchId";
+      // The tracked batch sits in exactly one area: select that area's BatchId
+      const tag = Plant.BATCH_HOME_TAG[Plant.BATCH_STEPS[Plant.batchStepIndex(Plant.live.__batchPhase?.value ?? (Plant.tick % 90))]] || "BatchId";
       Plant.selectTag(tag);
       return;
     }
@@ -640,6 +653,15 @@ Plant.wire = function wire() {
       const step = stepBtn.getAttribute("data-batch-step");
       if (step) Plant.setActiveDrawing(step);
     }
+  });
+
+  // Phones/tablets: the tag browser sits under the drawing, collapsed until asked for
+  document.getElementById("plant-tree-toggle")?.addEventListener("click", (e) => {
+    const pane = e.currentTarget.closest(".plant-pane--tree");
+    const open = !pane.classList.contains("is-open");
+    pane.classList.toggle("is-open", open);
+    e.currentTarget.setAttribute("aria-expanded", String(open));
+    e.currentTarget.textContent = open ? "Hide tags" : "Show tags";
   });
 
   document.querySelector(".plant-area-nav")?.addEventListener("click", (e) => {

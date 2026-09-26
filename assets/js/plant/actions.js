@@ -5,14 +5,11 @@ import { Plant } from "./ns.js?v=c600f295ec";
 
 Plant.setScenario = function setScenario(name) {
   if (name === "recover") {
-    Plant.state.scenario = null;
-    Plant.state.cartonerJamCleared = false;
+    Plant.state.packScenario = null;
   } else if (name === "jam") {
-    Plant.state.scenario = "jam";
-    Plant.state.cartonerJamCleared = false;
+    Plant.state.packScenario = "jam";
   } else if (name === "starved") {
-    Plant.state.scenario = "starved";
-    Plant.state.cartonerJamCleared = false;
+    Plant.state.packScenario = "starved";
   }
   Plant.saveState();
   Plant.computeLive();
@@ -31,7 +28,7 @@ Plant.setMixScenario = function setMixScenario(name) {
 
 Plant.setTemperScenario = function setTemperScenario(name) {
   if (name === "recover") Plant.state.temperScenario = null;
-  else if (name === "warm" || name === "belt") Plant.state.temperScenario = name;
+  else if (name === "warm" || name === "drive") Plant.state.temperScenario = name;
   Plant.saveState();
   Plant.computeLive();
   Plant.renderAll();
@@ -73,9 +70,8 @@ Plant.resetReject = function resetReject() {
 }
 
 Plant.clearCartonerJam = function clearCartonerJam() {
-  if (Plant.state.scenario === "jam") {
-    Plant.state.cartonerJamCleared = true;
-    Plant.state.scenario = null;
+  if (Plant.state.packScenario === "jam") {
+    Plant.state.packScenario = null;
     Plant.state.alarms = Plant.state.alarms.filter((a) => a.id !== "alm-cartoner-jam");
   }
   Plant.saveState();
@@ -85,13 +81,12 @@ Plant.clearCartonerJam = function clearCartonerJam() {
 }
 
 Plant.recoverAll = function recoverAll() {
-  Plant.state.scenario = null;
+  Plant.state.packScenario = null;
   Plant.state.mixScenario = null;
   Plant.state.temperScenario = null;
   Plant.state.refineScenario = null;
   Plant.state.concheScenario = null;
   Plant.state.mouldScenario = null;
-  Plant.state.cartonerJamCleared = false;
   Plant.saveState();
   Plant.computeLive();
   Plant.renderAll();

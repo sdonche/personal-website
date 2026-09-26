@@ -2,13 +2,13 @@ import { Plant } from "./ns.js?v=c600f295ec";
 
 
 Plant.computeLive = function computeLive() {
-  const jam = Plant.state.scenario === "jam" && !Plant.state.cartonerJamCleared;
-  const starved = Plant.state.scenario === "starved";
+  const jam = Plant.state.packScenario === "jam";
+  const starved = Plant.state.packScenario === "starved";
   const mixOver = Plant.state.mixScenario === "overtemp";
   const mixValve = Plant.state.mixScenario === "valve";
   const mixFault = mixOver || mixValve;
   const temperWarm = Plant.state.temperScenario === "warm";
-  const temperBelt = Plant.state.temperScenario === "belt";
+  const temperDrive = Plant.state.temperScenario === "drive";
   const refinePressure = Plant.state.refineScenario === "pressure";
   const refineParticle = Plant.state.refineScenario === "particle";
   const concheOver = Plant.state.concheScenario === "overtemp";
@@ -16,12 +16,18 @@ Plant.computeLive = function computeLive() {
   const mouldJam = Plant.state.mouldScenario === "jam";
   const mouldCool = Plant.state.mouldScenario === "cool";
   /* Upstream hold starves packaging feed (shared chocolate mass path). */
-  const upstreamHold = mixFault || temperBelt || temperWarm || refinePressure || refineParticle
+  const upstreamHold = mixFault || temperDrive || temperWarm || refinePressure || refineParticle
     || concheOver || concheAgit || mouldJam || mouldCool;
   const lineOk = !jam && !starved && !upstreamHold;
   const feedStarved = starved || upstreamHold;
-  const batchId = `B-${1400 + Math.floor(Plant.tick / 90)}`;
+  /* Batch pipeline: every area holds its own batch and batches advance one area
+     every 15 ticks, so area i holds B-(1400 + ⌊tick/15⌋ − i). The batch trail
+     follows one batch through all six areas (every 6th batch). */
   const batchPhase = Plant.tick % 90;
+  const pipe = Math.floor(Plant.tick / 15);
+  const areaBatch = (i) => `B-${1400 + pipe - i}`;
+  const trackedBatch = `B-${1400 + 6 * Math.floor(Plant.tick / 90)}`;
+  const batchId = areaBatch(5); // Packaging / Line3
 
   const speedSp = Number(Plant.state.speedSp) > 0 ? Number(Plant.state.speedSp) : 120;
   const cartonerSpeed = jam ? 0 : feedStarved ? Plant.drift(38, 4, 1) : Plant.drift(118, 3, 1);
@@ -33,6 +39,7 @@ Plant.computeLive = function computeLive() {
 
   if (lineOk && Math.random() < 0.08) Plant.state.rejectCount += 1;
   if (lineOk && Math.random() < 0.03) Plant.state.underCount += 1;
+  if (lineOk && Math.random() < 0.015) Plant.state.overCount += 1;
   if (lineOk && Plant.tick % 48 === 0) Plant.state.palletsDone += 1;
 
   const photoIn = !feedStarved && Math.random() > 0.15;
@@ -61,9 +68,9 @@ Plant.computeLive = function computeLive() {
     "Cartoner/CartonsPerMin": { value: Math.max(0, cartonerSpeed), quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
     "Cartoner/FaultCode": { value: jam ? 41 : 0, quality: jam ? "Bad" : "Good" },
 
-    "Checkweigher/Running": { value: !jam, quality: jam ? "Stale" : feedStarved ? "Uncertain" : "Good" },
-    "Checkweigher/WeightKg": { value: Math.max(0, weight), quality: jam ? "Stale" : "Good" },
-    "Checkweigher/InSpec": { value: !rejectActive && !jam, quality: jam ? "Stale" : "Good" },
+    "Checkweigher/Running": { value: !jam, quality: feedStarved ? "Uncertain" : "Good" },
+    "Checkweigher/WeightKg": { value: Math.max(0, weight), quality: "Good" },
+    "Checkweigher/InSpec": { value: !rejectActive && !jam, quality: "Good" },
     "Checkweigher/UnderCount": { value: Plant.state.underCount, quality: "Good" },
     "Checkweigher/OverCount": { value: Plant.state.overCount, quality: "Good" },
 
@@ -76,14 +83,14 @@ Plant.computeLive = function computeLive() {
     "CasePacker/CasesPerMin": { value: Math.max(0, caseSpeed), quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
     "CasePacker/Jam": { value: false, quality: "Good" },
 
-    "Palletizer/Running": { value: !jam && !feedStarved, quality: jam ? "Stale" : feedStarved ? "Uncertain" : "Good" },
-    "Palletizer/Layers": { value: jam ? 0 : Math.floor(((Plant.tick / 6) % 8) + 1), quality: jam ? "Stale" : "Good" },
+    "Palletizer/Running": { value: !jam && !feedStarved, quality: feedStarved ? "Uncertain" : "Good" },
+    "Palletizer/Layers": { value: jam ? 0 : Math.floor(((Plant.tick / 6) % 8) + 1), quality: "Good" },
     "Palletizer/PalletsDone": { value: Plant.state.palletsDone, quality: "Good" },
     "Palletizer/Jam": { value: false, quality: "Good" },
 
-    "Outfeed/Running": { value: !jam && !feedStarved, quality: jam ? "Stale" : feedStarved ? "Uncertain" : "Good" },
-    "Outfeed/Occupied": { value: photoOut, quality: jam ? "Stale" : "Good" },
-    "Outfeed/Photoeye": { value: photoOut, quality: jam ? "Stale" : "Good" },
+    "Outfeed/Running": { value: !jam && !feedStarved, quality: feedStarved ? "Uncertain" : "Good" },
+    "Outfeed/Occupied": { value: photoOut, quality: "Good" },
+    "Outfeed/Photoeye": { value: photoOut, quality: "Good" },
   };
 
   Plant.STUB_LINES.forEach((line) => {
@@ -122,7 +129,7 @@ Plant.computeLive = function computeLive() {
   const mixQ = mixOver ? "Bad" : mixValve ? "Uncertain" : "Good";
   Plant.live["Mixing/Running"] = { value: mixRun, quality: mixQ };
   Plant.live["Mixing/Mode"] = { value: mixMode, quality: mixQ };
-  Plant.live["Mixing/BatchId"] = { value: batchId, quality: "Good" };
+  Plant.live["Mixing/BatchId"] = { value: areaBatch(0), quality: "Good" };
   Plant.live["Mixing/Mixer1/Running"] = { value: mixRun, quality: mixQ };
   Plant.live["Mixing/Mixer1/LevelPct"] = { value: level, quality: mixValve ? "Uncertain" : "Good" };
   Plant.live["Mixing/Mixer1/AgitatorRpm"] = { value: rpm, quality: mixFault ? "Uncertain" : "Good" };
@@ -166,10 +173,10 @@ Plant.computeLive = function computeLive() {
       : Plant.clamp(Plant.drift(118, 4, 48), 100, 135);
   const refineMode = refinePressure ? "FAULT" : refineParticle ? "HOLD" : refineStarve ? "STARVED" : "AUTO";
   const refineQ = refinePressure ? "Bad" : refineParticle || refineStarve ? "Uncertain" : "Good";
-  Plant.live["Refining/Running"] = { value: !refineStarve, quality: refineQ };
+  Plant.live["Refining/Running"] = { value: refineRun, quality: refineQ };
   Plant.live["Refining/Mode"] = { value: refineMode, quality: refineQ };
-  Plant.live["Refining/BatchId"] = { value: batchId, quality: "Good" };
-  Plant.live["Refining/Refiner1/Running"] = { value: !refineStarve, quality: refineQ };
+  Plant.live["Refining/BatchId"] = { value: areaBatch(1), quality: "Good" };
+  Plant.live["Refining/Refiner1/Running"] = { value: refineRun, quality: refineQ };
   Plant.live["Refining/Refiner1/LoadPct"] = { value: refineLoad, quality: refineStarve || refineParticle ? "Uncertain" : "Good" };
   Plant.live["Refining/Refiner1/ParticleUm"] = { value: particle, quality: refineParticle ? "Bad" : refineStarve ? "Uncertain" : "Good" };
   Plant.live["Refining/Refiner1/RollPressureBar"] = { value: rollPressure, quality: refinePressure ? "Bad" : refineStarve ? "Uncertain" : "Good" };
@@ -205,10 +212,10 @@ Plant.computeLive = function computeLive() {
   const jacketFlow = concheStarve ? Plant.clamp(Plant.drift(0.4, 0.15, 50), 0, 0.8) : Plant.clamp(Plant.drift(2.4, 0.2, 50), 1.6, 3.2);
   const concheMode = concheOver ? "FAULT" : concheAgit ? "HOLD" : concheStarve ? "STARVED" : "AUTO";
   const concheQ = concheOver ? "Bad" : concheAgit || concheStarve ? "Uncertain" : "Good";
-  Plant.live["Conching/Running"] = { value: !concheStarve, quality: concheQ };
+  Plant.live["Conching/Running"] = { value: concheRun, quality: concheQ };
   Plant.live["Conching/Mode"] = { value: concheMode, quality: concheQ };
-  Plant.live["Conching/BatchId"] = { value: batchId, quality: "Good" };
-  Plant.live["Conching/Conche1/Running"] = { value: !concheStarve && !concheAgit, quality: concheQ };
+  Plant.live["Conching/BatchId"] = { value: areaBatch(2), quality: "Good" };
+  Plant.live["Conching/Conche1/Running"] = { value: concheRun, quality: concheQ };
   Plant.live["Conching/Conche1/TempC"] = { value: concheTemp, quality: concheOver ? "Bad" : concheStarve ? "Uncertain" : "Good" };
   Plant.live["Conching/Conche1/AgitatorRpm"] = { value: concheRpm, quality: concheAgit ? "Bad" : concheStarve ? "Uncertain" : "Good" };
   Plant.live["Conching/Conche1/TimeMin"] = { value: concheTime, quality: "Good" };
@@ -221,40 +228,40 @@ Plant.computeLive = function computeLive() {
 
   /* Tempering — temper machine zones; starve on mix / refine / conche cascade. */
   const temperStarve = mixFault || refinePressure || refineParticle || concheOver || concheAgit;
-  const temperRun = !temperBelt && !temperWarm && !temperStarve;
+  const temperRun = !temperDrive && !temperWarm && !temperStarve;
   const z1 = temperWarm ? Plant.clamp(Plant.drift(52, 0.9, 14), 48, 56) : Plant.clamp(Plant.drift(45.0, 0.8, 14), 42, 48);
   const z2 = temperWarm ? Plant.clamp(Plant.drift(36, 0.8, 15), 33, 40) : Plant.clamp(Plant.drift(28.0, 0.7, 15), 26, 30);
   const z3 = temperWarm ? Plant.clamp(Plant.drift(38, 0.7, 16), 35, 42) : Plant.clamp(Plant.drift(32.0, 0.6, 16), 30, 34);
   const massOut = temperWarm ? Plant.clamp(Plant.drift(37, 0.6, 17), 34, 40) : Plant.clamp(Plant.drift(31.5, 0.5, 17), 29, 34);
-  const screw = temperBelt ? 0 : temperStarve ? Plant.clamp(Plant.drift(2.5, 0.6, 18), 0.5, 4.5) : Plant.clamp(Plant.drift(18, 1.2, 18), 12, 26);
+  const screw = temperDrive ? 0 : temperStarve ? Plant.clamp(Plant.drift(2.5, 0.6, 18), 0.5, 4.5) : Plant.clamp(Plant.drift(18, 1.2, 18), 12, 26);
   const inOpen = !temperStarve;
   const outOpen = temperRun;
   const inFlow = temperStarve ? 0 : Math.max(0, conchOutFlow * 0.97 + Plant.drift(0, 20, 19));
   const tOutFlow = temperRun ? Math.max(0, inFlow * 0.98 + Plant.drift(0, 15, 20)) : 0;
   const cwFlow = Plant.clamp(Plant.drift(temperWarm ? 8 : 12.5, 0.8, 21), 6, 18);
   const cwSupply = Plant.clamp(Plant.drift(temperWarm ? 9.5 : 6.5, 0.4, 22), 4, 11);
-  const temperMode = temperWarm ? "FAULT" : temperBelt ? "HOLD" : temperStarve ? "STARVED" : "AUTO";
-  const temperQ = temperWarm ? "Bad" : temperBelt || temperStarve ? "Uncertain" : "Good";
+  const temperMode = temperWarm ? "FAULT" : temperDrive ? "HOLD" : temperStarve ? "STARVED" : "AUTO";
+  const temperQ = temperWarm ? "Bad" : temperDrive || temperStarve ? "Uncertain" : "Good";
   Plant.live["Tempering/Running"] = { value: temperRun, quality: temperQ };
   Plant.live["Tempering/Mode"] = { value: temperMode, quality: temperQ };
-  Plant.live["Tempering/BatchId"] = { value: batchId, quality: "Good" };
+  Plant.live["Tempering/BatchId"] = { value: areaBatch(3), quality: "Good" };
   Plant.live["Tempering/Temper1/Running"] = { value: temperRun, quality: temperQ };
-  Plant.live["Tempering/Temper1/ScrewRpm"] = { value: screw, quality: temperBelt ? "Bad" : temperStarve ? "Uncertain" : "Good" };
+  Plant.live["Tempering/Temper1/ScrewRpm"] = { value: screw, quality: temperDrive ? "Bad" : temperStarve ? "Uncertain" : "Good" };
   Plant.live["Tempering/Temper1/Zone1TempC"] = { value: z1, quality: temperWarm ? "Bad" : "Good" };
   Plant.live["Tempering/Temper1/Zone2TempC"] = { value: z2, quality: temperWarm ? "Bad" : "Good" };
   Plant.live["Tempering/Temper1/Zone3TempC"] = { value: z3, quality: temperWarm ? "Bad" : "Good" };
   Plant.live["Tempering/Temper1/MassTempC"] = { value: massOut, quality: temperWarm ? "Bad" : "Good" };
   Plant.live["Tempering/Inlet/ValveOpen"] = { value: inOpen, quality: temperStarve ? "Uncertain" : "Good" };
   Plant.live["Tempering/Inlet/FlowKgH"] = { value: Math.max(0, inFlow), quality: temperStarve ? "Bad" : "Good" };
-  Plant.live["Tempering/Outlet/ValveOpen"] = { value: outOpen, quality: temperBelt || temperWarm ? "Uncertain" : "Good" };
-  Plant.live["Tempering/Outlet/FlowKgH"] = { value: Math.max(0, tOutFlow), quality: temperBelt || temperWarm || temperStarve ? "Bad" : "Good" };
+  Plant.live["Tempering/Outlet/ValveOpen"] = { value: outOpen, quality: temperDrive || temperWarm ? "Uncertain" : "Good" };
+  Plant.live["Tempering/Outlet/FlowKgH"] = { value: Math.max(0, tOutFlow), quality: temperDrive || temperWarm || temperStarve ? "Bad" : "Good" };
   Plant.live["Tempering/ChilledWater/FlowM3H"] = { value: cwFlow, quality: temperWarm ? "Uncertain" : "Good" };
   Plant.live["Tempering/ChilledWater/SupplyTempC"] = { value: cwSupply, quality: temperWarm ? "Uncertain" : "Good" };
 
   /* Moulding — inlet from tempering; local jam / cool-air scenarios. */
-  const mouldStarve = temperBelt || temperWarm || mixFault || refinePressure || refineParticle || concheOver || concheAgit;
-  const mouldRun = !mouldStarve && !mouldJam;
-  const cycles = mouldJam
+  const mouldStarve = temperDrive || temperWarm || mixFault || refinePressure || refineParticle || concheOver || concheAgit;
+  const mouldRun = !mouldStarve && !mouldJam && !mouldCool;
+  const cycles = mouldJam || mouldCool
     ? 0
     : mouldStarve
       ? Plant.clamp(Plant.drift(3, 1.2, 31), 0, 6)
@@ -271,9 +278,9 @@ Plant.computeLive = function computeLive() {
   const mouldOutFlow = mouldRun ? Math.max(0, mouldInFlow * 0.99 + Plant.drift(0, 12, 35)) : 0;
   const mouldMode = mouldJam ? "FAULT" : mouldCool ? "HOLD" : mouldStarve ? "STARVED" : "AUTO";
   const mouldQ = mouldJam ? "Bad" : mouldCool || mouldStarve ? "Uncertain" : "Good";
-  Plant.live["Moulding/Running"] = { value: !mouldStarve && !mouldJam, quality: mouldQ };
+  Plant.live["Moulding/Running"] = { value: mouldRun, quality: mouldQ };
   Plant.live["Moulding/Mode"] = { value: mouldMode, quality: mouldQ };
-  Plant.live["Moulding/BatchId"] = { value: batchId, quality: "Good" };
+  Plant.live["Moulding/BatchId"] = { value: areaBatch(4), quality: "Good" };
   Plant.live["Moulding/Moulder1/Running"] = { value: mouldRun, quality: mouldQ };
   Plant.live["Moulding/Moulder1/CyclesPerMin"] = { value: cycles, quality: mouldJam ? "Bad" : mouldStarve ? "Uncertain" : "Good" };
   Plant.live["Moulding/Moulder1/MouldTempC"] = { value: mouldTemp, quality: mouldStarve ? "Uncertain" : "Good" };
@@ -283,17 +290,14 @@ Plant.computeLive = function computeLive() {
   Plant.live["Moulding/Outlet/FlowKgH"] = { value: Math.max(0, mouldOutFlow), quality: mouldJam || mouldStarve ? "Bad" : "Good" };
   Plant.live["Moulding/Cooling/AirTempC"] = { value: airTemp, quality: mouldCool ? "Bad" : mouldStarve ? "Uncertain" : "Good" };
 
-  /* Heuvelland site meta — FAULT | STARVED | HOLD | AUTO (never HOLD for feed starve). */
-  const plantMode = mixOver || temperWarm || jam || refinePressure || concheOver || mouldJam
-    ? "FAULT"
-    : feedStarved
-      ? "STARVED"
-      : mixValve || temperBelt || refineParticle || concheAgit || mouldCool
-        ? "HOLD"
-        : "AUTO";
+  /* Heuvelland site meta — worst area state wins: FAULT > HOLD > STARVED > AUTO. */
+  const siteFault = mixOver || temperWarm || jam || refinePressure || concheOver || mouldJam;
+  const siteHold = mixValve || temperDrive || refineParticle || concheAgit || mouldCool;
+  const plantMode = siteFault ? "FAULT" : siteHold ? "HOLD" : feedStarved ? "STARVED" : "AUTO";
   const contactStamp = new Date().toISOString().replace("T", " ").slice(0, 16) + " UTC";
-  Plant.live[`${Plant.SITE}/Running`] = { value: lineOk || !jam, quality: jam || mixOver || temperWarm || refinePressure || concheOver || mouldJam ? "Uncertain" : "Good" };
-  Plant.live[`${Plant.SITE}/Mode`] = { value: plantMode, quality: jam || mixOver || temperWarm || refinePressure || concheOver || mouldJam ? "Bad" : feedStarved ? "Uncertain" : "Good" };
+  // Site Running = the site is shipping product (Line3 producing)
+  Plant.live[`${Plant.SITE}/Running`] = { value: lineOk, quality: siteFault ? "Bad" : feedStarved ? "Uncertain" : "Good" };
+  Plant.live[`${Plant.SITE}/Mode`] = { value: plantMode, quality: siteFault ? "Bad" : feedStarved ? "Uncertain" : "Good" };
   Plant.live[`${Plant.SITE}/OEE`] = { value: oee, quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" };
   Plant.live[`${Plant.SITE}/LastContact`] = { value: contactStamp, quality: "Good" };
 
@@ -316,16 +320,17 @@ Plant.computeLive = function computeLive() {
     } else {
       Plant.live[`${site}/Running`] = { value: false, quality: "Stale" };
       Plant.live[`${site}/Mode`] = { value: "OFFLINE", quality: "Stale" };
-      Plant.live[`${site}/OEE`] = { value: 0, quality: "Stale" };
+      Plant.live[`${site}/OEE`] = { value: Plant.SISTER_LAST_OEE[site], quality: "Stale" };
       Plant.live[`${site}/LastContact`] = { value: Plant.SISTER_LAST_CONTACT[site], quality: "Stale" };
       Plant.live[`${site}/Mixing/Running`] = { value: false, quality: "Stale" };
       Plant.live[`${site}/Mixing/Mode`] = { value: "OFFLINE", quality: "Stale" };
       Plant.live[`${site}/Packaging/Running`] = { value: false, quality: "Stale" };
-      Plant.live[`${site}/Packaging/OEE`] = { value: 0, quality: "Stale" };
+      Plant.live[`${site}/Packaging/OEE`] = { value: Plant.SISTER_LAST_OEE[site], quality: "Stale" };
     }
   });
   Plant.live.__sparkSite = { value: sparkSite, quality: "Good" };
   Plant.live.__batchPhase = { value: batchPhase, quality: "Good" };
+  Plant.live.__trackedBatch = { value: trackedBatch, quality: "Good" };
 
   Plant.syncScenarioAlarms();
   Plant.recordTrends();
@@ -350,10 +355,9 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
   const concheOver = Plant.state.concheScenario === "overtemp";
   const concheAgit = Plant.state.concheScenario === "agitator";
   const temperWarm = Plant.state.temperScenario === "warm";
-  const temperBelt = Plant.state.temperScenario === "belt";
-  const temperStarve = mixFault || refinePressure || refineParticle || concheOver || concheAgit;
+  const temperDrive = Plant.state.temperScenario === "drive";
 
-  if (Plant.state.scenario === "jam" && !Plant.state.cartonerJamCleared) {
+  if (Plant.state.packScenario === "jam") {
     want.push({
       id: "alm-cartoner-jam",
       path: Plant.pathOf("Cartoner/Jam"),
@@ -361,7 +365,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
       severity: /** @type {const} */ ("critical"),
     });
   }
-  if (Plant.state.scenario === "starved") {
+  if (Plant.state.packScenario === "starved") {
     want.push({
       id: "alm-infeed-starved",
       path: Plant.pathOf("Infeed/Starved"),
@@ -389,23 +393,30 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-upstream",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — upstream mass hold",
+      message: "Line 3 starved — Mixing hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
-  if (temperStarve) {
-    const msg = mixFault
-      ? "Tempering starved — Mixing mass out stopped"
-      : refinePressure || refineParticle
-        ? "Tempering starved — Refining mass hold"
-        : "Tempering starved — Conching mass hold";
+  /* Upstream starve — every area downstream of a held area raises one warning
+     naming the first held area upstream of it. */
+  const localHold = [
+    ["Mixing", mixFault],
+    ["Refining", refinePressure || refineParticle],
+    ["Conching", concheOver || concheAgit],
+    ["Tempering", temperWarm || temperDrive],
+    ["Moulding", Plant.state.mouldScenario === "jam" || Plant.state.mouldScenario === "cool"],
+  ];
+  [["Refining", "refine"], ["Conching", "conche"], ["Tempering", "temper"], ["Moulding", "mould"]].forEach(([area, key]) => {
+    const i = localHold.findIndex(([name]) => name === area);
+    const source = localHold.slice(0, i).find(([, held]) => held);
+    if (!source) return;
     want.push({
-      id: "alm-temper-upstream",
-      path: Plant.pathOf("Tempering/Inlet/FlowKgH"),
-      message: msg,
+      id: `alm-${key}-upstream`,
+      path: Plant.pathOf(`${area}/Inlet/FlowKgH`),
+      message: `${area} starved — no mass from ${source[0]}`,
       severity: /** @type {const} */ ("warning"),
     });
-  }
+  });
   if (temperWarm) {
     want.push({
       id: "alm-temper-warm",
@@ -416,13 +427,13 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-temper",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Tempering zone warm",
+      message: "Line 3 starved — Tempering zone warm",
       severity: /** @type {const} */ ("warning"),
     });
   }
-  if (temperBelt) {
+  if (temperDrive) {
     want.push({
-      id: "alm-temper-belt",
+      id: "alm-temper-drive",
       path: Plant.pathOf("Tempering/Temper1/ScrewRpm"),
       message: "Temper1 screw drive stopped — mass hold",
       severity: /** @type {const} */ ("warning"),
@@ -430,7 +441,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-temper",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Tempering drive hold",
+      message: "Line 3 starved — Tempering drive hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -444,7 +455,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-refine",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Refining pressure hold",
+      message: "Line 3 starved — Refining pressure hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -458,7 +469,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-refine",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Refining particle hold",
+      message: "Line 3 starved — Refining particle hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -472,7 +483,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-conche",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Conching overtemp hold",
+      message: "Line 3 starved — Conching overtemp hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -486,7 +497,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-conche",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Conching agitator hold",
+      message: "Line 3 starved — Conching agitator hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -500,7 +511,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-mould",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Moulding jam",
+      message: "Line 3 starved — Moulding jam",
       severity: /** @type {const} */ ("warning"),
     });
   }
@@ -514,7 +525,7 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     want.push({
       id: "alm-pack-mould",
       path: Plant.pathOf("Infeed/Starved"),
-      message: "Packaging Line3 starved — Moulding cool-air hold",
+      message: "Line 3 starved — Moulding cool-air hold",
       severity: /** @type {const} */ ("warning"),
     });
   }
