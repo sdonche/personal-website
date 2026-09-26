@@ -289,7 +289,7 @@
   border-radius: 50%;
 }
 
-.plant-q-dot--good { background: var(--plant-good); }
+.plant-q-dot--good { background: rgb(148 163 184); }
 .plant-q-dot--uncertain { background: var(--plant-uncertain); }
 .plant-q-dot--bad { background: var(--plant-bad); }
 .plant-q-dot--stale { background: var(--plant-stale); }
@@ -444,8 +444,8 @@
 }
 
 .plant-tag.is-selected {
-  background: rgba(52, 211, 153, 0.08);
-  box-shadow: inset 2px 0 0 0 var(--color-accent);
+  background: rgba(34, 211, 238, 0.08);
+  box-shadow: inset 2px 0 0 0 var(--color-brand-400);
   color: rgb(241 245 249);
 }
 
@@ -469,10 +469,12 @@
   line-height: 1.2;
 }
 
+/* Hybrid ISA-101: normal is neutral, colour is kept for abnormal states
+   (and green only for RUNNING/EXECUTE state badges). */
 .plant-q--good {
-  color: var(--plant-good);
-  border-color: rgba(52, 211, 153, 0.35);
-  background: rgba(52, 211, 153, 0.08);
+  color: rgb(203 213 225);
+  border-color: rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.08);
 }
 .plant-q--uncertain {
   color: var(--plant-uncertain);
@@ -496,7 +498,7 @@
   border-radius: 50%;
   background: var(--plant-stale);
 }
-.plant-tag[data-q="Good"] .plant-q-dot-inline { background: var(--plant-good); }
+.plant-tag[data-q="Good"] .plant-q-dot-inline { background: rgb(148 163 184); }
 .plant-tag[data-q="Uncertain"] .plant-q-dot-inline { background: var(--plant-uncertain); }
 .plant-tag[data-q="Bad"] .plant-q-dot-inline { background: var(--plant-bad); }
 .plant-tag[data-q="Stale"] .plant-q-dot-inline { background: var(--plant-stale); }
@@ -865,7 +867,8 @@
 
 .plant-status__item strong[data-tone="bad"] { color: var(--plant-bad); }
 .plant-status__item strong[data-tone="warn"] { color: var(--plant-uncertain); }
-.plant-status__item strong[data-tone="good"] { color: var(--plant-good); }
+.plant-status__item strong[data-tone="good"] { color: rgb(241 245 249); }
+.plant-status__item strong[data-tone="run"] { color: var(--plant-good); }
 
 .plant-status__sep { color: rgb(51 65 85); }
 
@@ -1194,8 +1197,8 @@
 }
 
 .pid-mix-valve.is-open .pid-mix-valve__body {
-  fill: rgba(110, 231, 183, 0.12);
-  stroke: #6ee7b7;
+  fill: rgba(34, 211, 238, 0.12);
+  stroke: #67e8f9;
 }
 
 .pid-pipe-flow {
@@ -1345,11 +1348,11 @@
   stroke-width: 2;
 }
 /* Quality only colors the balloon ring */
-.pid-q--good .pid-balloon__ring { stroke: #34d399; }
+.pid-q--good .pid-balloon__ring { stroke: #94a3b8; }
 .pid-q--uncertain .pid-balloon__ring { stroke: #fbbf24; }
 .pid-q--bad .pid-balloon__ring { stroke: #f87171; }
 .pid-q--stale .pid-balloon__ring { stroke: #94a3b8; }
-.pid-q--good .pid-balloon__val { fill: #6ee7b7; }
+.pid-q--good .pid-balloon__val { fill: #e2e8f0; }
 .pid-q--uncertain .pid-balloon__val { fill: #fcd34d; }
 .pid-q--bad .pid-balloon__val { fill: #fca5a5; }
 .pid-q--stale .pid-balloon__val { fill: #94a3b8; }
@@ -1908,7 +1911,7 @@
 }
 
 .pid-overview__area.is-run .pid-overview__box {
-  stroke: #34d399;
+  stroke: #64748b;
 }
 
 .pid-overview__area.is-run .pid-overview__health {

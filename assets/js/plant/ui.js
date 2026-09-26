@@ -65,7 +65,7 @@ Plant.renderKpis = function renderKpis() {
     setKpi("kpi-a", val("Mixing/Mixer1/WeightKg"), mixValve ? "warn" : "good");
     setKpi("kpi-b", val("Mixing/Mixer1/JacketTempC"), mixOver ? "bad" : qTone("Mixing/Mixer1/JacketTempC"));
     setKpi("kpi-c", String(Plant.live["Mixing/Mixer1/Phase"]?.value ?? "—"), mixOver || mixValve ? "warn" : "good");
-    setKpi("kpi-d", String(Plant.live["Mixing/State"]?.value ?? "—"), mixOver ? "bad" : mixValve ? "warn" : "good");
+    setKpi("kpi-d", String(Plant.live["Mixing/State"]?.value ?? "—"), mixOver ? "bad" : mixValve ? "warn" : "run");
   } else if (refining) {
     const mode = Plant.live["Refining/State"]?.value ?? "—";
     const refinePressure = Plant.state.refineScenario === "pressure";
@@ -78,7 +78,7 @@ Plant.renderKpis = function renderKpis() {
     setKpi("kpi-a", val("Refining/Refiner1/LoadPct"), refinePressure || starvedRefine ? "warn" : "good");
     setKpi("kpi-b", val("Refining/Refiner1/ParticleUm"), refineParticle ? "bad" : starvedRefine ? "warn" : "good");
     setKpi("kpi-c", val("Refining/Outlet/FlowKgH"), refinePressure || starvedRefine ? "warn" : "good");
-    setKpi("kpi-d", String(mode), refinePressure ? "bad" : refineParticle || starvedRefine ? "warn" : "good");
+    setKpi("kpi-d", String(mode), refinePressure ? "bad" : refineParticle || starvedRefine ? "warn" : "run");
   } else if (conching) {
     const mode = Plant.live["Conching/State"]?.value ?? "—";
     const concheOver = Plant.state.concheScenario === "overtemp";
@@ -91,7 +91,7 @@ Plant.renderKpis = function renderKpis() {
     setKpi("kpi-a", val("Conching/Conche1/TempC"), concheOver ? "bad" : starvedConche ? "warn" : "good");
     setKpi("kpi-b", val("Conching/Conche1/AgitatorRpm"), concheAgit ? "bad" : starvedConche ? "warn" : "good");
     setKpi("kpi-c", `${Plant.live["Conching/Conche1/Phase"]?.value ?? "—"} · ${val("Conching/Conche1/BatchTimeH")}`, "good");
-    setKpi("kpi-d", String(mode), concheOver ? "bad" : concheAgit || starvedConche ? "warn" : "good");
+    setKpi("kpi-d", String(mode), concheOver ? "bad" : concheAgit || starvedConche ? "warn" : "run");
   } else if (tempering) {
     const temperStarve = (Plant.live["Tempering/State"]?.value ?? "") === "PAUSED";
     setLabel("kpi-a-label", "Temper index");
@@ -101,7 +101,7 @@ Plant.renderKpis = function renderKpis() {
     setKpi("kpi-a", val("Tempering/Temper1/TemperIndex"), temperWarm ? "bad" : qTone("Tempering/Temper1/TemperIndex"));
     setKpi("kpi-b", val("Tempering/Temper1/MassTempC"), temperWarm ? "bad" : "good");
     setKpi("kpi-c", val("Tempering/Temper1/ScrewRpm"), temperDrive ? "bad" : temperStarve ? "warn" : "good");
-    setKpi("kpi-d", String(Plant.live["Tempering/State"]?.value ?? "—"), temperWarm ? "bad" : temperDrive || temperStarve ? "warn" : "good");
+    setKpi("kpi-d", String(Plant.live["Tempering/State"]?.value ?? "—"), temperWarm ? "bad" : temperDrive || temperStarve ? "warn" : "run");
   } else if (moulding) {
     const mode = Plant.live["Moulding/State"]?.value ?? "—";
     const mouldJamSc = Plant.state.mouldScenario === "jam";
@@ -114,7 +114,7 @@ Plant.renderKpis = function renderKpis() {
     setKpi("kpi-a", val("Moulding/Moulder1/CyclesPerMin"), mouldJamSc ? "bad" : starvedMould ? "warn" : "good");
     setKpi("kpi-b", val("Moulding/Moulder1/MouldTempC"), starvedMould ? "warn" : "good");
     setKpi("kpi-c", val("Moulding/Cooling/AirTempC"), mouldCoolSc ? "bad" : starvedMould ? "warn" : "good");
-    setKpi("kpi-d", String(mode), mouldJamSc ? "bad" : mouldCoolSc || starvedMould ? "warn" : "good");
+    setKpi("kpi-d", String(mode), mouldJamSc ? "bad" : mouldCoolSc || starvedMould ? "warn" : "run");
   } else {
     const oee = Plant.live.OEE?.value ?? 0;
     setLabel("kpi-a-label", "OEE");
@@ -123,7 +123,7 @@ Plant.renderKpis = function renderKpis() {
     setLabel("kpi-d-label", "Rejects");
     setKpi("kpi-a", val("OEE"), jam ? "bad" : feedStarved ? "warn" : oee >= 80 ? "good" : "warn");
     setKpi("kpi-b", val("Throughput"), jam ? "bad" : feedStarved ? "warn" : "good");
-    setKpi("kpi-c", String(Plant.live.State?.value ?? "—"), jam ? "bad" : feedStarved ? "warn" : "good");
+    setKpi("kpi-c", String(Plant.live.State?.value ?? "—"), jam ? "bad" : feedStarved ? "warn" : "run");
     setKpi("kpi-d", String(Math.round(Plant.live["Checkweigher/Reject/Count"]?.value ?? 0)), "warn");
   }
 

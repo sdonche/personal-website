@@ -628,7 +628,7 @@ Plant.buildConchingPid = function buildConchingPid() {
         <circle class="pid-tank__hub" cx="${tankCx}" cy="${tankY + 44}" r="8" />
         <line class="pid-tank__agitator" x1="${tankCx - 40}" y1="${tankY + 100}" x2="${tankCx + 40}" y2="${tankY + 100}" />
         <line class="pid-tank__agitator" x1="${tankCx - 40}" y1="${tankY + 150}" x2="${tankCx + 40}" y2="${tankY + 150}" />
-        <text class="pid-equip__pid" x="${tankX + 6}" y="${tankY - 8}" text-anchor="start">CN-300</text>
+        <text class="pid-equip__pid" x="${tankX - 8}" y="${tankY + 16}" text-anchor="end">CN-300</text>
         <text class="pid-phase" data-pid-phase="Conching/Conche1/Phase" x="${tankCx}" y="${tankY + 30}" text-anchor="middle">—</text>
         <text class="pid-equip__name" x="${tankCx}" y="${tankY + tankH + 20}" text-anchor="middle">Conche1</text>
       </g>
