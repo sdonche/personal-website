@@ -28,14 +28,14 @@ const SHOTS = [
   {
     name: "plant-hmi",
     path: "plant/",
-    viewport: { width: 1280, height: 720 },
+    viewport: { width: 1280, height: 960 },
     settleMs: 3500, // let the sim tick so values and batch position look live
-    // The Packaging Line 3 process panel, minus its scenario button bar, at 16:9
+    // The Packaging Line 3 P&ID at 16:9, centred on the drawing
     crop: async (page) => {
-      const r = await page.locator(".plant-mimic").boundingBox();
-      if (!r) throw new Error("plant: .plant-mimic not found — did the HMI layout change?");
-      const top = r.y + 48;
-      return { x: r.x, y: top, width: r.width, height: (r.width * 9) / 16 };
+      const c = await page.locator(".plant-mimic__canvas").boundingBox();
+      if (!c) throw new Error("plant: .plant-mimic__canvas not found — did the HMI layout change?");
+      const height = (c.width * 9) / 16;
+      return { x: c.x, y: c.y + (c.height - height) / 2, width: c.width, height };
     },
   },
 ];

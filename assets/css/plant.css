@@ -289,7 +289,7 @@
   border-radius: 50%;
 }
 
-.plant-q-dot--good { background: var(--plant-good); }
+.plant-q-dot--good { background: rgb(148 163 184); }
 .plant-q-dot--uncertain { background: var(--plant-uncertain); }
 .plant-q-dot--bad { background: var(--plant-bad); }
 .plant-q-dot--stale { background: var(--plant-stale); }
@@ -444,8 +444,8 @@
 }
 
 .plant-tag.is-selected {
-  background: rgba(52, 211, 153, 0.08);
-  box-shadow: inset 2px 0 0 0 var(--color-accent);
+  background: rgba(34, 211, 238, 0.08);
+  box-shadow: inset 2px 0 0 0 var(--color-brand-400);
   color: rgb(241 245 249);
 }
 
@@ -469,10 +469,12 @@
   line-height: 1.2;
 }
 
+/* Hybrid ISA-101: normal is neutral, colour is kept for abnormal states
+   (and green only for RUNNING/EXECUTE state badges). */
 .plant-q--good {
-  color: var(--plant-good);
-  border-color: rgba(52, 211, 153, 0.35);
-  background: rgba(52, 211, 153, 0.08);
+  color: rgb(203 213 225);
+  border-color: rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.08);
 }
 .plant-q--uncertain {
   color: var(--plant-uncertain);
@@ -496,7 +498,7 @@
   border-radius: 50%;
   background: var(--plant-stale);
 }
-.plant-tag[data-q="Good"] .plant-q-dot-inline { background: var(--plant-good); }
+.plant-tag[data-q="Good"] .plant-q-dot-inline { background: rgb(148 163 184); }
 .plant-tag[data-q="Uncertain"] .plant-q-dot-inline { background: var(--plant-uncertain); }
 .plant-tag[data-q="Bad"] .plant-q-dot-inline { background: var(--plant-bad); }
 .plant-tag[data-q="Stale"] .plant-q-dot-inline { background: var(--plant-stale); }
@@ -824,6 +826,56 @@
   color: rgb(167 243 208);
 }
 
+/* Unit control: ISA-88 / PackML state chip + commands. Neutral buttons: they
+   are operator commands, not scenario tones. */
+.plant-toolbar__group--control {
+  padding-right: 0.55rem;
+  margin-right: 0.15rem;
+  border-right: 1px solid rgb(51 65 85);
+}
+.plant-unit-state {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.08);
+  color: rgb(226 232 240);
+  min-width: 7.2em;
+  text-align: center;
+}
+.plant-unit-state[data-tone="run"] {
+  border-color: rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.1);
+  color: var(--plant-good);
+}
+.plant-unit-state[data-tone="warn"] {
+  border-color: rgba(251, 191, 36, 0.55);
+  background: rgba(251, 191, 36, 0.1);
+  color: #fde68a;
+}
+.plant-unit-state[data-tone="bad"] {
+  border-color: rgba(248, 113, 113, 0.6);
+  background: rgba(248, 113, 113, 0.12);
+  color: #fecaca;
+}
+.plant-btn--cmd {
+  padding-inline: 0.5rem;
+}
+.plant-toolbar [data-action="reset-line"] {
+  margin-left: auto;
+}
+.plant-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+.plant-btn:disabled:hover {
+  border-color: rgb(51 65 85);
+  color: rgb(203 213 225);
+}
+
 .plant-toolbar__sep {
   width: 1px;
   align-self: stretch;
@@ -865,7 +917,8 @@
 
 .plant-status__item strong[data-tone="bad"] { color: var(--plant-bad); }
 .plant-status__item strong[data-tone="warn"] { color: var(--plant-uncertain); }
-.plant-status__item strong[data-tone="good"] { color: var(--plant-good); }
+.plant-status__item strong[data-tone="good"] { color: rgb(241 245 249); }
+.plant-status__item strong[data-tone="run"] { color: var(--plant-good); }
 
 .plant-status__sep { color: rgb(51 65 85); }
 
@@ -1194,8 +1247,8 @@
 }
 
 .pid-mix-valve.is-open .pid-mix-valve__body {
-  fill: rgba(110, 231, 183, 0.12);
-  stroke: #6ee7b7;
+  fill: rgba(34, 211, 238, 0.12);
+  stroke: #67e8f9;
 }
 
 .pid-pipe-flow {
@@ -1345,11 +1398,11 @@
   stroke-width: 2;
 }
 /* Quality only colors the balloon ring */
-.pid-q--good .pid-balloon__ring { stroke: #34d399; }
+.pid-q--good .pid-balloon__ring { stroke: #94a3b8; }
 .pid-q--uncertain .pid-balloon__ring { stroke: #fbbf24; }
 .pid-q--bad .pid-balloon__ring { stroke: #f87171; }
 .pid-q--stale .pid-balloon__ring { stroke: #94a3b8; }
-.pid-q--good .pid-balloon__val { fill: #6ee7b7; }
+.pid-q--good .pid-balloon__val { fill: #e2e8f0; }
 .pid-q--uncertain .pid-balloon__val { fill: #fcd34d; }
 .pid-q--bad .pid-balloon__val { fill: #fca5a5; }
 .pid-q--stale .pid-balloon__val { fill: #94a3b8; }
@@ -1440,6 +1493,7 @@
   min-width: 0;
   flex: 1 1 16rem;
   display: grid;
+  align-content: start;
   gap: 0.35rem;
 }
 
@@ -1497,11 +1551,309 @@
   color: rgb(100 116 139);
 }
 
-.plant-faceplate__trend {
-  flex: 0 0 8.5rem;
-  display: flex;
+.plant-faceplate__confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 0.4rem;
+  color: rgb(253 230 138);
 }
+.plant-faceplate__confirm[hidden] { display: none; }
+.plant-faceplate__msg {
+  font-size: 0.62rem;
+  color: rgb(148 163 184);
+}
+.plant-faceplate__msg:empty { display: none; }
+.plant-faceplate__msg[data-tone="bad"] { color: #fca5a5; }
+.plant-faceplate__msg[data-tone="good"] { color: var(--plant-good); }
+.plant-faceplate__hint {
+  flex-basis: 100%;
+  font-size: 0.58rem;
+  color: rgb(100 116 139);
+}
+.plant-faceplate__input:disabled { opacity: 0.6; }
+
+/* Recipe + batch genealogy (faceplate of a BatchId tag) */
+.plant-batch-trail__recipe {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  color: rgb(148 163 184);
+  padding: 0.1rem 0.4rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 2px;
+}
+.plant-recipe { display: grid; gap: 0.25rem; }
+.plant-recipe__head,
+.plant-gen__head {
+  margin: 0;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(100 116 139);
+}
+.plant-recipe__head strong,
+.plant-gen__head strong {
+  color: rgb(226 232 240);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.plant-recipe__targets {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.12rem 0.6rem;
+  margin: 0;
+  font-size: 0.62rem;
+}
+.plant-recipe__targets dt { color: rgb(100 116 139); }
+.plant-recipe__targets dd { margin: 0; color: rgb(203 213 225); }
+.plant-gen {
+  flex: 1 1 22rem;
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 0.3rem;
+  font-size: 0.62rem;
+}
+.plant-gen__row {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
+  color: rgb(203 213 225);
+}
+.plant-gen__k {
+  color: rgb(100 116 139);
+  text-transform: uppercase;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+}
+.plant-gen__route {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 2.2rem;
+  display: grid;
+  gap: 0.1rem;
+}
+.plant-gen__route li {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.6rem;
+  padding-left: 0.8rem;
+  color: rgb(203 213 225);
+}
+/* Route rail: filled for done steps, cyan at the current one, hollow when planned */
+.plant-gen__route li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.35em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: rgb(148 163 184);
+}
+.plant-gen__route li[data-status="here"]::before { background: var(--color-brand-400, #22d3ee); box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.25); }
+.plant-gen__route li[data-status="planned"] { color: rgb(100 116 139); }
+.plant-gen__route li[data-status="planned"]::before { background: transparent; border: 1px solid rgb(71 85 105); }
+.plant-gen__equip { min-width: 3.4rem; font-weight: 600; }
+.plant-gen__time { color: rgb(100 116 139); font-variant-numeric: tabular-nums; }
+.plant-gen__here { color: var(--color-brand-300, #67e8f9); font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.08em; }
+li[data-status="planned"] .plant-gen__here { color: rgb(100 116 139); }
+.plant-gen__qa { color: rgb(148 163 184); }
+.plant-gen__qa[data-ok="false"] { color: #fca5a5; }
+
+/* OEE breakdown + downtime Pareto (faceplate of OEE / A / P / Q) */
+.plant-pareto-wrap { display: grid; gap: 0.3rem; }
+.plant-pareto__apq {
+  margin: 0;
+  font-size: 0.64rem;
+  color: rgb(100 116 139);
+}
+.plant-pareto__apq strong { color: rgb(226 232 240); font-weight: 600; font-variant-numeric: tabular-nums; }
+.plant-pareto__shift,
+.plant-pareto__head {
+  margin: 0;
+  font-size: 0.58rem;
+  color: rgb(100 116 139);
+}
+.plant-pareto__head { text-transform: uppercase; letter-spacing: 0.08em; }
+.plant-pareto {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+  font-size: 0.6rem;
+}
+.plant-pareto li {
+  display: grid;
+  grid-template-columns: minmax(7rem, 11rem) 1fr 3.4rem 2.4rem;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgb(203 213 225);
+}
+.plant-pareto__why { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plant-pareto__bar {
+  height: 0.5rem;
+  background: rgba(51, 65, 85, 0.45);
+}
+/* Downtime bars stay amber: lost time, not a live fault */
+.plant-pareto__bar i {
+  display: block;
+  height: 100%;
+  background: rgba(251, 191, 36, 0.7);
+}
+.plant-pareto__min,
+.plant-pareto__cum {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.plant-pareto__cum { color: rgb(100 116 139); }
+
+/* Event journal (alarm pane, Events view) */
+.plant-event {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: baseline;
+  gap: 0.15rem 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-size: 0.64rem;
+  color: rgb(203 213 225);
+}
+.plant-event__time {
+  color: rgb(100 116 139);
+  font-variant-numeric: tabular-nums;
+}
+.plant-event__kind {
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 2px;
+  color: rgb(148 163 184);
+  text-align: center;
+}
+.plant-event[data-kind="cmd"] .plant-event__kind,
+.plant-event[data-kind="sp"] .plant-event__kind {
+  border-color: rgba(34, 211, 238, 0.45);
+  color: var(--color-brand-300, #67e8f9);
+}
+.plant-event[data-kind="sim"] .plant-event__kind {
+  border-color: rgba(251, 191, 36, 0.45);
+  color: #fcd34d;
+}
+.plant-event__text { min-width: 0; overflow-wrap: anywhere; }
+.plant-event__area {
+  grid-column: 3;
+  font-size: 0.56rem;
+  color: rgb(100 116 139);
+}
+
+/* Trend: historian-style, last plant hour. PV cyan, SP dashed slate, alarm
+   limits in their priority colour, markers at alarm activation / RTN. */
+.plant-trend {
+  flex: 1 1 22rem;
+  min-width: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+.plant-trend__plot {
+  height: 118px;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+.plant-trend__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.plant-trend__grid {
+  stroke: rgba(51, 65, 85, 0.6);
+  stroke-width: 1;
+}
+.plant-trend__grid--v {
+  stroke-dasharray: 2 3;
+}
+.plant-trend__axis {
+  fill: rgb(100 116 139);
+  font-size: 9px;
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.plant-trend__pv {
+  fill: none;
+  stroke: var(--color-brand-300, #67e8f9);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.plant-trend__sp {
+  fill: none;
+  stroke: rgb(148 163 184);
+  stroke-width: 1.1;
+  stroke-dasharray: 4 3;
+}
+.plant-trend__limit {
+  stroke-width: 1;
+  stroke-dasharray: 6 3;
+}
+.plant-trend__limit--critical { stroke: rgba(248, 113, 113, 0.75); }
+.plant-trend__limit--warning { stroke: rgba(251, 191, 36, 0.75); }
+.plant-trend__limit-label {
+  font-size: 9px;
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
+}
+.plant-trend__limit-label--critical { fill: #fca5a5; }
+.plant-trend__limit-label--warning { fill: #fcd34d; }
+line.plant-trend__mark {
+  stroke-width: 1;
+  stroke-dasharray: 1 2;
+}
+path.plant-trend__mark { stroke: none; }
+.plant-trend__mark--on.plant-trend__mark--critical { stroke: #f87171; fill: #f87171; }
+.plant-trend__mark--on.plant-trend__mark--warning,
+.plant-trend__mark--on.plant-trend__mark--low { stroke: #fbbf24; fill: #fbbf24; }
+.plant-trend__mark--off { stroke: rgb(148 163 184); fill: rgb(148 163 184); }
+.plant-trend__cursor {
+  stroke: rgb(226 232 240);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+.plant-trend__dot {
+  fill: var(--color-brand-300, #67e8f9);
+  stroke: rgb(2 6 23);
+  stroke-width: 1;
+}
+.plant-trend__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.8rem;
+  padding-left: 40px;
+  font-size: 0.58rem;
+  color: rgb(100 116 139);
+}
+.plant-trend__key::before {
+  content: "";
+  display: inline-block;
+  width: 0.9rem;
+  margin-right: 0.3rem;
+  vertical-align: middle;
+  border-top: 1.5px solid var(--color-brand-300, #67e8f9);
+}
+.plant-trend__key--sp::before { border-top: 1.5px dashed rgb(148 163 184); }
+.plant-trend__key--limit::before { border-top: 1.5px dashed rgba(248, 113, 113, 0.8); }
+.plant-trend__readout {
+  margin-left: auto;
+  color: rgb(226 232 240);
+  font-variant-numeric: tabular-nums;
+}
+.plant-trend__span { margin-left: auto; }
 
 .plant-sparkline {
   width: 100%;
@@ -1908,7 +2260,7 @@
 }
 
 .pid-overview__area.is-run .pid-overview__box {
-  stroke: #34d399;
+  stroke: #64748b;
 }
 
 .pid-overview__area.is-run .pid-overview__health {
@@ -2078,11 +2430,24 @@
   border-radius: 2px;
 }
 
+/* The message is the row's keyboard target (a real button, so the row holds no nested controls) */
 .plant-alarm__msg {
+  display: block;
+  width: 100%;
   margin: 0.3rem 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
   font-size: 0.75rem;
+  text-align: left;
   color: rgb(226 232 240);
   line-height: 1.35;
+  cursor: pointer;
+}
+.plant-alarm__msg:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
 }
 
 .plant-alarm__path {
