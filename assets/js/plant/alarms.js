@@ -51,14 +51,14 @@ Plant.alarmRow = function alarmRow(a, opts) {
   if (!o.history && !o.shelved && !a.rtn) buttons.push(`<button type="button" class="plant-btn plant-btn--ghost" data-shelve="${Plant.escapeHtml(a.id)}" title="Hide this alarm for one plant hour">Shelve</button>`);
   if (o.shelved) buttons.push(`<button type="button" class="plant-btn plant-btn--ghost" data-unshelve="${Plant.escapeHtml(a.id)}">Unshelve</button>`);
   const cls = `plant-alarm${a.acked || o.history ? " is-acked" : ""}${a.rtn && !o.history ? " is-rtn" : ""}${o.history ? " plant-alarm--history" : ""}`;
-  return `<li class="${cls}" data-sev="${Plant.escapeHtml(a.severity)}" data-alarm-id="${Plant.escapeHtml(a.id)}" role="button" tabindex="0">
+  return `<li class="${cls}" data-sev="${Plant.escapeHtml(a.severity)}" data-alarm-id="${Plant.escapeHtml(a.id)}">
         <div class="plant-alarm__top">
           <span class="plant-alarm__sev">${Plant.escapeHtml(pr)}</span>
           ${fo}
           <span class="plant-alarm__state">${o.history ? "CLEARED" : state}</span>
           <span class="plant-alarm__time">${Plant.escapeHtml(when)}</span>
         </div>
-        <p class="plant-alarm__msg">${Plant.escapeHtml(a.message)}</p>
+        <button type="button" class="plant-alarm__msg" title="Go to the alarm's source">${Plant.escapeHtml(a.message)}</button>
         <p class="plant-alarm__path">${Plant.escapeHtml(a.path)}</p>
         ${supp}
         ${buttons.length ? `<div class="plant-alarm__ack">${buttons.join("")}</div>` : ""}

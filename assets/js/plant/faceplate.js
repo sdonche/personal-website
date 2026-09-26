@@ -59,6 +59,7 @@ Plant.buildFaceplate = function buildFaceplate(el, def) {
         ${Plant.SETPOINT_FOR[def.id] ? `<p class="plant-faceplate__sp" data-fp-sp></p>` : ""}
         ${writeBlock}
         ${Plant.isBatchTag(def.id) ? Plant.recipeHtml() : ""}
+        ${["OEE", "Availability", "Performance", "Quality"].includes(def.id) ? `<div class="plant-pareto-wrap" data-fp-pareto></div>` : ""}
       </div>
       ${Plant.isBatchTag(def.id) ? `<section class="plant-gen" data-fp-gen aria-label="Batch genealogy"></section>` : ""}
       ${numeric ? `<figure class="plant-trend" data-fp-trend aria-label="Trend, last hour of plant time">
@@ -124,6 +125,14 @@ Plant.patchFaceplate = function patchFaceplate(el, def, lv) {
     if (Number.isFinite(v) && Number(input.value) !== v) input.value = String(v);
   }
   if (def.type === "number") Plant.paintTrend(el, def);
+  const pareto = el.querySelector("[data-fp-pareto]");
+  if (pareto) {
+    const html = Plant.paretoHtml();
+    if (pareto.dataset.html !== html) {
+      pareto.dataset.html = html;
+      pareto.innerHTML = html;
+    }
+  }
   const gen = el.querySelector("[data-fp-gen]");
   if (gen) {
     const html = Plant.genealogyHtml(String(lv.value));

@@ -84,12 +84,14 @@ Plant.drift = function drift(base, amp, key) {
    counters and batch clocks are not lagged. */
 Plant.LAG_TAU = { "°C": 6, "kg/h": 1.2, "m³/h": 1.5, "rpm": 1.2, "%": 2, "µm": 3, "bar": 1.5, "kW": 1.5, "cpm": 1, "cases/min": 1, "cycles/min": 1, "m/min": 1 };
 Plant.pvState = {};
+Plant.LAG_SKIP = new Set(["OEE", "Availability", "Performance", "Quality", `${Plant.SITE}/OEE`]);
 Plant.applyProcessLag = function applyProcessLag() {
   for (const [id, lv] of Object.entries(Plant.live)) {
     const def = Plant.TAG_BY_ID[id];
     if (!def || def.type !== "number" || typeof lv.value !== "number") continue;
     const tau = Plant.LAG_TAU[def.unit];
-    if (!tau || /SP$/.test(id)) continue;
+    // Setpoints and computed KPIs (shift OEE) are not process measurements: no lag
+    if (!tau || /SP$/.test(id) || Plant.LAG_SKIP.has(id)) continue;
     const prev = Plant.pvState[id];
     const next = prev == null ? lv.value : prev + (lv.value - prev) * (1 - Math.exp(-1 / tau));
     Plant.pvState[id] = next;

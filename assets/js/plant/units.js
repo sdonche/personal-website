@@ -65,6 +65,7 @@ Plant.loadUnits = function loadUnits(saved, S) {
         next: known.includes(r.next) ? r.next : null,
         until: Number(r.until) || 0,
         clock: Number.isFinite(Number(r.clock)) ? Number(r.clock) : S.tick || 0,
+        why: typeof r.why === "string" ? r.why : null,
       };
     } else {
       const latched = u.latch[S[u.field]];
@@ -145,6 +146,9 @@ Plant.unitCommand = function unitCommand(area, cmd) {
     rec.st = c.to;
     rec.next = null;
   }
+  // Holding or stopping is the operator's call: from here the downtime is theirs.
+  // Recovering (Reset / Start / Restart / Unhold) still counts against the fault.
+  if (cmd === "hold" || cmd === "stop") rec.why = null;
   // Reset starts a fresh batch: the unit's sequence begins again from its first phase
   if (cmd === "reset") rec.clock = 0;
   Plant.logEvent?.({ kind: "cmd", area, text: `${Plant.UNIT_BY_AREA[area].equip} ${c.label.toUpperCase()} — ${from} → ${c.via || c.to}` });
@@ -164,6 +168,7 @@ Plant.latchFault = function latchFault(area, fault) {
   if (target === "HELD" && rec.st !== runSt && !acting) return;
   if (target === "ABORTED" && (rec.st === "ABORTED" || rec.st === "ABORTING")) return;
   rec.st = target === "ABORTED" ? "ABORTING" : "HOLDING";
+  rec.why = Plant.FAULT_LABEL[u.drawing]?.[fault] || fault;
   rec.next = target;
   rec.until = Plant.tick + 1;
 };
@@ -176,6 +181,7 @@ Plant.advanceUnits = function advanceUnits() {
       rec.st = rec.next;
       rec.next = null;
     }
+    if (rec.st === Plant.runStateOf(u)) rec.why = null;
   }
   for (const u of Plant.UNITS) {
     if (Plant.unitProducing(u.area)) Plant.unit(u.area).clock += 1;

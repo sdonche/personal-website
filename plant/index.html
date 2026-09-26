@@ -70,7 +70,7 @@
   <link rel="stylesheet" href="../assets/css/tailwind.css?v=9f7594763d" />
   <link rel="stylesheet" href="../assets/css/styles.css?v=2a7925398d" />
 <!-- /partial:head-assets -->
-  <link rel="stylesheet" href="../assets/css/plant.css?v=325abfc20a" />
+  <link rel="stylesheet" href="../assets/css/plant.css?v=80a3c799e5" />
 </head>
 
 <body class="plant-page bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-400/30 selection:text-brand-100">
@@ -191,36 +191,42 @@
               <span class="plant-toolbar__label" title="Inject a process fault; the unit latches until you bring it back">Simulate</span>
               <button type="button" class="plant-btn plant-btn--jam" data-mix-scenario="overtemp" title="Jacket overtemperature">Overtemp</button>
               <button type="button" class="plant-btn plant-btn--starved" data-mix-scenario="valve" title="Cocoa liquor valve stuck closed">Valve stuck</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-sensor-fail="mixing" title="TI-111 transmitter fails: value freezes, quality Bad">Sensor</button>
               <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-mix-scenario="recover" title="Clear the simulated condition — then restart the unit">Clear</button>
             </div>
             <div class="plant-toolbar__group" data-toolbar-area="refining" role="group" aria-label="Simulate Refining faults" hidden>
               <span class="plant-toolbar__label" title="Inject a process fault; the unit latches until you bring it back">Simulate</span>
               <button type="button" class="plant-btn plant-btn--jam" data-refine-scenario="pressure" title="Hydraulic / roll pressure collapse">Pressure</button>
               <button type="button" class="plant-btn plant-btn--starved" data-refine-scenario="particle" title="Particle size out of spec">Particle</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-sensor-fail="refining" title="AI-211 transmitter fails: value freezes, quality Bad">Sensor</button>
               <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-refine-scenario="recover" title="Clear the simulated condition — then restart the unit">Clear</button>
             </div>
             <div class="plant-toolbar__group" data-toolbar-area="conching" role="group" aria-label="Simulate Conching faults" hidden>
               <span class="plant-toolbar__label" title="Inject a process fault; the unit latches until you bring it back">Simulate</span>
               <button type="button" class="plant-btn plant-btn--jam" data-conche-scenario="overtemp" title="Conche mass overtemperature">Overtemp</button>
               <button type="button" class="plant-btn plant-btn--starved" data-conche-scenario="agitator" title="Agitator stall">Agitator</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-sensor-fail="conching" title="TI-310 transmitter fails: value freezes, quality Bad">Sensor</button>
               <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-conche-scenario="recover" title="Clear the simulated condition — then restart the unit">Clear</button>
             </div>
             <div class="plant-toolbar__group" data-toolbar-area="tempering" role="group" aria-label="Simulate Tempering faults" hidden>
               <span class="plant-toolbar__label" title="Inject a process fault; the unit latches until you bring it back">Simulate</span>
               <button type="button" class="plant-btn plant-btn--jam" data-temper-scenario="warm" title="Temper zones too warm (heat/cool/reheat)">Zone warm</button>
               <button type="button" class="plant-btn plant-btn--starved" data-temper-scenario="drive" title="Temper screw drive stopped">Drive stop</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-sensor-fail="tempering" title="TI-411 transmitter fails: value freezes, quality Bad">Sensor</button>
               <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-temper-scenario="recover" title="Clear the simulated condition — then restart the unit">Clear</button>
             </div>
             <div class="plant-toolbar__group" data-toolbar-area="moulding" role="group" aria-label="Simulate Moulding faults" hidden>
               <span class="plant-toolbar__label" title="Inject a process fault; the unit latches until you bring it back">Simulate</span>
               <button type="button" class="plant-btn plant-btn--jam" data-mould-scenario="jam" title="Moulder jam — cycles stopped">Jam</button>
               <button type="button" class="plant-btn plant-btn--starved" data-mould-scenario="cool" title="Cooling air too warm">Cool air</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-sensor-fail="moulding" title="TI-520 transmitter fails: value freezes, quality Bad">Sensor</button>
               <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-mould-scenario="recover" title="Clear the simulated condition — then restart the unit">Clear</button>
             </div>
             <div class="plant-toolbar__group" data-toolbar-area="packaging" role="group" aria-label="Simulate Packaging faults">
               <span class="plant-toolbar__label" title="Inject a process fault; the unit latches until you bring it back">Simulate</span>
               <button type="button" class="plant-btn plant-btn--jam" data-pack-scenario="jam" title="Cartoner jam fault">Jam</button>
               <button type="button" class="plant-btn plant-btn--starved" data-pack-scenario="starved" title="Infeed starved">Starved</button>
+              <button type="button" class="plant-btn plant-btn--starved" data-sensor-fail="packaging" title="WI-631 transmitter fails: value freezes, quality Bad">Sensor</button>
               <button type="button" class="plant-btn plant-btn--recover plant-btn--ghost" data-pack-scenario="recover" title="Clear the simulated condition — then restart the unit">Clear</button>
             </div>
             <span class="plant-toolbar__sep" aria-hidden="true"></span>
@@ -298,7 +304,7 @@
   </main>
 
 <!-- partial:plant-scripts -->
-  <script type="module" src="../assets/js/plant.js?v=07d445a359"></script>
+  <script type="module" src="../assets/js/plant.js?v=144998df5d"></script>
   <script data-goatcounter="https://samdonche.goatcounter.com/count" async src="../assets/js/goatcounter.js"></script>
 <!-- /partial:plant-scripts -->
 </body>

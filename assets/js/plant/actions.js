@@ -7,6 +7,8 @@ import { Plant } from "./ns.js?v=c600f295ec";
    unit (units.js); clearing only removes the condition, the operator then
    brings the unit back with Restart / Unhold or Reset + Start. */
 Plant.simulate = function simulate(drawing, name) {
+  // Clear also brings back a failed transmitter in this area
+  if (name === "recover" && Plant.sensorFailed(drawing)) Plant.toggleSensorFail(drawing, { quiet: true });
   const before = Plant.getActiveFault(drawing);
   if (!Plant.setDrawingFault(drawing, name === "recover" ? null : name)) return;
   const after = Plant.getActiveFault(drawing);
@@ -18,6 +20,33 @@ Plant.simulate = function simulate(drawing, name) {
   Plant.computeLive();
   Plant.renderAll();
   if (Plant.state.activeDrawing) Plant.syncHash(Plant.state.activeDrawing);
+}
+
+Plant.sensorFailed = function sensorFailed(drawing) {
+  const sf = Plant.SENSOR_FAIL[drawing];
+  return !!sf && Plant.state.sensorFail?.[sf.tag] != null;
+}
+
+/** Fail (or restore) the area's transmitter: value frozen at its last reading, quality Bad. */
+Plant.toggleSensorFail = function toggleSensorFail(drawing, opts) {
+  const sf = Plant.SENSOR_FAIL[drawing];
+  if (!sf) return;
+  const S = Plant.state;
+  S.sensorFail = S.sensorFail || {};
+  const area = Plant.UNIT_BY_DRAWING[drawing]?.area || "";
+  if (S.sensorFail[sf.tag] != null) {
+    delete S.sensorFail[sf.tag];
+    Plant.logEvent({ kind: "sim", area, text: `SIM ${sf.isa} transmitter restored` });
+  } else {
+    const v = Plant.live[sf.tag]?.value;
+    if (!Number.isFinite(v)) return;
+    S.sensorFail[sf.tag] = v;
+    Plant.logEvent({ kind: "sim", area, text: `SIM ${sf.isa} transmitter failed — value held at ${Plant.liveReadout(sf.tag)}` });
+  }
+  if (opts && opts.quiet) return;
+  Plant.saveState();
+  Plant.computeLive();
+  Plant.renderAll();
 }
 
 Plant.setScenario = (name) => Plant.simulate("packaging", name);
@@ -54,7 +83,9 @@ Plant.recoverAll = function recoverAll() {
   Plant.state.refineScenario = null;
   Plant.state.concheScenario = null;
   Plant.state.mouldScenario = null;
-  Plant.state.units = Plant.defaultUnits(Plant.tick);
+  Plant.state.sensorFail = {};
+  // Every unit back to its run state; batch clocks carry on where they were
+  for (const u of Plant.UNITS) Object.assign(Plant.unit(u.area), { st: Plant.runStateOf(u), next: null, why: null });
   Plant.logEvent({ kind: "sim", text: "SIM restore all — faults cleared, every unit back to running" });
   Plant.saveState();
   Plant.computeLive();

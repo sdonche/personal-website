@@ -214,6 +214,13 @@ Plant.renderKpis = function renderKpis() {
     btn.classList.toggle("is-active", Plant.state.mouldScenario === sc);
   });
 
+  // Instrument failures: light the Sensor button, and Clear becomes the next action
+  document.querySelectorAll("[data-sensor-fail]").forEach((btn) => {
+    const on = Plant.sensorFailed(btn.getAttribute("data-sensor-fail"));
+    btn.classList.toggle("is-active", on);
+    if (on) btn.parentElement.querySelector(".plant-btn--recover")?.classList.remove("plant-btn--ghost");
+  });
+
   const recoverAllBtn = document.querySelector('[data-action="recover-all"]');
   if (recoverAllBtn) {
     const anyLocal = Plant.state.packScenario != null || Plant.state.mixScenario != null
@@ -651,6 +658,11 @@ Plant.wire = function wire() {
   });
 
   document.querySelector(".plant-toolbar")?.addEventListener("click", (e) => {
+    const sensorBtn = e.target.closest("[data-sensor-fail]");
+    if (sensorBtn) {
+      Plant.toggleSensorFail(sensorBtn.getAttribute("data-sensor-fail"));
+      return;
+    }
     const cmdBtn = e.target.closest("[data-unit-cmd]");
     if (cmdBtn) {
       const unit = Plant.UNIT_BY_DRAWING[Plant.state.activeDrawing];
@@ -789,6 +801,7 @@ Plant.wire = function wire() {
 Plant.tickOnce = function tickOnce() {
   Plant.tick += 1;
   Plant.state.tick = Plant.tick;
+  Plant.accountOee(); // books the minute just gone, from the last scan
   Plant.advanceUnits();
   Plant.computeLive();
   Plant.saveState();

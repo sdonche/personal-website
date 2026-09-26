@@ -25,6 +25,8 @@ Plant.defaultState = function defaultState() {
     units: Plant.defaultUnits(0), // ISA-88 / PackML state per area (units.js)
     sp: /** @type {Record<string, number>} operator-written setpoints (Plant.SP_WRITE) */ ({}),
     spPhase: /** @type {Record<string, string>} recipe phase a phase-bound SP override belongs to */ ({}),
+    sensorFail: /** @type {Record<string, number>} failed transmitter tag → frozen value */ ({}),
+    oee: Plant.defaultOee(0, 12), // shift OEE accumulators (oee.js)
     events: /** @type {{tick: number, kind: string, area: string, text: string}[]} operator journal, newest first */ ([]),
     openNodes: Plant.DEFAULT_OPEN.slice(),
   };
@@ -94,6 +96,14 @@ Plant.loadState = function loadState() {
         : null,
     };
     out.units = Plant.loadUnits(parsed.units, out);
+    const known = new Set(Object.values(Plant.SENSOR_FAIL).map((x) => x.tag));
+    out.sensorFail = Object.fromEntries(Object.entries(parsed.sensorFail && typeof parsed.sensorFail === "object" ? parsed.sensorFail : {})
+      .filter(([tag, v]) => known.has(tag) && Number.isFinite(v)));
+    const o = parsed.oee;
+    out.oee = o && Number.isFinite(o.planned) && Number.isFinite(o.run) && Number.isFinite(o.count) && Number.isFinite(o.good)
+      && Number.isFinite(o.shift) && o.down && typeof o.down === "object"
+      ? { shift: o.shift, planned: o.planned, run: o.run, count: o.count, good: o.good, lastReject: Number(o.lastReject) || 0, down: o.down }
+      : Plant.defaultOee(out.tick, out.rejectCount);
     // Setpoints: only known writable tags, inside their write range
     out.sp = {};
     for (const [tag, v] of Object.entries(parsed.sp && typeof parsed.sp === "object" ? parsed.sp : {})) {

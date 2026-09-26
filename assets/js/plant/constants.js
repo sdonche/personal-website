@@ -49,6 +49,17 @@ Plant.DRAWING_FAULTS = {
   moulding: { field: "mouldScenario", values: ["jam", "cool"] },
 };
 
+/** Instrument-failure simulation: the transmitter each area can lose. Its
+    value freezes at the last reading and its quality goes Bad. */
+Plant.SENSOR_FAIL = {
+  mixing: { tag: "Mixing/Mixer1/JacketTempC", isa: "TI-111" },
+  refining: { tag: "Refining/Refiner1/ParticleUm", isa: "AI-211" },
+  conching: { tag: "Conching/Conche1/TempC", isa: "TI-310" },
+  tempering: { tag: "Tempering/Temper1/Zone2TempC", isa: "TI-411" },
+  moulding: { tag: "Moulding/Cooling/AirTempC", isa: "TI-520" },
+  packaging: { tag: "Checkweigher/WeightKg", isa: "WI-631" },
+};
+
 Plant.TREND_LEN = 60;
 Plant.EVENT_MAX = 80; // operator journal entries kept
 
@@ -101,6 +112,9 @@ Plant.LINE3_TAGS = [
   { id: "Mode", name: "Mode", type: "string" },
   { id: "State", name: "State", type: "string" },
   { id: "OEE", name: "OEE", type: "number", unit: "%", format: (v) => v.toFixed(1) },
+  { id: "Availability", name: "Availability", type: "number", unit: "%", format: (v) => v.toFixed(1) },
+  { id: "Performance", name: "Performance", type: "number", unit: "%", format: (v) => v.toFixed(1) },
+  { id: "Quality", name: "Quality", type: "number", unit: "%", format: (v) => v.toFixed(1) },
   { id: "Throughput", name: "Throughput", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
   { id: "SpeedSP", name: "SpeedSP", type: "number", unit: "cpm", format: (v) => String(Math.round(v)) },
   { id: "BatchId", name: "BatchId", type: "string" },

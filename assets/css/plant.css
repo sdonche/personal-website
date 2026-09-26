@@ -1664,6 +1664,54 @@ li[data-status="planned"] .plant-gen__here { color: rgb(100 116 139); }
 .plant-gen__qa { color: rgb(148 163 184); }
 .plant-gen__qa[data-ok="false"] { color: #fca5a5; }
 
+/* OEE breakdown + downtime Pareto (faceplate of OEE / A / P / Q) */
+.plant-pareto-wrap { display: grid; gap: 0.3rem; }
+.plant-pareto__apq {
+  margin: 0;
+  font-size: 0.64rem;
+  color: rgb(100 116 139);
+}
+.plant-pareto__apq strong { color: rgb(226 232 240); font-weight: 600; font-variant-numeric: tabular-nums; }
+.plant-pareto__shift,
+.plant-pareto__head {
+  margin: 0;
+  font-size: 0.58rem;
+  color: rgb(100 116 139);
+}
+.plant-pareto__head { text-transform: uppercase; letter-spacing: 0.08em; }
+.plant-pareto {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+  font-size: 0.6rem;
+}
+.plant-pareto li {
+  display: grid;
+  grid-template-columns: minmax(7rem, 11rem) 1fr 3.4rem 2.4rem;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgb(203 213 225);
+}
+.plant-pareto__why { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plant-pareto__bar {
+  height: 0.5rem;
+  background: rgba(51, 65, 85, 0.45);
+}
+/* Downtime bars stay amber: lost time, not a live fault */
+.plant-pareto__bar i {
+  display: block;
+  height: 100%;
+  background: rgba(251, 191, 36, 0.7);
+}
+.plant-pareto__min,
+.plant-pareto__cum {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.plant-pareto__cum { color: rgb(100 116 139); }
+
 /* Event journal (alarm pane, Events view) */
 .plant-event {
   display: grid;
@@ -2382,11 +2430,24 @@ path.plant-trend__mark { stroke: none; }
   border-radius: 2px;
 }
 
+/* The message is the row's keyboard target (a real button, so the row holds no nested controls) */
 .plant-alarm__msg {
+  display: block;
+  width: 100%;
   margin: 0.3rem 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
   font-size: 0.75rem;
+  text-align: left;
   color: rgb(226 232 240);
   line-height: 1.35;
+  cursor: pointer;
+}
+.plant-alarm__msg:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
 }
 
 .plant-alarm__path {

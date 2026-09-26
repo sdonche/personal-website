@@ -36,7 +36,9 @@ Plant.computeLive = function computeLive() {
   const cartonerSpeed = pkgDown ? 0 : feedStarved ? Plant.drift(11, 1.5, 1) : Plant.drift(36, 0.9, 1);
   const infeedSpeed = feedStarved ? Plant.drift(4, 1.2, 2) : jam ? Plant.drift(22, 3, 2) : pkgDown ? 0 : Plant.drift(28, 1.5, 2);
   const caseSpeed = cartonerSpeed / 12;
-  const oee = pkgDown ? Plant.drift(42, 2, 0) : feedStarved ? Plant.drift(61, 2.5, 0) : Plant.drift(87.4, 1.2, 0);
+  // Shift OEE from the accumulated minutes (oee.js): A × P × Q
+  const apq = Plant.oeeFactors(Math.max(0, cartonerSpeed));
+  const oee = apq.oee * 100;
   const throughput = cartonerSpeed;
   const weight = pkgDown ? 0 : Plant.drift(0.452, 0.008, 5);
 
@@ -56,7 +58,10 @@ Plant.computeLive = function computeLive() {
     Running: { value: lineOk, quality: pkgQ },
     Mode: { value: "PRODUCTION", quality: "Good" }, // PackML unit mode
     State: { value: pkgState, quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
-    OEE: { value: Plant.clamp(oee, 0, 100), quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
+    OEE: { value: Plant.clamp(oee, 0, 100), quality: "Good" },
+    Availability: { value: apq.A * 100, quality: "Good" },
+    Performance: { value: apq.P * 100, quality: "Good" },
+    Quality: { value: apq.Q * 100, quality: "Good" },
     Throughput: { value: Math.max(0, throughput), quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" },
     SpeedSP: { value: speedSp, quality: "Good" },
     BatchId: { value: batchId, quality: "Good" },
@@ -379,11 +384,11 @@ Plant.computeLive = function computeLive() {
   // Site Running = the site is shipping product (Line3 producing)
   Plant.live[`${Plant.SITE}/Running`] = { value: lineOk, quality: siteFault ? "Bad" : feedStarved ? "Uncertain" : "Good" };
   Plant.live[`${Plant.SITE}/Mode`] = { value: plantMode, quality: siteFault ? "Bad" : feedStarved ? "Uncertain" : "Good" };
-  Plant.live[`${Plant.SITE}/OEE`] = { value: oee, quality: jam ? "Bad" : feedStarved ? "Uncertain" : "Good" };
+  Plant.live[`${Plant.SITE}/OEE`] = { value: oee, quality: "Good" };
   Plant.live[`${Plant.SITE}/LastContact`] = { value: contactStamp, quality: "Good" };
 
-  /* Sister spark: one offline site flaps live for ~8s every ~50s. */
-  const sparkWindow = 50;
+  /* Sister spark: one offline site's link comes up for 8 plant minutes every 3 plant hours. */
+  const sparkWindow = 180;
   const sparkHold = 8;
   const sparkActive = Plant.tick % sparkWindow < sparkHold;
   const sparkSite = sparkActive ? Plant.SISTER_SITES[Math.floor(Plant.tick / sparkWindow) % Plant.SISTER_SITES.length] : null;
@@ -414,6 +419,11 @@ Plant.computeLive = function computeLive() {
   Plant.live.__trackedBatch = { value: trackedBatch, quality: "Good" };
 
   Plant.applyProcessLag();
+
+  // Failed transmitters: the reading freezes and goes Bad (the process carries on)
+  for (const [tag, v] of Object.entries(Plant.state.sensorFail || {})) {
+    if (Plant.live[tag]) Plant.live[tag] = { value: v, quality: "Bad" };
+  }
 
   Plant.syncScenarioAlarms();
   Plant.recordTrends();
@@ -449,6 +459,8 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
   const add = (w) => want.set(w.id, w);
 
   for (const def of Plant.ALARM_ANALOG) {
+    // A Bad-quality input can't be trusted for limit checks: its instrument alarm stands in
+    if (S.sensorFail?.[def.tag] != null) continue;
     const v = Plant.live[def.tag]?.value;
     if (typeof v !== "number") continue;
     const active = S.alarms.some((a) => a.id === def.id && !a.rtn);
@@ -463,6 +475,10 @@ Plant.syncScenarioAlarms = function syncScenarioAlarms() {
     });
   }
 
+  for (const [drawing, sf] of Object.entries(Plant.SENSOR_FAIL)) {
+    if (S.sensorFail?.[sf.tag] == null) continue;
+    add({ id: `alm-iop-${drawing}`, area: Plant.UNIT_BY_DRAWING[drawing].area, severity: "warning", path: Plant.pathOf(sf.tag), message: `${sf.isa} transmitter fault — signal Bad, last value held` });
+  }
   if (S.packScenario === "jam") add({ id: "alm-cartoner-jam", area: "Packaging", severity: "critical", path: Plant.pathOf("Cartoner/Jam"), message: "CT-620 cartoner jam — fault code 41, infeed backing up" });
   if (S.packScenario === "starved") add({ id: "alm-infeed-starved", area: "Packaging", severity: "warning", path: Plant.pathOf("Infeed/Starved"), message: "CV-610 infeed starved — no product at photoeye" });
   if (S.mixScenario === "valve") add({ id: "alm-mix-valve", area: "Mixing", severity: "warning", path: Plant.pathOf("Mixing/CocoaLiquor/ValveOpen"), message: "XV-101 cocoa liquor valve failed to open — dosing stopped" });
