@@ -37,7 +37,9 @@ SKILLS = [
     ("timescaledb",       "TimescaleDB",       "Time-series database built on PostgreSQL.", ("brand","timescale")),
     ("factry",            "Factry",            "Open industrial historian for time-series process data.", ("role","database")),
     ("grafana",           "Grafana",           "Dashboards and alerting for time-series and operational metrics.", ("brand","grafana")),
+    ("amqp",              "AMQP",              "Queued, guaranteed-delivery messaging between systems (RabbitMQ), for when a message must not be lost.", ("role","protocol")),
     ("prometheus",        "Prometheus",        "Metrics collection and alerting for systems and services.", ("brand","prometheus")),
+    ("opentelemetry",     "OpenTelemetry",     "Vendor-neutral standard for traces, metrics and logs from any service.", ("brand","opentelemetry")),
     # Cloud & Infrastructure
     ("kubernetes",        "Kubernetes",        "Container orchestration: run and scale services across a cluster.", ("brand","kubernetes")),
     ("docker",            "Docker",            "Package applications into portable containers.", ("brand","docker")),
@@ -46,7 +48,6 @@ SKILLS = [
     ("argo-cd",           "Argo CD",           "GitOps continuous delivery for Kubernetes.", ("brand","argo")),
     ("gitops",            "GitOps",            "Manage infrastructure and deploys through Git as source of truth.", ("role","loop")),
     ("ci-cd",             "CI/CD",             "Automated build, test and deploy pipelines.", ("role","loop")),
-    # Diagram-only (no chip) — still popoverable from the architecture SVG
     ("linux",             "Linux",             "The operating system everything runs on.", ("brand","linux")),
 ]
 
@@ -72,6 +73,7 @@ FULL = {
     "hmi-scada":  "Human-Machine Interface / Supervisory Control and Data Acquisition",
     "mes":        "Manufacturing Execution System",
     "mqtt":       "Message Queuing Telemetry Transport",
+    "amqp":       "Advanced Message Queuing Protocol",
     "opc-ua":     "Open Platform Communications Unified Architecture",
     "ci-cd":      "Continuous Integration / Continuous Delivery",
     "cloud":      "Microsoft Azure / Google Cloud Platform",
