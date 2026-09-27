@@ -188,6 +188,9 @@ Plant.startTour = function startTour() {
   Plant.renderAll();
   Plant.syncHash("conching");
   Plant.buildTourUi();
+  // A second tour in the same visit starts over, so every step's setup runs again
+  T.step = 0;
+  T.entered = -1;
   Plant.gotoTourStep(0);
   T.raf = requestAnimationFrame(Plant.tourFrame);
 };

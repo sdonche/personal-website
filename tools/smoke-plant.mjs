@@ -159,15 +159,19 @@ try {
     const { page, errors, close } = await open("#mixing");
     check(await page.locator("#plant-tour-hint").isVisible(), "first visit shows the tour hint");
     const mine = await page.evaluate(() => localStorage.getItem("samdonche.plant.v15"));
-    await page.locator("#plant-tour-btn").click();
-    const seen = [];
-    for (let i = 0; i < 20; i++) {
-      await page.clock.runFor(1500);
-      seen.push(await text(page, "[data-tour-count]"));
-      if (await page.locator('[data-tour="keep"]').count()) break;
-      if (await page.locator('[data-tour="auto"]').count()) await page.locator('[data-tour="auto"]').click();
-      else if (await page.locator('[data-tour="next"]:not([disabled])').count()) await page.locator('[data-tour="next"]').click();
-    }
+    const walk = async () => {
+      await page.locator("#plant-tour-btn").click();
+      const seen = [];
+      for (let i = 0; i < 20; i++) {
+        await page.clock.runFor(1500);
+        seen.push(await text(page, "[data-tour-count]"));
+        if (await page.locator('[data-tour="keep"]').count()) break;
+        if (await page.locator('[data-tour="auto"]').count()) await page.locator('[data-tour="auto"]').click();
+        else if (await page.locator('[data-tour="next"]:not([disabled])').count()) await page.locator('[data-tour="next"]').click();
+      }
+      return seen;
+    };
+    const seen = await walk();
     check(new Set(seen).size === 7 && seen.at(-1) === "7 / 7", `walks all seven steps (${[...new Set(seen)].join(", ")})`);
     const trail = await page.locator(".plant-event").allTextContents();
     check(["SIM", "ACK", "RESET", "START"].every((k) => trail.some((t) => t.includes(k))), "the journal holds the incident");
@@ -175,6 +179,10 @@ try {
     await page.locator('[data-tour="skip"]').click();
     const back = await page.evaluate(() => ({ tour: !!document.querySelector("#plant-tour"), hash: location.hash }));
     check(!back.tour && back.hash === "#mixing", "Back to my shift restores the visitor's plant");
+    // A second tour in the same visit runs every step's setup again
+    const again = await walk();
+    check(again.at(-1) === "7 / 7" && (await page.locator('[data-tour="keep"]').count()) > 0, `a second tour reaches the end too (${[...new Set(again)].join(", ")})`);
+    await page.locator('[data-tour="skip"]').click();
     await close();
 
     const deep = await open("#tour");
