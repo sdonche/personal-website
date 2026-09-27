@@ -30,12 +30,22 @@ import json
 import os
 import re
 import sys
+from zoneinfo import ZoneInfo
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REGISTRY = os.path.join(ROOT, "scripts", "article-dates.json")
 SITE = "https://samdonche.com"
 PERSON_ID = f"{SITE}/#person"
 PERSON_REF = {"@type": "Person", "@id": PERSON_ID, "name": "Sam Donche", "url": f"{SITE}/"}
+
+TZ = ZoneInfo("Europe/Brussels")
+
+
+def iso_datetime(day: str) -> str:
+    """YYYY-MM-DD → noon Belgian time with its offset (Google wants a time zone)."""
+    d = dt.datetime.fromisoformat(day[:10]).replace(hour=12, tzinfo=TZ)
+    return d.isoformat()
+
 
 LD_RE = re.compile(r'(?P<indent>[ \t]*)<script type="application/ld\+json">\s*(?P<body>.*?)\s*</script>', re.S)
 COLL_RE = re.compile(r"[ \t]*<!-- ld:collection -->.*?<!-- /ld:collection -->\n", re.S)
@@ -87,12 +97,15 @@ def stamp_article(rel: str, registry: dict, today: str) -> bool:
     entry = registry.get(rel)
     if entry is None:
         # First run: trust the date already on the page
-        entry = {"hash": digest, "modified": art.get("dateModified") or art["datePublished"]}
+        entry = {"hash": digest, "modified": (art.get("dateModified") or art["datePublished"])[:10]}
     elif entry["hash"] != digest:
         entry = {"hash": digest, "modified": today}
     registry[rel] = entry
 
-    art["dateModified"] = max(entry["modified"], art["datePublished"])
+    published = art["datePublished"][:10]
+    # Full date-times with an offset; the registry and the visible dates stay plain dates
+    art["datePublished"] = iso_datetime(published)
+    art["dateModified"] = iso_datetime(max(entry["modified"], published))
     art["wordCount"] = len(text.split())
     art["articleSection"] = "Notes" if rel.startswith("notes/") else "Case studies"
     art["author"] = dict(PERSON_REF)
@@ -100,7 +113,7 @@ def stamp_article(rel: str, registry: dict, today: str) -> bool:
     page = page[: m.start()] + ld_script(data, m.group("indent")) + page[m.end():]
 
     if rel.startswith("notes/"):
-        page = stamp_visible_dates(page, art["datePublished"], art["dateModified"])
+        page = stamp_visible_dates(page, published, art["dateModified"][:10])
     return write(rel, page)
 
 
