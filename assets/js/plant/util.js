@@ -1,5 +1,11 @@
 import { Plant } from "./ns.js?v=c600f295ec";
 
+/** GoatCounter event (cookie-free); names are listed in the README. No-op if blocked. */
+Plant.track = function track(name, title) {
+  const gc = window.goatcounter;
+  if (!gc || typeof gc.count !== "function") return;
+  try { gc.count({ path: name, title: title || name, event: true }); } catch {}
+};
 
 Plant.isStubTag = function isStubTag(rel) {
   return rel.startsWith("Line1/") || rel.startsWith("Line2/");

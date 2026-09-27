@@ -218,6 +218,22 @@ curl -s https://gc.zgo.at/count.js -o assets/js/goatcounter.js
 
 The script ignores `localhost`, so local development doesn't pollute the stats. The 404 page logs hits under a `404-` path prefix, so broken inbound links surface in the dashboard.
 
+### Events
+
+A few interactions are counted as GoatCounter **events** (they show up in the dashboard next to pageviews, flagged as events). Outbound, mailto and plant links are caught by one delegated click listener (`wireEventTracking()` in [assets/js/script.js](assets/js/script.js)), so new pages and links need no extra markup. Keep the names stable: the dashboard groups by them.
+
+| event | fires when |
+| --- | --- |
+| `contact-sent` | Formspree accepted a contact-form submission (success response only) |
+| `contact-mailto` | the contact form fell back to the visitor's mail client |
+| `email-reveal` | "reveal email address" clicked |
+| `email-click` | any `mailto:` link clicked |
+| `out/<host><path>` | an outbound link clicked, e.g. `out/mustrysolutions.com/ignition-modules/amqp`, `out/linkedin.com/in/samdonche` |
+| `plant-open/<from>` | a link into `/plant/` clicked; `<from>` is the page it was on (`home`, `notes/ignition-historian`, …) |
+| `plant-tour-start` / `plant-tour-done` | the plant HMI guided tour started / reached its last step (`Plant.track()` in [assets/js/plant/util.js](assets/js/plant/util.js)) |
+
+Tag links you share with `?ref=` (e.g. `samdonche.com/notes/ignition-historian/?ref=linkedin`); GoatCounter reports it as the referrer, so each channel shows up separately.
+
 ---
 
 ## Hosting & deployment (Hostinger)

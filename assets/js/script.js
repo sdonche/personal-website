@@ -12,6 +12,7 @@
      7. Career historian trend chart (Experience section)
      8. Scroll-reveal animation
      9. Contact form (Formspree + mailto fallback) with bot honeypot
+    11. Analytics events (GoatCounter): outbound, plant and email clicks
 
    The Skills "Toolbelt" reference-architecture diagram + skill popover
    live in their own file, assets/js/diagram.js.
@@ -121,6 +122,7 @@
     buildNamespaceStrip();
     wireContactForm();
     wireEmailLinks();
+    wireEventTracking();
     wireEasterEggs();
     scrollToHashOnLoad();
   }
@@ -1546,6 +1548,7 @@
         el.addEventListener("click", (e) => {
           if (el.dataset.revealed) return;
           e.preventDefault();
+          track("email-reveal", "Revealed email address");
           el.textContent = addr;
           el.setAttribute("href", `mailto:${addr}`);
           el.dataset.revealed = "1";
@@ -1596,6 +1599,7 @@
         const body = encodeURIComponent(
           `Name: ${data.get("name")}\nEmail: ${data.get("email")}\n\n${data.get("message")}`
         );
+        track("contact-mailto", "Contact form fell back to mail client");
         window.location.href = `mailto:${FALLBACK_EMAIL}?subject=${subject}&body=${body}`;
         setStatus(T.mailto, "ok");
         return;
@@ -1608,6 +1612,7 @@
           headers: { Accept: "application/json" },
         });
         if (res.ok) {
+          track("contact-sent", "Contact form delivered");
           form.reset();
           setStatus(T.ok, "ok");
         } else {
@@ -2054,5 +2059,49 @@
       const fn = window.samdonche[k];
       window.samdonche[k] = function (...args) { discoverEgg("console"); return fn.apply(this, args); };
     });
+  }
+
+  /* ----------------------------------------------------
+     11. Analytics events — GoatCounter, cookie-free (see README).
+         Event names are listed in the README; keep them stable,
+         the dashboard groups by name.
+     ---------------------------------------------------- */
+  function track(name, title) {
+    const gc = window.goatcounter;
+    if (!gc || typeof gc.count !== "function") return;   // blocked, or not loaded yet
+    try { gc.count({ path: name, title: title || name, event: true }); } catch {}
+  }
+
+  /* One delegated listener, so links added later (a new note, a new card)
+     are tracked without extra markup. Middle-clicks count too. */
+  function wireEventTracking() {
+    const onClick = (e) => {
+      if (e.type === "auxclick" && e.button !== 1) return;
+      const a = e.target.closest?.("a[href]");
+      if (!a) return;
+      const href = a.getAttribute("href");
+      const label = (a.textContent || a.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 100);
+
+      if (href.startsWith("mailto:")) {
+        // The first reveal click swaps in the mailto and cancels itself (email-reveal)
+        if (!e.defaultPrevented) track("email-click", label || "Email link");
+        return;
+      }
+
+      let url;
+      try { url = new URL(href, location.href); } catch { return; }
+      if (!/^https?:$/.test(url.protocol)) return;
+
+      if (url.origin !== location.origin) {
+        const host = url.hostname.replace(/^www\./, "");
+        const path = url.pathname.replace(/\/+$/, "");
+        track(`out/${host}${path}`, label || host);
+      } else if (/^\/plant\/?$/.test(url.pathname) && !/^\/plant\//.test(location.pathname)) {
+        const from = location.pathname.replace(/^\/+|\/+$/g, "").replace(/\/index\.html$|^index\.html$/, "") || "home";
+        track(`plant-open/${from}`, label || "Open plant HMI");
+      }
+    };
+    document.addEventListener("click", onClick);
+    document.addEventListener("auxclick", onClick);
   }
 })();

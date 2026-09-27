@@ -155,6 +155,8 @@ Plant.startTour = function startTour() {
     tick: Plant.tick,
   };
   T.active = true;
+  T.counted = false;
+  Plant.track("plant-tour-start", "Plant HMI tour started");
   Plant.state = Plant.defaultState();
   Plant.state.activeDrawing = "conching";
   Plant.state.selectedTag = TEMP_TAG;
@@ -234,6 +236,10 @@ Plant.gotoTourStep = function gotoTourStep(i) {
   if (T.entered < T.step) {
     T.entered = T.step;
     step.enter?.();
+  }
+  if (step.last && !T.counted) {
+    T.counted = true;
+    Plant.track("plant-tour-done", "Plant HMI tour finished");
   }
   T.rect = "";
   Plant.paintTourCard(true);
