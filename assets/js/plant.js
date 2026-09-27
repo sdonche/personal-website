@@ -12,7 +12,7 @@ import "./plant/alarms.js?v=5755a01b4a";
 import "./plant/routing.js?v=5836209ebf";
 import "./plant/actions.js?v=ccbdbba81b";
 import "./plant/ui.js?v=22a351381d";
-import "./plant/tour.js?v=b2d04abd9a";
+import "./plant/tour.js?v=8b27109d66";
 import { boot } from "./plant/main.js?v=905845d1f8";
 
 boot();
