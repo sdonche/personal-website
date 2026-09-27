@@ -175,6 +175,18 @@ try {
     await page.locator('[data-tour="skip"]').click();
     const back = await page.evaluate(() => ({ tour: !!document.querySelector("#plant-tour"), hash: location.hash }));
     check(!back.tour && back.hash === "#mixing", "Back to my shift restores the visitor's plant");
+    // Same page load, second run: every step's setup must run again (the fault breaks again)
+    await page.locator("#plant-tour-btn").click();
+    let again = "";
+    for (let i = 0; i < 20; i++) {
+      await page.clock.runFor(1500);
+      again = await text(page, "[data-tour-count]");
+      if (await page.locator('[data-tour="keep"]').count()) break;
+      if (await page.locator('[data-tour="auto"]').count()) await page.locator('[data-tour="auto"]').click();
+      else if (await page.locator('[data-tour="next"]:not([disabled])').count()) await page.locator('[data-tour="next"]').click();
+    }
+    check(again === "7 / 7", `a restarted tour walks all seven steps again (reached ${again})`);
+    await page.locator('[data-tour="skip"]').click();
     await close();
 
     const deep = await open("#tour");

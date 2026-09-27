@@ -155,6 +155,8 @@ Plant.startTour = function startTour() {
     tick: Plant.tick,
   };
   T.active = true;
+  T.step = 0;
+  T.entered = -1;   // a restarted tour must re-run every step's setup
   T.counted = false;
   Plant.track("plant-tour-start", "Plant HMI tour started");
   Plant.state = Plant.defaultState();
