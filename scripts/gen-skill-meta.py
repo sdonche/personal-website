@@ -9,7 +9,8 @@ icon, append a line for its slug, then add the skill below and re-run:  make ico
 
 Exception: Simple Icons has no Loki glyph, so `grafanaloki` is the single-colour
 "plain" icon from Devicon (MIT, https://github.com/devicons/devicon), taken
-from @iconify-json/devicon-plain and scaled from its 128 grid to 24.
+from @iconify-json/devicon-plain, scaled from its 128 grid and fitted to the
+full 24 box like the Simple Icons glyphs.
 """
 import json, os
 
