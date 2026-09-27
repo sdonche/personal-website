@@ -6,6 +6,10 @@ site cyan; concept/no-brand tools get a cyan stroke role-icon.
 Source data: scripts/skill-icons.jsonl (slug<TAB>title<TAB>path-d), fetched from
 https://cdn.jsdelivr.net/npm/simple-icons@13/icons/<slug>.svg. To add a brand
 icon, append a line for its slug, then add the skill below and re-run:  make icons
+
+Exception: Simple Icons has no Loki glyph, so `grafanaloki` is the single-colour
+"plain" icon from Devicon (MIT, https://github.com/devicons/devicon), taken
+from @iconify-json/devicon-plain and scaled from its 128 grid to 24.
 """
 import json, os
 
@@ -39,7 +43,7 @@ SKILLS = [
     ("grafana",           "Grafana",           "Dashboards and alerting for time-series and operational metrics.", ("brand","grafana")),
     ("amqp",              "AMQP",              "Queued, guaranteed-delivery messaging between systems (RabbitMQ), for when a message must not be lost.", ("role","protocol")),
     ("prometheus",        "Prometheus",        "Metrics collection and alerting for systems and services.", ("brand","prometheus")),
-    ("loki",              "Loki",              "Grafana's log store: search logs next to the metrics, labelled the same way.", ("role","logs")),
+    ("loki",              "Loki",              "Grafana's log store: search logs next to the metrics, labelled the same way.", ("brand","grafanaloki")),
     ("opentelemetry",     "OpenTelemetry",     "Vendor-neutral standard for traces, metrics and logs from any service.", ("brand","opentelemetry")),
     # Cloud & Infrastructure
     ("kubernetes",        "Kubernetes",        "Container orchestration: run and scale services across a cluster.", ("brand","kubernetes")),
@@ -101,7 +105,8 @@ with open(out, "w") as f:
     f.write("/* Skill popover metadata — name, one-line description and an icon per\n")
     f.write("   skill chip. Brand icons are single-path glyphs from Simple Icons (CC0),\n")
     f.write("   recoloured to the site cyan via fill:currentColor. Tools without a brand\n")
-    f.write("   glyph use a cyan stroke role-icon. Generated; edit the generator not here. */\n")
+    f.write("   glyph use a cyan stroke role-icon. Loki's glyph is from Devicon (MIT,\n")
+    f.write("   github.com/devicons/devicon). Generated; edit the generator not here. */\n")
     f.write("window.SKILL_META = " + json.dumps(meta, ensure_ascii=False, indent=1) + ";\n")
     f.write("window.SKILL_ROLE_ICONS = " + json.dumps(roles, ensure_ascii=False, indent=1) + ";\n")
 

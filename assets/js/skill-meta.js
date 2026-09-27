@@ -1,7 +1,8 @@
 /* Skill popover metadata — name, one-line description and an icon per
    skill chip. Brand icons are single-path glyphs from Simple Icons (CC0),
    recoloured to the site cyan via fill:currentColor. Tools without a brand
-   glyph use a cyan stroke role-icon. Generated; edit the generator not here. */
+   glyph use a cyan stroke role-icon. Loki's glyph is from Devicon (MIT,
+   github.com/devicons/devicon). Generated; edit the generator not here. */
 window.SKILL_META = {
  "ignition": {
   "name": "Ignition",
@@ -86,7 +87,7 @@ window.SKILL_META = {
  "loki": {
   "name": "Loki",
   "desc": "Grafana's log store: search logs next to the metrics, labelled the same way.",
-  "role": "logs"
+  "brand": "m 7.569 19.95l -1.552 0.24l 0.24 1.552l 1.552 -0.238zm 5.606 -1.761l 6.855 -1.056l -0.24 -1.552L 12.938 16.635Zm -2.67 -1.179L 10.744 18.562l 1.554 -0.238l -0.24 -1.554zm -0.264 4.119l -0.24 -1.552l -1.552 0.238l 0.238 1.554zm -4.359 -1.819l 1.552 -0.238l -0.238 -1.554l -1.552 0.24zm 14.284 -1.297l -6.855 1.054l 0.24 1.554l 6.853 -1.056zm -9.285 1.429l 0.238 1.552l 1.552 -0.238l -0.238 -1.554zM 8.314 18.938l 1.552 -0.24l -0.238 -1.552l -1.554 0.238zM 5.509 16.881l 0.654 -0.101l -1.911 -12.428l -0.656 0.101Zm 0.9 -0.139l 0.656 -0.101l -2.051 -13.342l -0.656 0.101Zm 1.541 -0.238l 0.654 -0.101l -2.175 -14.145l -0.656 0.101Zm 0.9 -0.139l 0.656 -0.101l -1.984 -12.896l -0.656 0.101Zm 1.521 -0.232l 0.656 -0.101l -1.763 -11.456l -0.656 0.099zm 0.902 -0.139l 0.656 -0.101l -1.83 -11.895l -0.656 0.099z"
  },
  "opentelemetry": {
   "name": "OpenTelemetry",
@@ -143,7 +144,6 @@ window.SKILL_ROLE_ICONS = {
  "factory": "<path d=\"M3 20V10l5 3V10l5 3V6l6 3v11z\"/><path d=\"M3 20h18\"/>",
  "gauge": "<path d=\"M4 15a8 8 0 0 1 16 0\"/><path d=\"M12 15l3.5-3.5\"/><circle cx=\"12\" cy=\"15\" r=\"1\"/>",
  "hub": "<circle cx=\"12\" cy=\"12\" r=\"2.4\"/><circle cx=\"5\" cy=\"5\" r=\"1.7\"/><circle cx=\"19\" cy=\"5\" r=\"1.7\"/><circle cx=\"5\" cy=\"19\" r=\"1.7\"/><circle cx=\"19\" cy=\"19\" r=\"1.7\"/><path d=\"M10.3 10.3 6.3 6.3M13.7 10.3l4-4M10.3 13.7l-4 4M13.7 13.7l4 4\"/>",
- "logs": "<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"1.5\"/><path d=\"M8 8h8M8 12h8M8 16h5\"/>",
  "loop": "<path d=\"M4 12a8 8 0 0 1 13.7-5.6L20 8\"/><path d=\"M20 4v4h-4\"/><path d=\"M20 12a8 8 0 0 1-13.7 5.6L4 16\"/><path d=\"M4 20v-4h4\"/>",
  "protocol": "<path d=\"M9 3v5M15 3v5\"/><path d=\"M7 8h10v3a5 5 0 0 1-10 0z\"/><path d=\"M12 16v5\"/>"
 };
