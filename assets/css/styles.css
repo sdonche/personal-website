@@ -314,7 +314,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
 
 
 /* ----------------------------------------------------
-   5. Skills — chips live inside the Toolbelt layers (see 7c)
+   5. Skills — chips live inside the Toolbelt layers (see 7d)
    ---------------------------------------------------- */
 
 .skill-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
@@ -1093,7 +1093,108 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
 
 
 /* ----------------------------------------------------
-   7c. Toolbelt — layered reference architecture (Skills)
+   7c. Diagram panel — shared chrome (header, live badge, scroll,
+   caption) for the Experience "Career historian" chart.
+   ---------------------------------------------------- */
+
+.stack-diagram {
+  margin: 2.5rem auto 0;
+  max-width: none;                 /* fill the section, matching the skill-box grid below */
+  padding: 1.5rem 1.5rem 1.25rem;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgb(30 41 59);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle inner glow at top to suggest "active panel" */
+.stack-diagram::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top, rgba(34, 211, 238, 0.05), transparent 50%);
+  pointer-events: none;
+}
+
+.stack-diagram__header {
+  display: flex;
+  flex-wrap: wrap;              /* caption + live badge collide on narrow screens otherwise */
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  position: relative;
+}
+
+/* On phones the full diagram would render illegibly small — keep a legible
+   minimum width and let it scroll horizontally inside the card instead. */
+.stack-diagram__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 43rem) {
+  .stack-diagram__scroll svg {
+    min-width: 40rem;
+    height: auto;
+  }
+}
+.stack-diagram__caption { color: rgb(148 163 184); }
+.stack-diagram__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-accent);
+}
+.stack-diagram__pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.7);
+  animation: stack-dot-pulse 1.6s ease-in-out infinite;
+}
+.stack-diagram__cap {
+  margin: 1rem auto 0;
+  max-width: 520px;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: rgb(148 163 184);
+  line-height: 1.55;
+}
+.stack-diagram__hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: rgba(34, 211, 238, 0.7);
+}
+
+/* Mobile-only "swipe" affordance for the horizontally-scrolling diagram */
+.stack-diagram__swipe {
+  display: none;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(34, 211, 238, 0.7);
+}
+@media (max-width: 43rem) {
+  .stack-diagram__swipe { display: block; margin-bottom: 0.4rem; text-align: right; }
+}
+/* Touch devices have no hover — don't imply an interaction that won't fire */
+@media (hover: none) {
+  .stack-diagram__hint { display: none; }
+}
+
+
+/* ----------------------------------------------------
+   7d. Toolbelt — layered reference architecture (Skills)
    Five bands on a platform base. The Unified Namespace is the
    hub; every software band taps its bus spine both ways (not
    the ISA-95 pyramid). Chips live inside their band, so the
@@ -1692,6 +1793,11 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   .tag-nav,
   #cmdk,
   .scroll-hint,
+  .stack-diagram,                   /* cyan-on-white SVG would be unreadable */
+  .stack-layers__live,              /* Toolbelt prints, minus its screen-only bits */
+  .stack-broker,
+  .stack-layers__hint,
+  .stack-band__bus,
   #contact-form,
   p:has([data-email-reveal]),
   #hero a[href="#experience"],      /* hero buttons */
