@@ -1814,7 +1814,7 @@
     });
   }
 
-  /* ---- MQTT publish: click the broker node → it "publishes" a burst ---- */
+  /* ---- MQTT publish: click the broker on the UNS layer → it "publishes" a burst ---- */
   const MQTT_PAYLOADS = [
     "samdonche/deploy ▸ shipped",
     "samdonche/ping ▸ pong",
@@ -1826,22 +1826,15 @@
   ];
   let mqttIdx = 0;
   function wireDiagramEgg() {
-    const svg = document.getElementById("stack-svg");
-    const broker = svg && svg.querySelector('.stack-node[data-node="mqtt"]');
+    const broker = document.querySelector(".stack-broker");
+    const layers = broker && broker.closest(".stack-layers");
     if (!broker) return;
-    broker.style.cursor = "pointer";
-    broker.setAttribute("role", "button");
-    broker.setAttribute("tabindex", "0");
-    broker.setAttribute("aria-label", "MQTT broker — tap to publish");
     broker.addEventListener("click", () => {
-      svg.classList.add("is-publishing");
-      setTimeout(() => svg.classList.remove("is-publishing"), 1400);
+      layers.classList.add("is-publishing");
+      setTimeout(() => layers.classList.remove("is-publishing"), 1400);
       eggToast("▲ publish · " + MQTT_PAYLOADS[mqttIdx % MQTT_PAYLOADS.length]);
       mqttIdx++;
       discoverEgg("mqtt");
-    });
-    broker.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); broker.click(); }
     });
   }
 

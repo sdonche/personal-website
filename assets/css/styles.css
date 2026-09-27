@@ -314,74 +314,16 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
 
 
 /* ----------------------------------------------------
-   5. Skills — diagram leads; chip index is a quiet footnote
+   5. Skills — chips live inside the Toolbelt layers (see 7d)
    ---------------------------------------------------- */
 
-/* Skills body keeps document order: diagram first, chip index second.
-   Explicit width:100% — a column flex item can otherwise shrink-wrap to the
-   SVG's intrinsic size (~390px) and clip the architecture on the right. */
-.skills-body {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-.skills-body > .stack-diagram,
-.skills-body > .skill-index {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-}
-
-.skill-index__lead {
-  margin: 0 0 1rem;
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgb(148 163 184);
-}
-.skill-index__grid {
-  display: grid;
-  gap: 1.25rem 2rem;
-}
-@media (min-width: 48rem) {
-  .skill-index__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (min-width: 64rem) {
-  .skill-index__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-
-/* Flat groups — no card chrome competing with the diagram panel */
-.skill-group {
-  padding: 0;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-}
-.skill-group__title {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: rgb(148 163 184);
-  margin-bottom: 0.55rem;
-}
-.skill-group__icon {
-  width: 0.9rem;
-  height: 0.9rem;
-  color: rgb(71 85 105);
-  flex-shrink: 0;
-}
-
-/* Quiet chips — readable, not a second visual system */
-.skill-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.skill-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
 .skill-chip {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   margin: 0;
-  padding: 0.18rem 0.5rem;
+  padding: 0.22rem 0.55rem;
   border-radius: 4px;
   font-family: inherit;
   font-size: 0.72rem;
@@ -401,13 +343,23 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   color: rgb(226 232 240);
   background: rgba(34, 211, 238, 0.05);
 }
-/* Lit from the diagram side (hovering its block) — mirror the hover look */
-.skill-chip.is-linked {
+.skill-chip[aria-expanded="true"] {
   border-color: rgba(34, 211, 238, 0.65);
   color: rgb(241 245 249);
   background: rgba(34, 211, 238, 0.08);
   box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.2);
 }
+/* Icon added by diagram.js from SKILL_META */
+.skill-chip__icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+  color: rgba(34, 211, 238, 0.7);
+  transition: color .15s ease;
+}
+.skill-chip__icon.is-brand { fill: currentColor; }
+.skill-chip:hover .skill-chip__icon,
+.skill-chip[aria-expanded="true"] .skill-chip__icon { color: var(--color-brand-300); }
 
 /* Spoken languages — lives in About aside, stacked like other bio facts */
 .lang-list {
@@ -1141,7 +1093,8 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
 
 
 /* ----------------------------------------------------
-   7c. Stack diagram (decorative tech-stack network in Skills)
+   7c. Diagram panel — shared chrome (header, live badge, scroll,
+   caption) for the Experience "Career historian" chart.
    ---------------------------------------------------- */
 
 .stack-diagram {
@@ -1205,184 +1158,361 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   box-shadow: 0 0 6px rgba(52, 211, 153, 0.7);
   animation: stack-dot-pulse 1.6s ease-in-out infinite;
 }
-
-#stack-svg {
+.stack-diagram__cap {
+  margin: 1rem auto 0;
+  max-width: 520px;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: rgb(148 163 184);
+  line-height: 1.55;
+}
+.stack-diagram__hint {
   display: block;
-  width: 100%;
-  max-width: none;
-  height: auto;
-  margin: 0 auto;
-  color: rgba(34, 211, 238, 0.45);   /* edges via currentColor */
-  overflow: visible;
-}
-
-/* Stage labels at top of pipeline (FIELD · EDGE · BROKER · SERVER · CONSUMERS) */
-.stack-svg__stage-label {
+  margin-top: 0.35rem;
   font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 11px;
-  fill: var(--color-brand-400);
-  text-transform: uppercase;
-  letter-spacing: 0.22em;
-  text-anchor: middle;
-  font-weight: 600;
-}
-/* Column guides — solid + quieter so they don't read as data edges */
-.stack-svg__stage-divider {
-  stroke: rgba(148, 163, 184, 0.09);
-  stroke-width: 1;
-  stroke-dasharray: none;
-}
-/* OT ↔ IT boundary: physical field devices on the left, software on the right */
-.stack-svg__otit {
-  stroke: rgba(148, 163, 184, 0.28);
-  stroke-width: 1;
-  stroke-dasharray: 1 6;
-}
-.stack-svg__otit-label {
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 8px;
-  letter-spacing: 0.12em;
-  fill: rgb(100 116 139);
-}
-
-/* Edges — dashed to feel "signal-y"; the spine (main data path) is heavier */
-.stack-svg__edges path {
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1;
-  stroke-dasharray: 3 4;
-  opacity: 0.4;
-  transition: opacity 0.18s ease, stroke 0.15s ease, stroke-width 0.15s ease;
-}
-.stack-svg__edges path.is-spine {
-  stroke-width: 1.6;
-  stroke-dasharray: 6 4;
-  opacity: 0.85;
-}
-
-/* Particles — data flowing along the edges; downstream of the frontend
-   they turn emerald: data becomes decisions */
-.stack-svg__particles circle {
-  fill: var(--color-brand-400);
-  opacity: 0.9;
-  filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));
-  transition: opacity 0.18s ease;
-}
-.stack-svg__particles circle.is-out {
-  fill: var(--color-accent);
-  filter: drop-shadow(0 0 3px rgba(52, 211, 153, 0.8));
-}
-
-/* Nodes — labeled blocks, schematic style */
-.stack-svg__block {
-  fill: rgba(15, 23, 42, 0.92);
-  stroke: rgba(34, 211, 238, 0.38);
-  stroke-width: 1.25;
-}
-.stack-svg__block--broker {
-  fill: rgba(12, 35, 48, 0.95);
-  stroke: var(--color-brand-400);
-  stroke-width: 1.75;
-}
-.stack-svg__block--consumer {
-  stroke: rgba(52, 211, 153, 0.42);
-}
-.stack-svg__block-label {
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 10px;
-  fill: rgb(203 213 225);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  text-anchor: middle;
-}
-.stack-svg__block-label--broker {
-  font-weight: 600;
-  fill: var(--color-brand-300);
-  letter-spacing: 0.14em;
-}
-.stack-svg__block-label--consumer {
-  fill: rgba(110, 231, 183, 0.92);
-}
-
-/* ---- Platform tier (foundation slab below the data flow) ---- */
-/* The slab the whole software stack runs on */
-.stack-svg__slab {
-  fill: rgba(15, 23, 42, 0.45);
-  stroke: rgba(148, 163, 184, 0.2);
-  stroke-width: 1;
-  stroke-dasharray: 5 4;
-}
-.stack-svg__tier-label {
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 9px;
-  fill: rgb(100 116 139);
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-}
-/* "runs on" bracket — faint, structural, not a signal path */
-.stack-svg__runson {
-  stroke: rgba(148, 163, 184, 0.22);
-  stroke-width: 1;
-  stroke-dasharray: 2 4;
-  fill: none;
-}
-/* "provisioned & shipped via GitOps" tag + its tap into the slab */
-.stack-svg__tap,
-.stack-svg__tap-head {
-  stroke: rgba(148, 163, 184, 0.4);
-  stroke-width: 1.2;
-  fill: none;
-}
-.stack-svg__tag-label {
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 9px;
-  fill: rgb(100 116 139);
+  font-size: 0.6875rem;
   letter-spacing: 0.04em;
-}
-.stack-node--tag { cursor: default; }
-.stack-node--tag.is-linked .stack-svg__tag-label { fill: var(--color-brand-300); }
-.stack-node--tag.is-linked .stack-svg__tap,
-.stack-node--tag.is-linked .stack-svg__tap-head { stroke: var(--color-brand-400); }
-/* Platform blocks — slate/steel, clearly "infrastructure not data" */
-.stack-svg__block--platform {
-  fill: rgba(15, 23, 42, 0.9);
-  stroke: rgba(148, 163, 184, 0.4);
-}
-.stack-svg__block-label--platform {
-  fill: rgb(148 163 184);
+  color: rgba(34, 211, 238, 0.7);
 }
 
-.stack-svg__edges,
-.stack-svg__particles,
-.stack-svg__stages {
-  transition: opacity 0.18s ease;
+/* Mobile-only "swipe" affordance for the horizontally-scrolling diagram */
+.stack-diagram__swipe {
+  display: none;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(34, 211, 238, 0.7);
 }
-.stack-node .stack-svg__block { transition: stroke 0.15s ease, stroke-width 0.15s ease, fill 0.15s ease; }
-.stack-node .stack-svg__block-label { transition: fill 0.15s ease; }
-/* Blocks tied to a skill invite the hover */
-.stack-node[data-skills],
-.stack-node[data-popover] { cursor: pointer; }
-/* Spotlight: fade unlinked nodes; keep incident edges/particles bright */
-#stack-svg.is-spotlighting .stack-node:not(.is-linked) { opacity: 0.28; }
-#stack-svg.is-spotlighting .stack-svg__stages { opacity: 0.45; }
-#stack-svg.is-spotlighting .stack-svg__edges path:not(.is-linked) { opacity: 0.08; }
-#stack-svg.is-spotlighting .stack-svg__edges path.is-linked {
-  opacity: 1;
-  stroke: var(--color-brand-400);
-  stroke-width: 1.75;
+@media (max-width: 43rem) {
+  .stack-diagram__swipe { display: block; margin-bottom: 0.4rem; text-align: right; }
 }
-#stack-svg.is-spotlighting .stack-svg__edges path.is-linked.is-spine {
-  stroke-width: 2.1;
+/* Touch devices have no hover — don't imply an interaction that won't fire */
+@media (hover: none) {
+  .stack-diagram__hint { display: none; }
 }
-#stack-svg.is-spotlighting .stack-svg__particles circle:not(.is-linked) { opacity: 0.08; }
-#stack-svg.is-spotlighting .stack-svg__particles circle.is-linked { opacity: 1; }
-.stack-node.is-linked .stack-svg__block {
-  stroke: var(--color-brand-400);
-  stroke-width: 2;
-  fill: rgba(12, 35, 48, 0.98);
+
+
+/* ----------------------------------------------------
+   7d. Toolbelt — layered reference architecture (Skills)
+   Five bands on a platform base. The Unified Namespace is the
+   hub; every software band taps its bus spine both ways (not
+   the ISA-95 pyramid). Chips live inside their band, so the
+   diagram doubles as the index.
+   ---------------------------------------------------- */
+
+/* margin lives here (not a Tailwind utility): this rule loads after
+   tailwind.css and would silently zero out an mt-* class. */
+.stack-layers {
+  margin: 2.5rem 0 0;
+  padding: 1.5rem 1.5rem 1.25rem;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgb(30 41 59);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
 }
-.stack-node.is-linked .stack-svg__block-label {
-  fill: var(--color-brand-300);
+/* Subtle inner glow at top to suggest "active panel" */
+.stack-layers::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top, rgba(34, 211, 238, 0.05), transparent 50%);
+  pointer-events: none;
+}
+
+.stack-layers__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  margin-bottom: 1.25rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  position: relative;
+}
+@media (max-width: 30rem) {
+  .stack-layers { padding: 1.1rem 0.9rem 1rem; }
+  .stack-layers__flow { --tap: 1.25rem; }
+  .stack-base { margin-left: 1.25rem; }
+}
+.stack-layers__caption { color: rgb(148 163 184); }
+.stack-layers__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-accent);
+}
+.stack-layers__pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.7);
+  animation: stack-dot-pulse 1.6s ease-in-out infinite;
+}
+
+/* ---- Bus spine: the Unified Namespace extended as a vertical bus down the
+   left edge. Each software band taps into it with a two-way link (pub/sub),
+   so the picture reads as a hub, not the ISA-95 pyramid's level-by-level
+   handoff. Field has no tap: it's reached through the edge band. ---- */
+.stack-layers__flow {
+  position: relative;
+  --tap: 2rem;              /* spine → band link length */
+  padding-left: var(--tap);
+}
+
+/* ---- Bands ---- */
+.stack-layers__bands {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.stack-band {
+  position: relative;
+  display: grid;
+  gap: 0.6rem 1.5rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgb(30 41 59);
+  border-radius: 8px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+@media (min-width: 48rem) {
+  .stack-band { grid-template-columns: 14rem minmax(0, 1fr); }
+}
+.stack-band:hover { border-color: rgb(51 65 85); }
+/* spine segment per connected band; segments meet mid-gap (the extra 1px
+   covers the band border, since absolute offsets start inside it) */
+.stack-band:not(.stack-band--field)::after {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--tap));
+  top: calc(-0.25rem - 1px);
+  bottom: calc(-0.25rem - 1px);
+  width: 2px;
+  margin-left: -1px;
+  background: rgba(34, 211, 238, 0.4);
+}
+.stack-band:first-child::after { top: 50%; }
+.stack-band:nth-last-child(2)::after { bottom: 50%; }   /* edge: last band on the bus */
+/* link from the spine into the band */
+.stack-band::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--tap));
+  top: 50%;
+  width: var(--tap);
+  height: 1px;
+  background: rgba(34, 211, 238, 0.3);
+}
+/* Field hangs off the edge band instead of the bus */
+.stack-band--field::before {
+  left: 2rem;
+  top: -0.5rem;
+  width: 1px;
+  height: 0.5rem;
+  background: rgba(100, 116, 139, 0.6);
+}
+/* two-way traffic on each link: one dot publishes in, one subscribes out */
+.stack-band__tap {
+  position: absolute;
+  left: calc(-1 * var(--tap));
+  top: 50%;
+  width: var(--tap);
+  height: 0;
+  pointer-events: none;
+}
+.stack-band__tap i {
+  position: absolute;
+  top: -2.5px;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-brand-400);
+  box-shadow: 0 0 5px rgba(34, 211, 238, 0.8);
+  opacity: 0;
+  animation: stack-pub 2.4s ease-in-out infinite;
+}
+.stack-band__tap i:nth-child(2) {
+  background: var(--color-accent);
+  box-shadow: 0 0 5px rgba(52, 211, 153, 0.8);
+  animation-name: stack-sub;
+  animation-delay: -1.2s;
+}
+.stack-band:nth-child(2) .stack-band__tap i { animation-delay: -0.8s; }
+.stack-band:nth-child(2) .stack-band__tap i:nth-child(2) { animation-delay: -2s; }
+.stack-band:nth-child(4) .stack-band__tap i { animation-delay: -1.6s; }
+.stack-band:nth-child(4) .stack-band__tap i:nth-child(2) { animation-delay: -0.4s; }
+/* pub: band → spine; sub: spine → band */
+@keyframes stack-pub {
+  0%   { left: calc(100% - 5px); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { left: 0; opacity: 0; }
+}
+@keyframes stack-sub {
+  0%   { left: 0; opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { left: calc(100% - 5px); opacity: 0; }
+}
+
+.stack-band__name {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(226 232 240);
+}
+.stack-band__role {
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: rgb(100 116 139);
+}
+.stack-band__things {
+  margin: 0;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: rgb(100 116 139);
+}
+/* Field is physical OT — hatched, not a software layer */
+.stack-band--field {
+  background:
+    repeating-linear-gradient(135deg, rgba(51, 65, 85, 0.18) 0 6px, transparent 6px 12px),
+    rgba(15, 23, 42, 0.4);
+  border-style: dashed;
+}
+
+/* The Unified Namespace is the bus — the one band that glows */
+.stack-band--bus {
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.08), rgba(34, 211, 238, 0.02));
+  border-color: rgba(34, 211, 238, 0.4);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.06), 0 0 24px -8px rgba(34, 211, 238, 0.35);
+}
+.stack-band--bus:hover { border-color: rgba(34, 211, 238, 0.6); }
+/* the hub's own joint onto the spine is solid: the spine *is* the bus */
+.stack-band--bus::before { height: 2px; margin-top: -0.5px; background: rgba(34, 211, 238, 0.7); }
+.stack-band--bus::after { background: rgba(34, 211, 238, 0.55); }
+.stack-band--bus .stack-band__name { color: var(--color-brand-300); }
+/* messages streaming along the bus */
+.stack-band__bus {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: -1px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, rgba(34, 211, 238, 0.8) 0 10px, transparent 10px 26px);
+  background-size: 26px 2px;
+  opacity: 0.6;
+  animation: stack-bus 1.2s linear infinite;
+  pointer-events: none;
+}
+@keyframes stack-bus { to { background-position: 26px 0; } }
+
+/* MQTT egg: a small broker indicator inside the bus band */
+.stack-broker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  padding: 0.2rem 0.55rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-brand-300);
+  background: transparent;
+  border: 1px dashed rgba(34, 211, 238, 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.stack-broker:hover { border-color: rgba(34, 211, 238, 0.7); background: rgba(34, 211, 238, 0.06); }
+.stack-broker:focus-visible { outline: 2px solid rgba(34, 211, 238, 0.6); outline-offset: 2px; }
+.stack-broker__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-brand-400);
+  box-shadow: 0 0 6px rgba(34, 211, 238, 0.8);
+  animation: stack-dot-pulse 1.6s ease-in-out infinite;
+}
+
+/* ---- Platform base: what every layer runs on, and how it ships ---- */
+.stack-base {
+  margin: 0.75rem 0 0 2rem;
+  padding: 0.75rem 1rem;
+  border: 1px dashed rgb(51 65 85);
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.35);
+  display: grid;
+  gap: 0.6rem;
+}
+.stack-base__row {
+  display: grid;
+  gap: 0.4rem 1.5rem;
+  align-items: center;
+}
+@media (min-width: 48rem) {
+  .stack-base__row { grid-template-columns: 14rem minmax(0, 1fr); }
+}
+.stack-base__label {
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(100 116 139);
+}
+.stack-base__label::before { content: "// "; color: rgba(34, 211, 238, 0.5); }
+
+.stack-layers__cap {
+  margin: 1.1rem auto 0;
+  max-width: 520px;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: rgb(148 163 184);
+  line-height: 1.55;
+}
+.stack-layers__hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: rgba(34, 211, 238, 0.7);
+}
+
+/* MQTT egg: the broker "publishes" — bus glows, links speed up */
+.stack-layers.is-publishing .stack-band--bus {
+  animation: mqtt-flash 1.4s ease-out;
+}
+.stack-layers.is-publishing .stack-band__bus { opacity: 1; animation-duration: 0.3s; }
+.stack-layers.is-publishing .stack-band__tap i { animation-duration: 0.8s; }
+@keyframes mqtt-flash {
+  0%   { box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.06), 0 0 24px -8px rgba(34, 211, 238, 0.35); }
+  18%  { box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.6), 0 0 36px -4px rgba(34, 211, 238, 0.8); }
+  100% { box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.06), 0 0 24px -8px rgba(34, 211, 238, 0.35); }
+}
+
+@keyframes stack-dot-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%      { opacity: 0.6; transform: scale(0.85); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stack-band__tap i,
+  .stack-band__bus,
+  .stack-layers__pulse,
+  .stack-broker__dot { animation: none; }
+  .stack-band__tap i { display: none; }
 }
 
 /* ---- Skill popover (click a chip → what it is + on-brand icon) ---- */
@@ -1585,57 +1715,6 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
 .js .role-detail .timeline-item { display: none; }
 .js .role-detail .timeline-item.is-selected { display: block; }
 
-/* Halo pulse behind the broker block */
-.stack-svg__center-halo {
-  fill: var(--color-brand-400);
-  opacity: 0;
-  transform-origin: center;
-  transform-box: fill-box;
-  animation: stack-halo 2.6s ease-out infinite;
-}
-
-.stack-diagram__cap {
-  margin: 1rem auto 0;
-  max-width: 520px;
-  text-align: center;
-  font-size: 0.8125rem;
-  color: rgb(148 163 184);
-  line-height: 1.55;
-}
-.stack-diagram__hint {
-  display: block;
-  margin-top: 0.35rem;
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.04em;
-  color: rgba(34, 211, 238, 0.7);
-}
-
-/* Mobile-only "swipe" affordance for the horizontally-scrolling diagram */
-.stack-diagram__swipe {
-  display: none;
-  font-family: var(--font-mono, "JetBrains Mono"), monospace;
-  font-size: 0.625rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(34, 211, 238, 0.7);
-}
-@media (max-width: 43rem) {
-  .stack-diagram__swipe { display: block; margin-bottom: 0.4rem; text-align: right; }
-}
-/* Touch devices have no hover — don't imply an interaction that won't fire */
-@media (hover: none) {
-  .stack-diagram__hint { display: none; }
-}
-
-@keyframes stack-halo {
-  0%   { transform: scale(1);   opacity: 0.5; }
-  100% { transform: scale(2.4); opacity: 0;   }
-}
-@keyframes stack-dot-pulse {
-  0%, 100% { opacity: 1;   transform: scale(1);    }
-  50%      { opacity: 0.6; transform: scale(0.85); }
-}
 
 
 /* ----------------------------------------------------
@@ -1715,6 +1794,10 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   #cmdk,
   .scroll-hint,
   .stack-diagram,                   /* cyan-on-white SVG would be unreadable */
+  .stack-layers__live,              /* Toolbelt prints, minus its screen-only bits */
+  .stack-broker,
+  .stack-layers__hint,
+  .stack-band__bus,
   #contact-form,
   p:has([data-email-reveal]),
   #hero a[href="#experience"],      /* hero buttons */
@@ -1737,7 +1820,7 @@ html:not([data-mode="floor"]) .qv-badge { display: none; }
   /* Scroll-reveal must never hide content on paper */
   .reveal, .js .reveal { opacity: 1 !important; transform: none !important; }
 
-  .timeline-item, .edu-card, .skill-group { break-inside: avoid; }
+  .timeline-item, .edu-card, .stack-band { break-inside: avoid; }
   h2 { break-after: avoid; }
 
   /* Inspector shows one card on screen — paper gets the full history */
@@ -1972,14 +2055,6 @@ html.line-stopped *::after {
 .telemetry__title { margin: 0 0 0.5rem; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-brand-400); }
 .telemetry__row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.2rem 0; font-size: 0.72rem; color: #94a3b8; }
 .telemetry__row b { color: #e2e8f0; font-weight: 600; }
-
-/* ---- MQTT publish flash on the diagram ---- */
-#stack-svg.is-publishing .stack-svg__particles circle {
-  fill: var(--color-brand-300);
-  filter: drop-shadow(0 0 3px var(--color-brand-400));
-}
-#stack-svg.is-publishing .stack-svg__center-halo { animation: mqtt-flash 1.4s ease-out; }
-@keyframes mqtt-flash { 0% { opacity: 0.12; } 18% { opacity: 0.85; } 100% { opacity: 0.05; } }
 
 /* ---- Discovery toast (bottom-right, links to the log) ---- */
 .egg-discover {

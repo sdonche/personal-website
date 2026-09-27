@@ -6,6 +6,11 @@ site cyan; concept/no-brand tools get a cyan stroke role-icon.
 Source data: scripts/skill-icons.jsonl (slug<TAB>title<TAB>path-d), fetched from
 https://cdn.jsdelivr.net/npm/simple-icons@13/icons/<slug>.svg. To add a brand
 icon, append a line for its slug, then add the skill below and re-run:  make icons
+
+Exception: Simple Icons has no Loki glyph, so `grafanaloki` is the single-colour
+"plain" icon from Devicon (MIT, https://github.com/devicons/devicon), taken
+from @iconify-json/devicon-plain, scaled from its 128 grid and fitted to the
+full 24 box like the Simple Icons glyphs.
 """
 import json, os
 
@@ -37,7 +42,10 @@ SKILLS = [
     ("timescaledb",       "TimescaleDB",       "Time-series database built on PostgreSQL.", ("brand","timescale")),
     ("factry",            "Factry",            "Open industrial historian for time-series process data.", ("role","database")),
     ("grafana",           "Grafana",           "Dashboards and alerting for time-series and operational metrics.", ("brand","grafana")),
+    ("amqp",              "AMQP",              "Queued, guaranteed-delivery messaging between systems (RabbitMQ), for when a message must not be lost.", ("role","protocol")),
     ("prometheus",        "Prometheus",        "Metrics collection and alerting for systems and services.", ("brand","prometheus")),
+    ("loki",              "Loki",              "Grafana's log store: search logs next to the metrics, labelled the same way.", ("brand","grafanaloki")),
+    ("opentelemetry",     "OpenTelemetry",     "Vendor-neutral standard for traces, metrics and logs from any service.", ("brand","opentelemetry")),
     # Cloud & Infrastructure
     ("kubernetes",        "Kubernetes",        "Container orchestration: run and scale services across a cluster.", ("brand","kubernetes")),
     ("docker",            "Docker",            "Package applications into portable containers.", ("brand","docker")),
@@ -46,7 +54,6 @@ SKILLS = [
     ("argo-cd",           "Argo CD",           "GitOps continuous delivery for Kubernetes.", ("brand","argo")),
     ("gitops",            "GitOps",            "Manage infrastructure and deploys through Git as source of truth.", ("role","loop")),
     ("ci-cd",             "CI/CD",             "Automated build, test and deploy pipelines.", ("role","loop")),
-    # Diagram-only (no chip) — still popoverable from the architecture SVG
     ("linux",             "Linux",             "The operating system everything runs on.", ("brand","linux")),
 ]
 
@@ -72,6 +79,7 @@ FULL = {
     "hmi-scada":  "Human-Machine Interface / Supervisory Control and Data Acquisition",
     "mes":        "Manufacturing Execution System",
     "mqtt":       "Message Queuing Telemetry Transport",
+    "amqp":       "Advanced Message Queuing Protocol",
     "opc-ua":     "Open Platform Communications Unified Architecture",
     "ci-cd":      "Continuous Integration / Continuous Delivery",
     "cloud":      "Microsoft Azure / Google Cloud Platform",
@@ -98,7 +106,8 @@ with open(out, "w") as f:
     f.write("/* Skill popover metadata — name, one-line description and an icon per\n")
     f.write("   skill chip. Brand icons are single-path glyphs from Simple Icons (CC0),\n")
     f.write("   recoloured to the site cyan via fill:currentColor. Tools without a brand\n")
-    f.write("   glyph use a cyan stroke role-icon. Generated; edit the generator not here. */\n")
+    f.write("   glyph use a cyan stroke role-icon. Loki's glyph is from Devicon (MIT,\n")
+    f.write("   github.com/devicons/devicon). Generated; edit the generator not here. */\n")
     f.write("window.SKILL_META = " + json.dumps(meta, ensure_ascii=False, indent=1) + ";\n")
     f.write("window.SKILL_ROLE_ICONS = " + json.dumps(roles, ensure_ascii=False, indent=1) + ";\n")
 
