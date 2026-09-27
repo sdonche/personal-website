@@ -39,6 +39,7 @@ SKILLS = [
     ("grafana",           "Grafana",           "Dashboards and alerting for time-series and operational metrics.", ("brand","grafana")),
     ("amqp",              "AMQP",              "Queued, guaranteed-delivery messaging between systems (RabbitMQ), for when a message must not be lost.", ("role","protocol")),
     ("prometheus",        "Prometheus",        "Metrics collection and alerting for systems and services.", ("brand","prometheus")),
+    ("loki",              "Loki",              "Grafana's log store: search logs next to the metrics, labelled the same way.", ("role","logs")),
     ("opentelemetry",     "OpenTelemetry",     "Vendor-neutral standard for traces, metrics and logs from any service.", ("brand","opentelemetry")),
     # Cloud & Infrastructure
     ("kubernetes",        "Kubernetes",        "Container orchestration: run and scale services across a cluster.", ("brand","kubernetes")),
