@@ -278,7 +278,7 @@ The hero profile card and the tag strip use the shared `.glass-card` surface (tr
 ## Accessibility & performance notes
 
 - Skip link; the sidebar is a labelled plain list (deliberately no ARIA `tree` role — that would promise arrow-key semantics the nav doesn't implement) with `aria-current` marking the section in view; the palette keeps `role="dialog"` + `aria-modal` with full keyboard support.
-- Mobile sidebar opens via a labeled hamburger and traps body scroll while open; `Esc` and backdrop-click close it.
+- Mobile sidebar opens via a labelled hamburger and traps body scroll while open; `Esc` and backdrop-click close it.
 - `prefers-reduced-motion` disables the LIVE pulse, reveal animations and palette enter animation.
 - **Progressive enhancement:** scroll-reveal is hidden only when JS is available (an inline script sets `html.js`; the CSS hides `.reveal` exclusively under `.js`). With JS off, all content renders fully — nothing depends on the observer firing.
 - **Cache-busting:** each CSS/JS include carries a `?v=<content-hash>` query, stamped automatically by `make` (`scripts/stamp-assets.py`). Editing an asset changes its hash, so returning visitors always get the new version despite the long asset cache in `.htaccess` — no manual version bumps.
