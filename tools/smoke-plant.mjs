@@ -162,12 +162,21 @@ try {
     const walk = async () => {
       await page.locator("#plant-tour-btn").click();
       const seen = [];
+      const note = async () => {
+        const count = await text(page, "[data-tour-count]");
+        if (count) seen.push(count);
+      };
+      // Read the step before the fake clock moves. Step 2 auto-advances when
+      // TI-310 crosses 79 °C, and the lagged temperature can get there inside
+      // one 1500 ms jump — sampling only afterwards then drops "2 / 7".
+      await note();
       for (let i = 0; i < 20; i++) {
         await page.clock.runFor(1500);
-        seen.push(await text(page, "[data-tour-count]"));
+        await note();
         if (await page.locator('[data-tour="keep"]').count()) break;
         if (await page.locator('[data-tour="auto"]').count()) await page.locator('[data-tour="auto"]').click();
         else if (await page.locator('[data-tour="next"]:not([disabled])').count()) await page.locator('[data-tour="next"]').click();
+        await note();
       }
       return seen;
     };

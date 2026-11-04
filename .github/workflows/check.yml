@@ -45,10 +45,13 @@ jobs:
           node-version: "20"
 
       # No package.json on purpose (the site has no build step): install the
-      # test runner for this job only.
+      # test runner for this job only. 1.56.1 has no Chromium build for
+      # ubuntu26.04-x64, and ubuntu-latest moved to that image (support for
+      # it landed in Playwright 1.61). Pin the current 1.64.1 release, which
+      # still runs on this job's Node 20.
       - name: Install Playwright + Chromium
         run: |
-          npm install --no-save playwright@1.56.1
+          npm install --no-save playwright@1.64.1
           npx playwright install --with-deps chromium
 
       # Every drawing, a fault → recovery cycle, a setpoint write, and the
